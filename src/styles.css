@@ -52,43 +52,43 @@
 :root {
   --radius: 0.875rem;
 
-  /* Bold & Modern: ink, lime, off-white, orange */
-  --background: oklch(0.98 0.005 90);
-  --foreground: oklch(0.18 0.02 260);
+  /* Health-conscious: whites, charcoal, greens */
+  --background: oklch(0.99 0.004 150);
+  --foreground: oklch(0.24 0.02 240);          /* charcoal */
   --surface: oklch(1 0 0);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 260);
+  --card-foreground: oklch(0.24 0.02 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 260);
+  --popover-foreground: oklch(0.24 0.02 240);
 
-  --primary: oklch(0.18 0.02 260);            /* ink #111827 */
-  --primary-foreground: oklch(0.98 0.005 90);
+  --primary: oklch(0.48 0.13 155);             /* deep green */
+  --primary-foreground: oklch(0.99 0.004 150);
 
-  --secondary: oklch(0.95 0.01 90);
-  --secondary-foreground: oklch(0.18 0.02 260);
+  --secondary: oklch(0.96 0.02 150);
+  --secondary-foreground: oklch(0.24 0.02 240);
 
-  --muted: oklch(0.95 0.008 80);
-  --muted-foreground: oklch(0.45 0.015 260);
+  --muted: oklch(0.96 0.012 150);
+  --muted-foreground: oklch(0.48 0.02 240);
 
-  --accent: oklch(0.83 0.21 130);              /* lime #84CC16 */
-  --accent-foreground: oklch(0.18 0.02 260);
+  --accent: oklch(0.78 0.17 145);              /* fresh leaf green */
+  --accent-foreground: oklch(0.22 0.04 155);
 
-  --success: oklch(0.74 0.18 140);
-  --success-foreground: oklch(0.18 0.02 260);
+  --success: oklch(0.66 0.17 150);
+  --success-foreground: oklch(1 0 0);
 
-  --warning: oklch(0.76 0.18 55);              /* orange #F97316 */
-  --warning-foreground: oklch(0.18 0.02 260);
+  --warning: oklch(0.78 0.16 70);              /* amber */
+  --warning-foreground: oklch(0.24 0.02 240);
 
-  --danger: oklch(0.62 0.24 27);
-  --danger-foreground: oklch(0.98 0.005 90);
+  --danger: oklch(0.6 0.22 25);
+  --danger-foreground: oklch(0.99 0.004 150);
 
-  --destructive: oklch(0.62 0.24 27);
-  --destructive-foreground: oklch(0.98 0.005 90);
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.99 0.004 150);
 
-  --border: oklch(0.9 0.01 90);
-  --input: oklch(0.92 0.008 90);
-  --ring: oklch(0.83 0.21 130);
+  --border: oklch(0.92 0.015 150);
+  --input: oklch(0.94 0.012 150);
+  --ring: oklch(0.48 0.13 155);
 }
 
 .dark {
