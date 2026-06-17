@@ -38,20 +38,28 @@ function HistoryPage() {
           </Card>
         )}
         {data?.map((s) => (
-          <Card key={s.id} className="flex items-start gap-3 p-4">
-            <span className={`mt-1.5 inline-block h-2.5 w-2.5 shrink-0 rounded-full ${RATING_DOT[s.rating ?? "okay"] ?? "bg-muted"}`} />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div className="font-display text-base font-semibold">{s.product_name ?? "Untitled product"}</div>
-                <div className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString()}</div>
+          <Link
+            key={s.id}
+            to="/history/$id"
+            params={{ id: s.id }}
+            className="block"
+          >
+            <Card className="flex items-start gap-3 p-4 transition-colors hover:bg-muted/50">
+              <span className={`mt-1.5 inline-block h-2.5 w-2.5 shrink-0 rounded-full ${RATING_DOT[s.rating ?? "okay"] ?? "bg-muted"}`} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div className="font-display text-base font-semibold">{s.product_name ?? "Untitled product"}</div>
+                  <div className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString()}</div>
+                </div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {s.scan_type} · {s.rating}
+                </div>
+                {s.summary && <p className="mt-1 line-clamp-2 text-sm">{s.summary}</p>}
               </div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                {s.scan_type} · {s.rating}
-              </div>
-              {s.summary && <p className="mt-1 line-clamp-2 text-sm">{s.summary}</p>}
-            </div>
-          </Card>
+            </Card>
+          </Link>
         ))}
+
       </div>
     </main>
   );
