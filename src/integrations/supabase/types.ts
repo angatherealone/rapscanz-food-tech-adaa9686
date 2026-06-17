@@ -14,7 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_subscribed: boolean
+          scan_count: number
+          subscription_expires_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          is_subscribed?: boolean
+          scan_count?: number
+          subscription_expires_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_subscribed?: boolean
+          scan_count?: number
+          subscription_expires_at?: string | null
+        }
+        Relationships: []
+      }
+      scans: {
+        Row: {
+          advantages: Json | null
+          cautions: Json | null
+          created_at: string
+          disadvantages: Json | null
+          id: string
+          input_text: string | null
+          product_name: string | null
+          rating: string | null
+          result: Json | null
+          scan_type: string
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          advantages?: Json | null
+          cautions?: Json | null
+          created_at?: string
+          disadvantages?: Json | null
+          id?: string
+          input_text?: string | null
+          product_name?: string | null
+          rating?: string | null
+          result?: Json | null
+          scan_type?: string
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          advantages?: Json | null
+          cautions?: Json | null
+          created_at?: string
+          disadvantages?: Json | null
+          id?: string
+          input_text?: string | null
+          product_name?: string | null
+          rating?: string | null
+          result?: Json | null
+          scan_type?: string
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
