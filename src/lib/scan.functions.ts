@@ -14,6 +14,7 @@ const ScanInput = z.object({
 export type ScanResult = {
   productName: string;
   rating: "good" | "okay" | "caution" | "avoid";
+  healthScore: number; // 0-100, higher = healthier
   summary: string;
   advantages: string[];
   disadvantages: string[];
@@ -44,7 +45,7 @@ export const listScans = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("scans")
-      .select("id, product_name, scan_type, rating, summary, created_at")
+      .select("id, product_name, scan_type, rating, health_score, summary, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
@@ -116,6 +117,7 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
   return {
     productName: parsed.productName ?? "Unknown product",
     rating: (parsed.rating ?? "okay") as ScanResult["rating"],
+    healthScore: Math.max(0, Math.min(100, Math.round(Number(parsed.healthScore ?? 50)))),
     summary: parsed.summary ?? "",
     advantages: Array.isArray(parsed.advantages) ? parsed.advantages : [],
     disadvantages: Array.isArray(parsed.disadvantages) ? parsed.disadvantages : [],
@@ -128,7 +130,8 @@ Given the ingredients of a packaged food product (or a barcode lookup result), r
 {
   "productName": string,
   "rating": "good" | "okay" | "caution" | "avoid",
-  "summary": string (1-2 sentences, plain English),
+  "healthScore": number (integer 0-100, where 100 = excellent for regular consumption, 70-89 = generally healthy, 40-69 = okay in moderation, 20-39 = unhealthy / occasional only, 0-19 = avoid. Penalize ultra-processing, high sugar/sodium/saturated fat, trans fats, artificial additives, controversial E-numbers. Reward whole ingredients, fiber, protein, healthy fats, minimal additives.),
+  "summary": string (1-2 sentences, plain English, mention what happens if eaten regularly),
   "advantages": string[] (3-6 short bullets, focus on real nutritional positives),
   "disadvantages": string[] (3-6 short bullets, focus on negatives like sugar, sodium, saturated fat, ultra-processing),
   "cautions": [ { "ingredient": string, "concern": string, "severity": "low"|"medium"|"high" } ]
@@ -200,6 +203,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
       scan_type: data.scanType,
       input_text: data.scanType === "barcode" ? data.barcode : (data.text ?? null),
       rating: result.rating,
+      health_score: result.healthScore,
       summary: result.summary,
       advantages: result.advantages,
       disadvantages: result.disadvantages,

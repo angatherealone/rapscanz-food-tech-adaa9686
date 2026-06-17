@@ -47,6 +47,7 @@ export type Database = {
           cautions: Json | null
           created_at: string
           disadvantages: Json | null
+          health_score: number | null
           id: string
           input_text: string | null
           product_name: string | null
@@ -61,6 +62,7 @@ export type Database = {
           cautions?: Json | null
           created_at?: string
           disadvantages?: Json | null
+          health_score?: number | null
           id?: string
           input_text?: string | null
           product_name?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           cautions?: Json | null
           created_at?: string
           disadvantages?: Json | null
+          health_score?: number | null
           id?: string
           input_text?: string | null
           product_name?: string | null

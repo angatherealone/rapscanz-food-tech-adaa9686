@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X } from "lucide-react";
+import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({ meta: [{ title: "Scan a product — RAPscanz" }] }),
@@ -179,10 +180,15 @@ function ScanPage() {
         <div className="mt-8 space-y-5">
           <Card className="overflow-hidden p-0">
             <div className={`px-6 py-4 ${RATING_STYLES[result.rating]?.bg ?? "bg-muted"}`}>
-              <div className="text-xs font-semibold uppercase tracking-wider opacity-80">
-                {RATING_STYLES[result.rating]?.label ?? result.rating}
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold uppercase tracking-wider opacity-80">
+                    {RATING_STYLES[result.rating]?.label ?? result.rating}
+                  </div>
+                  <div className="font-display text-2xl font-bold">{result.productName}</div>
+                </div>
+                <HealthScore score={result.healthScore} />
               </div>
-              <div className="font-display text-2xl font-bold">{result.productName}</div>
             </div>
             <div className="p-6">
               <p className="text-base">{result.summary}</p>

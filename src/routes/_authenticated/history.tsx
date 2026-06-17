@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listScans } from "@/lib/scan.functions";
 import { Card } from "@/components/ui/card";
 import { ScanLine } from "lucide-react";
+import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "Scan history — RAPscanz" }] }),
@@ -56,6 +57,9 @@ function HistoryPage() {
                 </div>
                 {s.summary && <p className="mt-1 line-clamp-2 text-sm">{s.summary}</p>}
               </div>
+              {typeof s.health_score === "number" && (
+                <HealthScore score={s.health_score} size="sm" />
+              )}
             </Card>
           </Link>
         ))}
