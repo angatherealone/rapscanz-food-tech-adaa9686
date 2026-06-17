@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X } from "lucide-react";
+import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({ meta: [{ title: "Scan a product — RAPscanz" }] }),
