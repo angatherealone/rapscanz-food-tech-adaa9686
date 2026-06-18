@@ -121,11 +121,11 @@ function Landing() {
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-3xl border border-border bg-card p-8">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-3xl border border-border bg-card p-6">
               <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-bold">₹0</span>
+                <span className="font-display text-4xl font-bold">₹0</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 {["30 scans total", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
@@ -137,27 +137,27 @@ function Landing() {
               </Link>
             </div>
 
-            <div className="rounded-3xl border-2 border-primary bg-card p-8 shadow-[8px_8px_0_0_var(--primary)]">
+            <div className="rounded-3xl border border-border bg-card p-6">
               <div className="text-sm font-semibold uppercase tracking-wider text-primary">Pro</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-bold">₹200</span>
-                <span className="text-muted-foreground">/month</span>
+                <span className="font-display text-4xl font-bold">₹200</span>
+                <span className="text-muted-foreground">/mo</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 {["60 scans per month", "Estimated % of each chemical", "Everything in Free"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
-              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 font-semibold text-primary-foreground hover:opacity-90">
+              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Go Pro
               </Link>
             </div>
 
-            <div className="rounded-3xl border border-border bg-card p-8">
+            <div className="rounded-3xl border border-border bg-card p-6">
               <div className="text-sm font-semibold uppercase tracking-wider text-accent-foreground">Pro+</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-bold">₹500</span>
-                <span className="text-muted-foreground">/month</span>
+                <span className="font-display text-4xl font-bold">₹500</span>
+                <span className="text-muted-foreground">/mo</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 {["120 scans per month", "% of each chemical", "What each chemical can cause", "Everything in Pro"].map((f) => (
@@ -166,6 +166,30 @@ function Landing() {
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Go Pro+
+              </Link>
+            </div>
+
+            <div className="relative rounded-3xl border-2 border-primary bg-card p-6 shadow-[8px_8px_0_0_var(--primary)]">
+              <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                Most powerful
+              </span>
+              <div className="text-sm font-semibold uppercase tracking-wider text-primary">Pro Max</div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display text-4xl font-bold">₹1200</span>
+                <span className="text-muted-foreground">/mo</span>
+              </div>
+              <ul className="mt-6 space-y-3 text-sm">
+                {[
+                  "240 scans per month",
+                  "3D body-damage visualisation",
+                  "See which organs the product harms",
+                  "Everything in Pro+",
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> {f}</li>
+                ))}
+              </ul>
+              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 font-semibold text-primary-foreground hover:opacity-90">
+                Go Pro Max
               </Link>
             </div>
           </div>

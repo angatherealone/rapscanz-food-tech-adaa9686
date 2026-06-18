@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart } from "lucide-react";
+import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
+import { BodyDamageMap } from "@/components/BodyDamageMap";
 
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
@@ -132,8 +133,9 @@ function ScanPage() {
             <div>
               <div className="font-display text-lg font-semibold">You've used all your scans</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 60 scans)</strong> or{" "}
-                <strong className="text-foreground">Pro+ (₹500/mo · 120 scans)</strong> to keep scanning.
+                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 60)</strong>,{" "}
+                <strong className="text-foreground">Pro+ (₹500/mo · 120)</strong> or{" "}
+                <strong className="text-foreground">Pro Max (₹1200/mo · 240 + 3D body-damage map)</strong> to keep scanning.
                 Payments will be enabled soon — we'll let you know.
               </p>
             </div>
@@ -289,6 +291,19 @@ function ScanPage() {
               <p className="text-sm text-muted-foreground">No flagged chemicals. 🎉</p>
             )}
           </Card>
+
+          {result.bodyDamage && result.bodyDamage.length > 0 && (
+            <Card className="p-5">
+              <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                <PersonStanding className="h-5 w-5 text-primary" /> Body-damage map
+                <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+              </div>
+              <p className="mb-4 text-sm text-muted-foreground">
+                If consumed too often, this product may stress the highlighted areas.
+              </p>
+              <BodyDamageMap items={result.bodyDamage} />
+            </Card>
+          )}
         </div>
       )}
     </main>

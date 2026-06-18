@@ -8,9 +8,11 @@ const PLAN_LABELS: Record<string, string> = {
   free: "Free",
   pro: "Pro",
   pro_plus: "Pro+",
+  pro_max: "Pro Max",
 };
 
 function planLimit(plan: string | null | undefined): number {
+  if (plan === "pro_max") return 240;
   if (plan === "pro_plus") return 120;
   if (plan === "pro") return 60;
   return FREE_LIMIT;
@@ -33,6 +35,7 @@ export type ScanResult = {
   disadvantages: string[];
   cautions: { ingredient: string; concern: string; severity: "low" | "medium" | "high" }[];
   personalAdvice?: string;
+  bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
 };
 
 export const getProfile = createServerFn({ method: "GET" })
@@ -41,15 +44,15 @@ export const getProfile = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("profiles")
-      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, plan, plan_expires_at")
+      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
       console.error("getProfile error", error);
       throw new Error("Unable to load your profile. Please try again.");
     }
-    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, plan: "free", plan_expires_at: null };
-    const effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
+    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null };
+    const effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus" || profile.plan === "pro_max") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
       ? "free"
       : (profile.plan ?? "free");
     const limit = planLimit(effectivePlan);
@@ -203,6 +206,7 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
     disadvantages: Array.isArray(parsed.disadvantages) ? parsed.disadvantages : [],
     cautions: Array.isArray(parsed.cautions) ? parsed.cautions : [],
     personalAdvice: typeof parsed.personalAdvice === "string" ? parsed.personalAdvice : undefined,
+    bodyDamage: Array.isArray(parsed.bodyDamage) ? parsed.bodyDamage : undefined,
   };
 }
 
@@ -217,12 +221,13 @@ Given the ingredients of a packaged food product (or a barcode lookup result), r
   "advantages": string[] (3-6 short bullets),
   "disadvantages": string[] (3-6 short bullets),
   "cautions": [ { "ingredient": string, "concern": string, "severity": "low"|"medium"|"high" } ],
-  "personalAdvice": string (1-2 sentences specific to the user's health profile if one is provided — flag allergens they listed, warn if it conflicts with their conditions like diabetes/hypertension/PCOS, reference their BMI if relevant. Omit or leave empty if no profile was provided.)
+  "personalAdvice": string (1-2 sentences specific to the user's health profile if one is provided — flag allergens they listed, warn if it conflicts with their conditions like diabetes/hypertension/PCOS, reference their BMI/gender if relevant. Omit or leave empty if no profile was provided.)
 }
 Be specific and accurate. Do NOT include medical advice beyond gentle dietary notes. Do NOT add any text outside JSON.`;
 
-function buildHealthContext(p: { weight_kg?: number | null; height_cm?: number | null; illnesses?: string | null; allergies?: string | null }) {
+function buildHealthContext(p: { weight_kg?: number | null; height_cm?: number | null; illnesses?: string | null; allergies?: string | null; gender?: string | null }) {
   const bits: string[] = [];
+  if (p.gender) bits.push(`gender: ${p.gender}`);
   if (p.weight_kg) bits.push(`weight: ${p.weight_kg} kg`);
   if (p.height_cm) bits.push(`height: ${p.height_cm} cm`);
   if (p.weight_kg && p.height_cm) {
@@ -254,7 +259,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     if (quotaErr) {
       if ((quotaErr.message || "").includes("quota_exceeded")) {
-        throw new Error(`You've used all your scans for this cycle. Upgrade to Pro (₹200/mo · 60 scans) or Pro+ (₹500/mo · 120 scans) to keep scanning.`);
+        throw new Error(`You've used all your scans for this cycle. Upgrade to Pro (₹200/mo · 60), Pro+ (₹500/mo · 120) or Pro Max (₹1200/mo · 240 + 3D body-damage map) to keep scanning.`);
       }
       console.error("consume_scan_quota error", quotaErr);
       throw new Error("Unable to start scan. Please try again.");
@@ -262,22 +267,23 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     const newCount = quota?.new_count ?? 0;
     const scanLimit = quota?.scan_limit ?? FREE_LIMIT;
-    const plan = (quota?.plan ?? "free") as "free" | "pro" | "pro_plus";
+    const plan = (quota?.plan ?? "free") as "free" | "pro" | "pro_plus" | "pro_max";
 
-    // Pull health profile (optional) for personalised advice
     const { data: hp } = await supabase
       .from("profiles")
-      .select("weight_kg, height_cm, illnesses, allergies")
+      .select("weight_kg, height_cm, illnesses, allergies, gender")
       .eq("id", userId)
       .maybeSingle();
     const healthContext = hp ? buildHealthContext(hp) : "";
 
     const planInstructions =
-      plan === "pro_plus"
-        ? `\n\nPRO+ TIER: For EACH item in "cautions", set "concern" to start with the estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then a brief description of the specific health effects it can cause (organs/systems affected, symptoms, conditions linked to it).`
-        : plan === "pro"
-          ? `\n\nPRO TIER: For EACH item in "cautions", begin "concern" with an estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then the concern.`
-          : "";
+      plan === "pro_max"
+        ? `\n\nPRO MAX TIER: (1) For EACH item in "cautions", begin "concern" with the estimated percentage of that chemical/additive (e.g. "~0.3% — ..."), then describe the specific health effects. (2) ALSO return an additional field "bodyDamage": an array of objects { "part": string, "severity": "low"|"medium"|"high", "reason": string } listing human body parts/organs that can be harmed by consuming THIS product too often. Use part names from this list only: brain, eyes, teeth, throat, heart, lungs, liver, stomach, pancreas, kidneys, intestines, skin, bones. Severity reflects typical damage risk at high consumption. Reason is one short sentence specific to ingredients in this product.`
+        : plan === "pro_plus"
+          ? `\n\nPRO+ TIER: For EACH item in "cautions", set "concern" to start with the estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then a brief description of the specific health effects it can cause (organs/systems affected, symptoms, conditions linked to it).`
+          : plan === "pro"
+            ? `\n\nPRO TIER: For EACH item in "cautions", begin "concern" with an estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then the concern.`
+            : "";
 
     let userContent: any;
     let knownProductName: string | undefined;

@@ -16,13 +16,14 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 type Form = {
   username: string;
+  gender: string;
   weight_kg: string;
   height_cm: string;
   illnesses: string;
   allergies: string;
 };
 
-const empty: Form = { username: "", weight_kg: "", height_cm: "", illnesses: "", allergies: "" };
+const empty: Form = { username: "", gender: "", weight_kg: "", height_cm: "", illnesses: "", allergies: "" };
 
 function bmi(w: string, h: string) {
   const wn = Number(w), hn = Number(h);
@@ -42,15 +43,17 @@ function ProfilePage() {
       if (!u.user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("username, weight_kg, height_cm, illnesses, allergies")
+        .select("username, weight_kg, height_cm, illnesses, allergies, gender")
         .eq("id", u.user.id)
         .maybeSingle();
+      const d = (data ?? {}) as any;
       setForm({
-        username: data?.username ?? "",
-        weight_kg: data?.weight_kg?.toString() ?? "",
-        height_cm: data?.height_cm?.toString() ?? "",
-        illnesses: data?.illnesses ?? "",
-        allergies: data?.allergies ?? "",
+        username: d.username ?? "",
+        gender: d.gender ?? "",
+        weight_kg: d.weight_kg?.toString() ?? "",
+        height_cm: d.height_cm?.toString() ?? "",
+        illnesses: d.illnesses ?? "",
+        allergies: d.allergies ?? "",
       });
       setLoading(false);
     })();
@@ -76,11 +79,12 @@ function ProfilePage() {
     if (!u.user) { setSaving(false); return; }
     const { error } = await supabase.from("profiles").update({
       username: form.username || null,
+      gender: form.gender || null,
       weight_kg: w,
       height_cm: h,
       illnesses: form.illnesses.slice(0, 500) || null,
       allergies: form.allergies.slice(0, 500) || null,
-    }).eq("id", u.user.id);
+    } as any).eq("id", u.user.id);
     setSaving(false);
     if (error) {
       if (error.code === "23505") toast.error("That username is taken.");
@@ -132,6 +136,23 @@ function ProfilePage() {
             Optional but recommended — we use this to personalise the advice on each scan.
             Stored privately; never shown on the leaderboard.
           </p>
+
+          <div className="mb-4">
+            <label htmlFor="gender" className="text-sm font-medium">Gender</label>
+            <select
+              id="gender"
+              value={form.gender}
+              onChange={(e) => set("gender", e.target.value)}
+              disabled={loading}
+              className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="non_binary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
