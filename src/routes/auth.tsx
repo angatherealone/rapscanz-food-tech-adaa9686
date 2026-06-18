@@ -8,7 +8,16 @@ import { ScanLine } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Sign in — RAPscanz" }, { name: "description", content: "Sign in or create your free RAPscanz account." }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in — RAPscanz" },
+      { name: "description", content: "Sign in or create your free RAPscanz account to scan food labels and reveal what's really inside." },
+      { property: "og:title", content: "Sign in to RAPscanz" },
+      { property: "og:description", content: "Create a free account to start scanning food packets and learn what's actually in them." },
+      { name: "twitter:title", content: "Sign in to RAPscanz" },
+      { name: "twitter:description", content: "Create a free account to start scanning food packets and learn what's actually in them." },
+    ],
+  }),
   component: AuthPage,
 });
 
