@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://healthy-food-scan.lovable.app/sitemap.xml
