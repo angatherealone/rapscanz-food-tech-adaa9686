@@ -137,6 +137,23 @@ function ProfilePage() {
             Stored privately; never shown on the leaderboard.
           </p>
 
+          <div className="mb-4">
+            <label htmlFor="gender" className="text-sm font-medium">Gender</label>
+            <select
+              id="gender"
+              value={form.gender}
+              onChange={(e) => set("gender", e.target.value)}
+              disabled={loading}
+              className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="non_binary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="weight_kg" className="text-sm font-medium">Weight (kg)</label>
