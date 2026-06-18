@@ -56,6 +56,7 @@ function Landing() {
             RAPscanz
           </Link>
           <nav className="flex items-center gap-2">
+            <Link to="/leaderboard" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted">Leaderboard</Link>
             <Link to="/auth" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted">Sign in</Link>
             <Link to="/auth" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
               Start scanning
