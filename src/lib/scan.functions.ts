@@ -331,7 +331,9 @@ export const analyzeScan = createServerFn({ method: "POST" })
     return {
       result,
       scanId: inserted?.id ?? null,
-      remaining: subscribed ? null : Math.max(0, FREE_LIMIT - newCount),
-      subscribed,
+      remaining: Math.max(0, scanLimit - newCount),
+      scanLimit,
+      plan,
+      planLabel: PLAN_LABELS[plan] ?? "Free",
     };
   });
