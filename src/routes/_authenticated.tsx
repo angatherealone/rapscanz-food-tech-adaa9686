@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ScanLine, History, LogOut, Trophy, User } from "lucide-react";
+import { ScanLine, History, LogOut, Trophy, User, Flame } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -45,6 +45,9 @@ function AuthenticatedLayout() {
             </Link>
             <Link to="/history" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
               <History className="inline h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">History</span>
+            </Link>
+            <Link to="/weekly" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
+              <Flame className="inline h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Weekly</span>
             </Link>
             <Link to="/leaderboard" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
               <Trophy className="inline h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Leaderboard</span>
