@@ -54,6 +54,7 @@ export type Database = {
           allergies: string | null
           created_at: string
           email: string | null
+          gender: string | null
           height_cm: number | null
           id: string
           illnesses: string | null
@@ -69,6 +70,7 @@ export type Database = {
           allergies?: string | null
           created_at?: string
           email?: string | null
+          gender?: string | null
           height_cm?: number | null
           id: string
           illnesses?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           allergies?: string | null
           created_at?: string
           email?: string | null
+          gender?: string | null
           height_cm?: number | null
           id?: string
           illnesses?: string | null
