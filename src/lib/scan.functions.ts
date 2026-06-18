@@ -41,18 +41,25 @@ export const getProfile = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("profiles")
-      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies")
+      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, plan, plan_expires_at")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
       console.error("getProfile error", error);
       throw new Error("Unable to load your profile. Please try again.");
     }
-    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null };
+    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, plan: "free", plan_expires_at: null };
+    const effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
+      ? "free"
+      : (profile.plan ?? "free");
+    const limit = planLimit(effectivePlan);
     return {
       ...profile,
+      plan: effectivePlan,
+      planLabel: PLAN_LABELS[effectivePlan] ?? "Free",
+      scanLimit: limit,
       freeLimit: FREE_LIMIT,
-      remaining: Math.max(0, FREE_LIMIT - (profile.scan_count ?? 0)),
+      remaining: Math.max(0, limit - (profile.scan_count ?? 0)),
     };
   });
 
