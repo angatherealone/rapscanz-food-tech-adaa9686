@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      payments: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          currency: string
+          id: string
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paise: number
+          created_at?: string
+          currency?: string
+          id?: string
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -22,6 +55,7 @@ export type Database = {
           is_subscribed: boolean
           scan_count: number
           subscription_expires_at: string | null
+          username: string | null
         }
         Insert: {
           created_at?: string
@@ -30,6 +64,7 @@ export type Database = {
           is_subscribed?: boolean
           scan_count?: number
           subscription_expires_at?: string | null
+          username?: string | null
         }
         Update: {
           created_at?: string
@@ -38,6 +73,7 @@ export type Database = {
           is_subscribed?: boolean
           scan_count?: number
           subscription_expires_at?: string | null
+          username?: string | null
         }
         Relationships: []
       }
@@ -100,6 +136,18 @@ export type Database = {
           new_count: number
           subscribed: boolean
         }[]
+      }
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          avg_score: number
+          scan_count: number
+          username: string
+        }[]
+      }
+      grant_subscription: {
+        Args: { _days: number; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
