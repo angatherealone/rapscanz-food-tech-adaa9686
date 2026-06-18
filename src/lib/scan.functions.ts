@@ -155,30 +155,37 @@ export const analyzeScan = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
 
-    // Check quota
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("scan_count, is_subscribed, subscription_expires_at")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const count = profile?.scan_count ?? 0;
-    const subscribed = profile?.is_subscribed
-      && (!profile.subscription_expires_at || new Date(profile.subscription_expires_at) > new Date());
-
-    if (!subscribed && count >= FREE_LIMIT) {
-      throw new Error(`You've used all ${FREE_LIMIT} free scans. Subscribe for ₹300/year to keep scanning.`);
+    // Validate we have something to analyze BEFORE consuming a quota slot
+    if (data.scanType === "barcode") {
+      if (!data.barcode) throw new Error("Barcode is required.");
+    } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
+      throw new Error("Please provide ingredients text, an image, or a barcode.");
     }
+
+    // Atomically check quota + increment scan_count in a single transaction.
+    // Prevents concurrent requests from bypassing the free-tier limit.
+    const { data: quota, error: quotaErr } = await supabase
+      .rpc("consume_scan_quota", { _free_limit: FREE_LIMIT })
+      .single();
+
+    if (quotaErr) {
+      if ((quotaErr.message || "").includes("quota_exceeded")) {
+        throw new Error(`You've used all ${FREE_LIMIT} free scans. Subscribe for ₹300/year to keep scanning.`);
+      }
+      console.error("consume_scan_quota error", quotaErr);
+      throw new Error("Unable to start scan. Please try again.");
+    }
+
+    const newCount = quota?.new_count ?? 0;
+    const subscribed = !!quota?.subscribed;
 
     // Build messages
     let userContent: any;
     let knownProductName: string | undefined;
 
     if (data.scanType === "barcode") {
-      if (!data.barcode) throw new Error("Barcode is required.");
-      const lookup = await lookupBarcode(data.barcode);
+      const lookup = await lookupBarcode(data.barcode!);
       if (!lookup || !lookup.ingredients) {
-        // Still let AI try with just the barcode
         userContent = `A user scanned barcode ${data.barcode}. ${lookup ? `Product name: ${lookup.name}. ` : ""}No ingredient list is available from the open database. Make a best-effort general assessment based on the product name if known, and clearly note in the summary that ingredient data was unavailable. Set rating to "okay" if unknown.`;
         knownProductName = lookup?.name;
       } else {
@@ -190,10 +197,8 @@ export const analyzeScan = createServerFn({ method: "POST" })
         { type: "text", text: "Read the ingredient list from this food label image and analyze the product." },
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
-    } else if (data.text && data.text.trim()) {
-      userContent = `Ingredients: ${data.text.trim()}\n\nAnalyze this product.`;
     } else {
-      throw new Error("Please provide ingredients text, an image, or a barcode.");
+      userContent = `Ingredients: ${data.text!.trim()}\n\nAnalyze this product.`;
     }
 
     const messages = [
@@ -206,8 +211,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
       result.productName = knownProductName;
     }
 
-    // Persist scan + increment count
-    await supabase.from("scans").insert({
+    const { error: insertErr } = await supabase.from("scans").insert({
       user_id: userId,
       product_name: result.productName,
       scan_type: data.scanType,
@@ -220,15 +224,13 @@ export const analyzeScan = createServerFn({ method: "POST" })
       cautions: result.cautions,
       result: result as any,
     });
-
-    await supabase
-      .from("profiles")
-      .update({ scan_count: count + 1 })
-      .eq("id", userId);
+    if (insertErr) {
+      console.error("scans insert error", insertErr);
+    }
 
     return {
       result,
-      remaining: subscribed ? null : Math.max(0, FREE_LIMIT - (count + 1)),
-      subscribed: !!subscribed,
+      remaining: subscribed ? null : Math.max(0, FREE_LIMIT - newCount),
+      subscribed,
     };
   });
