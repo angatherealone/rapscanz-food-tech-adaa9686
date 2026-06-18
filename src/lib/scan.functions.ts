@@ -249,19 +249,20 @@ export const analyzeScan = createServerFn({ method: "POST" })
     }
 
     const { data: quota, error: quotaErr } = await supabase
-      .rpc("consume_scan_quota", { _free_limit: FREE_LIMIT })
+      .rpc("consume_scan_quota")
       .single();
 
     if (quotaErr) {
       if ((quotaErr.message || "").includes("quota_exceeded")) {
-        throw new Error(`You've used all ${FREE_LIMIT} free scans. Subscribe for ₹300/year to keep scanning.`);
+        throw new Error(`You've used all your scans for this cycle. Upgrade to Pro (₹200/mo · 60 scans) or Pro+ (₹500/mo · 120 scans) to keep scanning.`);
       }
       console.error("consume_scan_quota error", quotaErr);
       throw new Error("Unable to start scan. Please try again.");
     }
 
     const newCount = quota?.new_count ?? 0;
-    const subscribed = !!quota?.subscribed;
+    const scanLimit = quota?.scan_limit ?? FREE_LIMIT;
+    const plan = (quota?.plan ?? "free") as "free" | "pro" | "pro_plus";
 
     // Pull health profile (optional) for personalised advice
     const { data: hp } = await supabase
@@ -271,25 +272,32 @@ export const analyzeScan = createServerFn({ method: "POST" })
       .maybeSingle();
     const healthContext = hp ? buildHealthContext(hp) : "";
 
+    const planInstructions =
+      plan === "pro_plus"
+        ? `\n\nPRO+ TIER: For EACH item in "cautions", set "concern" to start with the estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then a brief description of the specific health effects it can cause (organs/systems affected, symptoms, conditions linked to it).`
+        : plan === "pro"
+          ? `\n\nPRO TIER: For EACH item in "cautions", begin "concern" with an estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then the concern.`
+          : "";
+
     let userContent: any;
     let knownProductName: string | undefined;
 
     if (data.scanType === "barcode") {
       const lookup = await lookupBarcode(data.barcode!);
       if (!lookup || !lookup.ingredients) {
-        userContent = `A user scanned barcode ${data.barcode}. ${lookup ? `Product name: ${lookup.name}. ` : ""}No ingredient list is available from the open database. Make a best-effort general assessment and clearly note that ingredient data was unavailable. Set rating to "okay" if unknown.${healthContext}`;
+        userContent = `A user scanned barcode ${data.barcode}. ${lookup ? `Product name: ${lookup.name}. ` : ""}No ingredient list is available from the open database. Make a best-effort general assessment and clearly note that ingredient data was unavailable. Set rating to "okay" if unknown.${healthContext}${planInstructions}`;
         knownProductName = lookup?.name;
       } else {
-        userContent = `Product: ${lookup.name}\nBarcode: ${data.barcode}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}`;
+        userContent = `Product: ${lookup.name}\nBarcode: ${data.barcode}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       }
     } else if (data.imageDataUrl) {
       userContent = [
-        { type: "text", text: `Read the ingredient list from this food label image and analyze the product.${healthContext}` },
+        { type: "text", text: `Read the ingredient list from this food label image and analyze the product.${healthContext}${planInstructions}` },
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
     } else {
-      userContent = `Ingredients: ${data.text!.trim()}\n\nAnalyze this product.${healthContext}`;
+      userContent = `Ingredients: ${data.text!.trim()}\n\nAnalyze this product.${healthContext}${planInstructions}`;
     }
 
     const messages = [
