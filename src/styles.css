@@ -1,10 +1,10 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import "@fontsource/space-grotesk/400.css";
-@import "@fontsource/space-grotesk/500.css";
-@import "@fontsource/space-grotesk/600.css";
-@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/Baguet Script/400.css";
+@import "@fontsource/Baguet Script/500.css";
+@import "@fontsource/Baguet Script/600.css";
+@import "@fontsource/Baguet Script/700.css";
 @import "@fontsource/inter/400.css";
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
@@ -12,7 +12,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Baguet Script", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -54,7 +54,7 @@
 
   /* Health-conscious: whites, charcoal, greens */
   --background: oklch(0.99 0.004 150);
-  --foreground: oklch(0.24 0.02 240);          /* charcoal */
+  --foreground: oklch(0.24 0.02 240); /* charcoal */
   --surface: oklch(1 0 0);
 
   --card: oklch(1 0 0);
@@ -62,7 +62,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.24 0.02 240);
 
-  --primary: oklch(0.48 0.13 155);             /* deep green */
+  --primary: oklch(0.48 0.13 155); /* deep green */
   --primary-foreground: oklch(0.99 0.004 150);
 
   --secondary: oklch(0.96 0.02 150);
@@ -71,13 +71,13 @@
   --muted: oklch(0.96 0.012 150);
   --muted-foreground: oklch(0.48 0.02 240);
 
-  --accent: oklch(0.78 0.17 145);              /* fresh leaf green */
+  --accent: oklch(0.78 0.17 145); /* fresh leaf green */
   --accent-foreground: oklch(0.22 0.04 155);
 
   --success: oklch(0.66 0.17 150);
   --success-foreground: oklch(1 0 0);
 
-  --warning: oklch(0.78 0.16 70);              /* amber */
+  --warning: oklch(0.78 0.16 70); /* amber */
   --warning-foreground: oklch(0.24 0.02 240);
 
   --danger: oklch(0.6 0.22 25);
@@ -112,9 +112,22 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { background-color: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 }
 
 @utility ink-grid {
