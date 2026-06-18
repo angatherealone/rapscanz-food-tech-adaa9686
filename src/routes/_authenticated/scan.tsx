@@ -105,9 +105,10 @@ function ScanPage() {
     reader.readAsDataURL(file);
   }
 
-  const remaining = profile?.remaining ?? 30;
-  const subscribed = profile?.is_subscribed;
-  const outOfScans = !subscribed && remaining <= 0;
+  const scanLimit = (profile as any)?.scanLimit ?? 30;
+  const remaining = profile?.remaining ?? scanLimit;
+  const planLabel = (profile as any)?.planLabel ?? "Free";
+  const outOfScans = remaining <= 0;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -118,9 +119,9 @@ function ScanPage() {
             Find out what's actually in that packet.
           </p>
         </div>
-        <div className={`chip ${subscribed ? "bg-success text-success-foreground" : ""}`}>
+        <div className={`chip ${planLabel !== "Free" ? "bg-success text-success-foreground" : ""}`}>
           <Sparkles className="h-3 w-3" />
-          {subscribed ? "Pro · unlimited" : `${remaining} of 30 free scans left`}
+          {planLabel} · {remaining} of {scanLimit} scans left
         </div>
       </div>
 
@@ -129,9 +130,10 @@ function ScanPage() {
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-1 h-5 w-5 text-warning-foreground" />
             <div>
-              <div className="font-display text-lg font-semibold">You've used all 30 free scans</div>
+              <div className="font-display text-lg font-semibold">You've used all your scans</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Subscribe for <strong className="text-foreground">₹300/year</strong> to keep scanning.
+                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 60 scans)</strong> or{" "}
+                <strong className="text-foreground">Pro+ (₹500/mo · 120 scans)</strong> to keep scanning.
                 Payments will be enabled soon — we'll let you know.
               </p>
             </div>

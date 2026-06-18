@@ -4,7 +4,7 @@ import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucid
 const HOME_URL = "https://healthy-food-scan.lovable.app/";
 const HOME_TITLE = "RAPscanz — Know what's really in your food";
 const HOME_DESC =
-  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then ₹300/year.";
+  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then Pro ₹200/mo or Pro+ ₹500/mo.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,7 +70,7 @@ function Landing() {
           <div className="absolute inset-0 ink-grid opacity-40" aria-hidden />
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
             <div className="max-w-3xl">
-              <span className="chip"><Sparkles className="h-3 w-3" /> 30 free scans · then ₹300/year</span>
+              <span className="chip"><Sparkles className="h-3 w-3" /> 30 free scans · Pro from ₹200/mo</span>
               <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
                 Know what's <span className="bg-accent px-2 py-0.5">actually</span> in your food.
               </h1>
@@ -109,34 +109,63 @@ function Landing() {
         </section>
 
         <section className="mx-auto max-w-6xl px-6 py-20">
-          <div className="grid gap-8 md:grid-cols-2 md:items-center">
-            <div>
-              <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Honest pricing.</h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Try RAPscanz with <strong className="text-foreground">30 free scans</strong>. No card needed.
-                Hooked? Keep scanning for <strong className="text-foreground">₹300/year</strong> — that's less than ₹1 a day.
-              </p>
-              <p className="mt-4 text-sm">
-                <Link to="/guides/healthy-snacks" className="font-medium text-primary hover:underline">
-                  Read the guide: how to spot a genuinely healthy snack →
-                </Link>
-              </p>
-            </div>
-            <div className="rounded-3xl border-2 border-primary bg-card p-8 shadow-[8px_8px_0_0_var(--primary)]">
-              <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pro</div>
+          <div className="mb-10 max-w-2xl">
+            <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Honest pricing.</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Start with <strong className="text-foreground">30 free scans</strong>. Upgrade when you need more.
+            </p>
+            <p className="mt-3 text-sm">
+              <Link to="/guides/healthy-snacks" className="font-medium text-primary hover:underline">
+                Read the guide: how to spot a genuinely healthy snack →
+              </Link>
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-border bg-card p-8">
+              <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Free</div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-bold">₹300</span>
-                <span className="text-muted-foreground">/year</span>
+                <span className="font-display text-5xl font-bold">₹0</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["Unlimited scans", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-accent" /> {f}
-                  </li>
+                {["30 scans total", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
+                  <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
+                ))}
+              </ul>
+              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
+                Start free
+              </Link>
+            </div>
+
+            <div className="rounded-3xl border-2 border-primary bg-card p-8 shadow-[8px_8px_0_0_var(--primary)]">
+              <div className="text-sm font-semibold uppercase tracking-wider text-primary">Pro</div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display text-5xl font-bold">₹200</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <ul className="mt-6 space-y-3 text-sm">
+                {["60 scans per month", "Estimated % of each chemical", "Everything in Free"].map((f) => (
+                  <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 font-semibold text-primary-foreground hover:opacity-90">
-                Start with 30 free scans
+                Go Pro
+              </Link>
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-8">
+              <div className="text-sm font-semibold uppercase tracking-wider text-accent-foreground">Pro+</div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display text-5xl font-bold">₹500</span>
+                <span className="text-muted-foreground">/month</span>
+              </div>
+              <ul className="mt-6 space-y-3 text-sm">
+                {["120 scans per month", "% of each chemical", "What each chemical can cause", "Everything in Pro"].map((f) => (
+                  <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
+                ))}
+              </ul>
+              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
+                Go Pro+
               </Link>
             </div>
           </div>
