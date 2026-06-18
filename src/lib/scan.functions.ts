@@ -6,9 +6,9 @@ const FREE_LIMIT = 30;
 
 const ScanInput = z.object({
   scanType: z.enum(["ingredients", "barcode"]),
-  text: z.string().optional(),
-  barcode: z.string().optional(),
-  imageDataUrl: z.string().optional(),
+  text: z.string().max(10_000).optional(),
+  barcode: z.string().regex(/^[A-Za-z0-9\-]{1,32}$/).optional(),
+  imageDataUrl: z.string().max(7_500_000).optional(),
 });
 
 export type ScanResult = {
