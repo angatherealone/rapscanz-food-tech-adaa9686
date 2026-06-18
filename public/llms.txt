@@ -1,0 +1,13 @@
+# RAPscanz
+
+> RAPscanz scans the ingredient list or barcode of any packaged food and breaks it down into advantages, disadvantages, chemical cautions, and a 0–100 health score — in plain English.
+
+RAPscanz is a web app that helps people decide what to eat. Users paste an ingredient list, upload a photo of a food label, or scan a barcode. The app analyses the product with AI and returns: a health score, a one-sentence summary, the nutritional advantages and disadvantages, and a list of cautioned ingredients (preservatives, artificial colors, controversial E-numbers, etc.) with a severity rating.
+
+Pricing: 30 free scans, then ₹300 / year for unlimited scanning.
+
+## Pages
+
+- [Home](/): What RAPscanz does, how it works, and pricing.
+- [Healthy snacks guide](/guides/healthy-snacks): How to read a food label and pick a genuinely healthy snack.
+- [Sign in](/auth): Sign in or create a free account.

@@ -7,7 +7,16 @@ import { ScanLine } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/history")({
-  head: () => ({ meta: [{ title: "Scan history — RAPscanz" }] }),
+  head: () => ({
+    meta: [
+      { title: "Scan history — RAPscanz" },
+      { name: "description", content: "Review every food product you've scanned with RAPscanz, with health scores, ratings, and the original analysis on tap." },
+      { property: "og:title", content: "Your scan history — RAPscanz" },
+      { property: "og:description", content: "Browse your past RAPscanz analyses and revisit the verdict on every product." },
+      { name: "twitter:title", content: "Your scan history — RAPscanz" },
+      { name: "twitter:description", content: "Browse your past RAPscanz analyses and revisit the verdict on every product." },
+    ],
+  }),
   component: HistoryPage,
 });
 

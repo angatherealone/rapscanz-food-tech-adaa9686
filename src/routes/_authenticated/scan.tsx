@@ -13,7 +13,16 @@ import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkle
 import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/scan")({
-  head: () => ({ meta: [{ title: "Scan a product — RAPscanz" }] }),
+  head: () => ({
+    meta: [
+      { title: "Scan a product — RAPscanz" },
+      { name: "description", content: "Paste ingredients, upload a label photo, or scan a barcode to get an instant breakdown of advantages, disadvantages, and chemical cautions." },
+      { property: "og:title", content: "Scan a product — RAPscanz" },
+      { property: "og:description", content: "Get an instant health score, advantages, disadvantages, and chemical cautions for any packaged food." },
+      { name: "twitter:title", content: "Scan a product — RAPscanz" },
+      { name: "twitter:description", content: "Get an instant health score, advantages, disadvantages, and chemical cautions for any packaged food." },
+    ],
+  }),
   component: ScanPage,
 });
 

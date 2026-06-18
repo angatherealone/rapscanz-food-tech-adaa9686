@@ -7,7 +7,16 @@ import { AlertTriangle, ThumbsUp, ThumbsDown, ArrowLeft } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/history/$id")({
-  head: () => ({ meta: [{ title: "Scan details — RAPscanz" }] }),
+  head: () => ({
+    meta: [
+      { title: "Scan details — RAPscanz" },
+      { name: "description", content: "Full RAPscanz analysis for this product: health score, advantages, disadvantages, and chemical cautions with severity." },
+      { property: "og:title", content: "Scan details — RAPscanz" },
+      { property: "og:description", content: "See the full RAPscanz breakdown for this scanned product." },
+      { name: "twitter:title", content: "Scan details — RAPscanz" },
+      { name: "twitter:description", content: "See the full RAPscanz breakdown for this scanned product." },
+    ],
+  }),
   component: ScanDetailPage,
   errorComponent: () => (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -75,7 +84,7 @@ function ScanDetailPage() {
                 <div className="text-xs font-semibold uppercase tracking-wider opacity-80">
                   {RATING_STYLES[rating]?.label ?? rating}
                 </div>
-                <div className="font-display text-2xl font-bold">{scan.product_name ?? "Untitled product"}</div>
+                <h1 className="font-display text-2xl font-bold">{scan.product_name ?? "Untitled product"}</h1>
                 <div className="mt-1 text-xs opacity-80">
                   {scan.scan_type} · {new Date(scan.created_at).toLocaleString()}
                 </div>
