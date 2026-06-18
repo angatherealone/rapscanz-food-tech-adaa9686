@@ -84,7 +84,7 @@ function ScanDetailPage() {
                 <div className="text-xs font-semibold uppercase tracking-wider opacity-80">
                   {RATING_STYLES[rating]?.label ?? rating}
                 </div>
-                <div className="font-display text-2xl font-bold">{scan.product_name ?? "Untitled product"}</div>
+                <h1 className="font-display text-2xl font-bold">{scan.product_name ?? "Untitled product"}</h1>
                 <div className="mt-1 text-xs opacity-80">
                   {scan.scan_type} · {new Date(scan.created_at).toLocaleString()}
                 </div>
