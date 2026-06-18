@@ -94,7 +94,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_scan_quota: {
+        Args: { _free_limit: number }
+        Returns: {
+          new_count: number
+          subscribed: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
