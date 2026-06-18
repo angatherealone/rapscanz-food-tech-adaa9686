@@ -9,9 +9,9 @@ import { HealthScore } from "@/components/HealthScore";
 export const Route = createFileRoute("/_authenticated/history/$id")({
   head: () => ({ meta: [{ title: "Scan details — RAPscanz" }] }),
   component: ScanDetailPage,
-  errorComponent: ({ error }) => (
+  errorComponent: () => (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <p className="text-sm text-danger">Couldn't load this scan: {error.message}</p>
+      <p className="text-sm text-danger">We couldn't load this scan. Please try again.</p>
     </main>
   ),
   notFoundComponent: () => (

@@ -6,9 +6,9 @@ const FREE_LIMIT = 30;
 
 const ScanInput = z.object({
   scanType: z.enum(["ingredients", "barcode"]),
-  text: z.string().optional(),
-  barcode: z.string().optional(),
-  imageDataUrl: z.string().optional(),
+  text: z.string().max(10_000).optional(),
+  barcode: z.string().regex(/^[A-Za-z0-9\-]{1,32}$/).optional(),
+  imageDataUrl: z.string().max(7_500_000).optional(),
 });
 
 export type ScanResult = {
@@ -30,7 +30,10 @@ export const getProfile = createServerFn({ method: "GET" })
       .select("scan_count, is_subscribed, subscription_expires_at, email")
       .eq("id", userId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("getProfile error", error);
+      throw new Error("Unable to load your profile. Please try again.");
+    }
     const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null };
     return {
       ...profile,
@@ -49,13 +52,16 @@ export const listScans = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("listScans error", error);
+      throw new Error("Unable to load your scan history. Please try again.");
+    }
     return data ?? [];
   });
 
 export const getScan = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -64,7 +70,10 @@ export const getScan = createServerFn({ method: "GET" })
       .eq("id", data.id)
       .eq("user_id", userId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("getScan error", error);
+      throw new Error("Unable to load this scan. Please try again.");
+    }
     return row;
   });
 
@@ -101,11 +110,12 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
     }),
   });
 
-  if (res.status === 429) throw new Error("Rate limit reached. Try again in a moment.");
+  if (res.status === 429) throw new Error("Too many scans right now. Please try again in a moment.");
   if (res.status === 402) throw new Error("AI credits exhausted. Please contact the app owner.");
   if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`AI error: ${t.slice(0, 200)}`);
+    const t = await res.text().catch(() => "");
+    console.error("AI gateway error", res.status, t.slice(0, 500));
+    throw new Error("The analysis service is temporarily unavailable. Please try again.");
   }
   const data = await res.json() as any;
   const content = data?.choices?.[0]?.message?.content ?? "{}";
@@ -145,30 +155,37 @@ export const analyzeScan = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
 
-    // Check quota
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("scan_count, is_subscribed, subscription_expires_at")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const count = profile?.scan_count ?? 0;
-    const subscribed = profile?.is_subscribed
-      && (!profile.subscription_expires_at || new Date(profile.subscription_expires_at) > new Date());
-
-    if (!subscribed && count >= FREE_LIMIT) {
-      throw new Error(`You've used all ${FREE_LIMIT} free scans. Subscribe for ₹300/year to keep scanning.`);
+    // Validate we have something to analyze BEFORE consuming a quota slot
+    if (data.scanType === "barcode") {
+      if (!data.barcode) throw new Error("Barcode is required.");
+    } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
+      throw new Error("Please provide ingredients text, an image, or a barcode.");
     }
+
+    // Atomically check quota + increment scan_count in a single transaction.
+    // Prevents concurrent requests from bypassing the free-tier limit.
+    const { data: quota, error: quotaErr } = await supabase
+      .rpc("consume_scan_quota", { _free_limit: FREE_LIMIT })
+      .single();
+
+    if (quotaErr) {
+      if ((quotaErr.message || "").includes("quota_exceeded")) {
+        throw new Error(`You've used all ${FREE_LIMIT} free scans. Subscribe for ₹300/year to keep scanning.`);
+      }
+      console.error("consume_scan_quota error", quotaErr);
+      throw new Error("Unable to start scan. Please try again.");
+    }
+
+    const newCount = quota?.new_count ?? 0;
+    const subscribed = !!quota?.subscribed;
 
     // Build messages
     let userContent: any;
     let knownProductName: string | undefined;
 
     if (data.scanType === "barcode") {
-      if (!data.barcode) throw new Error("Barcode is required.");
-      const lookup = await lookupBarcode(data.barcode);
+      const lookup = await lookupBarcode(data.barcode!);
       if (!lookup || !lookup.ingredients) {
-        // Still let AI try with just the barcode
         userContent = `A user scanned barcode ${data.barcode}. ${lookup ? `Product name: ${lookup.name}. ` : ""}No ingredient list is available from the open database. Make a best-effort general assessment based on the product name if known, and clearly note in the summary that ingredient data was unavailable. Set rating to "okay" if unknown.`;
         knownProductName = lookup?.name;
       } else {
@@ -180,10 +197,8 @@ export const analyzeScan = createServerFn({ method: "POST" })
         { type: "text", text: "Read the ingredient list from this food label image and analyze the product." },
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
-    } else if (data.text && data.text.trim()) {
-      userContent = `Ingredients: ${data.text.trim()}\n\nAnalyze this product.`;
     } else {
-      throw new Error("Please provide ingredients text, an image, or a barcode.");
+      userContent = `Ingredients: ${data.text!.trim()}\n\nAnalyze this product.`;
     }
 
     const messages = [
@@ -196,8 +211,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
       result.productName = knownProductName;
     }
 
-    // Persist scan + increment count
-    await supabase.from("scans").insert({
+    const { error: insertErr } = await supabase.from("scans").insert({
       user_id: userId,
       product_name: result.productName,
       scan_type: data.scanType,
@@ -210,15 +224,13 @@ export const analyzeScan = createServerFn({ method: "POST" })
       cautions: result.cautions,
       result: result as any,
     });
-
-    await supabase
-      .from("profiles")
-      .update({ scan_count: count + 1 })
-      .eq("id", userId);
+    if (insertErr) {
+      console.error("scans insert error", insertErr);
+    }
 
     return {
       result,
-      remaining: subscribed ? null : Math.max(0, FREE_LIMIT - (count + 1)),
-      subscribed: !!subscribed,
+      remaining: subscribed ? null : Math.max(0, FREE_LIMIT - newCount),
+      subscribed,
     };
   });
