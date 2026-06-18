@@ -14,39 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      consumption: {
+        Row: {
+          calories_kcal: number
+          consumed_at: string
+          id: string
+          product_name: string | null
+          scan_id: string | null
+          user_id: string
+        }
+        Insert: {
+          calories_kcal?: number
+          consumed_at?: string
+          id?: string
+          product_name?: string | null
+          scan_id?: string | null
+          user_id: string
+        }
+        Update: {
+          calories_kcal?: number
+          consumed_at?: string
+          id?: string
+          product_name?: string | null
+          scan_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumption_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          allergies: string | null
           created_at: string
           email: string | null
+          height_cm: number | null
           id: string
+          illnesses: string | null
           is_subscribed: boolean
           scan_count: number
           subscription_expires_at: string | null
           username: string | null
+          weight_kg: number | null
         }
         Insert: {
+          allergies?: string | null
           created_at?: string
           email?: string | null
+          height_cm?: number | null
           id: string
+          illnesses?: string | null
           is_subscribed?: boolean
           scan_count?: number
           subscription_expires_at?: string | null
           username?: string | null
+          weight_kg?: number | null
         }
         Update: {
+          allergies?: string | null
           created_at?: string
           email?: string | null
+          height_cm?: number | null
           id?: string
+          illnesses?: string | null
           is_subscribed?: boolean
           scan_count?: number
           subscription_expires_at?: string | null
           username?: string | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
       scans: {
         Row: {
           advantages: Json | null
+          calories_kcal: number | null
           cautions: Json | null
           created_at: string
           disadvantages: Json | null
@@ -62,6 +110,7 @@ export type Database = {
         }
         Insert: {
           advantages?: Json | null
+          calories_kcal?: number | null
           cautions?: Json | null
           created_at?: string
           disadvantages?: Json | null
@@ -77,6 +126,7 @@ export type Database = {
         }
         Update: {
           advantages?: Json | null
+          calories_kcal?: number | null
           cautions?: Json | null
           created_at?: string
           disadvantages?: Json | null
