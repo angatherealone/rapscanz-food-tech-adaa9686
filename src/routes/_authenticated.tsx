@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ScanLine, History, LogOut } from "lucide-react";
+import { ScanLine, History, LogOut, Trophy, User } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -40,13 +40,19 @@ function AuthenticatedLayout() {
             RAPscanz
           </Link>
           <nav className="flex items-center gap-1 text-sm">
-            <Link to="/scan" activeProps={{ className: "bg-muted" }} className="rounded-md px-3 py-2 font-medium hover:bg-muted">
-              Scan
+            <Link to="/scan" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
+              <ScanLine className="inline h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Scan</span>
             </Link>
-            <Link to="/history" activeProps={{ className: "bg-muted" }} className="rounded-md px-3 py-2 font-medium hover:bg-muted">
-              <History className="mr-1 inline h-4 w-4" /> History
+            <Link to="/history" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
+              <History className="inline h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">History</span>
             </Link>
-            <button onClick={signOut} className="rounded-md px-3 py-2 font-medium text-muted-foreground hover:bg-muted hover:text-foreground" title={email ?? ""}>
+            <Link to="/leaderboard" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
+              <Trophy className="inline h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Leaderboard</span>
+            </Link>
+            <Link to="/profile" activeProps={{ className: "bg-muted" }} className="rounded-md px-2 py-2 font-medium hover:bg-muted">
+              <User className="inline h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Profile</span>
+            </Link>
+            <button onClick={signOut} className="rounded-md px-2 py-2 font-medium text-muted-foreground hover:bg-muted hover:text-foreground" title={email ?? ""}>
               <LogOut className="h-4 w-4" />
             </button>
           </nav>
