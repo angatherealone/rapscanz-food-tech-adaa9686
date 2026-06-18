@@ -30,7 +30,10 @@ export const getProfile = createServerFn({ method: "GET" })
       .select("scan_count, is_subscribed, subscription_expires_at, email")
       .eq("id", userId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("getProfile error", error);
+      throw new Error("Unable to load your profile. Please try again.");
+    }
     const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null };
     return {
       ...profile,
@@ -49,13 +52,16 @@ export const listScans = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("listScans error", error);
+      throw new Error("Unable to load your scan history. Please try again.");
+    }
     return data ?? [];
   });
 
 export const getScan = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -64,7 +70,10 @@ export const getScan = createServerFn({ method: "GET" })
       .eq("id", data.id)
       .eq("user_id", userId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("getScan error", error);
+      throw new Error("Unable to load this scan. Please try again.");
+    }
     return row;
   });
 
