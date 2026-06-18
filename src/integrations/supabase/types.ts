@@ -58,6 +58,8 @@ export type Database = {
           id: string
           illnesses: string | null
           is_subscribed: boolean
+          plan: string
+          plan_expires_at: string | null
           scan_count: number
           subscription_expires_at: string | null
           username: string | null
@@ -71,6 +73,8 @@ export type Database = {
           id: string
           illnesses?: string | null
           is_subscribed?: boolean
+          plan?: string
+          plan_expires_at?: string | null
           scan_count?: number
           subscription_expires_at?: string | null
           username?: string | null
@@ -84,6 +88,8 @@ export type Database = {
           id?: string
           illnesses?: string | null
           is_subscribed?: boolean
+          plan?: string
+          plan_expires_at?: string | null
           scan_count?: number
           subscription_expires_at?: string | null
           username?: string | null
@@ -148,10 +154,11 @@ export type Database = {
     }
     Functions: {
       consume_scan_quota: {
-        Args: { _free_limit: number }
+        Args: never
         Returns: {
           new_count: number
-          subscribed: boolean
+          plan: string
+          scan_limit: number
         }[]
       }
       get_leaderboard: {
