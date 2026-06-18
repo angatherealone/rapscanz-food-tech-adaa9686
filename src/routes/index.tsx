@@ -4,7 +4,7 @@ import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucid
 const HOME_URL = "https://healthy-food-scan.lovable.app/";
 const HOME_TITLE = "RAPscanz — Know what's really in your food";
 const HOME_DESC =
-  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then ₹300/year.";
+  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then Pro ₹200/mo or Pro+ ₹500/mo.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
