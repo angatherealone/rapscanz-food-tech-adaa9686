@@ -110,11 +110,12 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
     }),
   });
 
-  if (res.status === 429) throw new Error("Rate limit reached. Try again in a moment.");
+  if (res.status === 429) throw new Error("Too many scans right now. Please try again in a moment.");
   if (res.status === 402) throw new Error("AI credits exhausted. Please contact the app owner.");
   if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`AI error: ${t.slice(0, 200)}`);
+    const t = await res.text().catch(() => "");
+    console.error("AI gateway error", res.status, t.slice(0, 500));
+    throw new Error("The analysis service is temporarily unavailable. Please try again.");
   }
   const data = await res.json() as any;
   const content = data?.choices?.[0]?.message?.content ?? "{}";
