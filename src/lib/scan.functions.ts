@@ -4,6 +4,18 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const FREE_LIMIT = 30;
 
+const PLAN_LABELS: Record<string, string> = {
+  free: "Free",
+  pro: "Pro",
+  pro_plus: "Pro+",
+};
+
+function planLimit(plan: string | null | undefined): number {
+  if (plan === "pro_plus") return 120;
+  if (plan === "pro") return 60;
+  return FREE_LIMIT;
+}
+
 const ScanInput = z.object({
   scanType: z.enum(["ingredients", "barcode"]),
   text: z.string().max(10_000).optional(),
