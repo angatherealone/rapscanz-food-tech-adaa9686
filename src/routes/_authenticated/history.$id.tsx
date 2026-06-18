@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getScan } from "@/lib/scan.functions";
+import { getScan, logConsumption } from "@/lib/scan.functions";
 import { Card } from "@/components/ui/card";
-import { AlertTriangle, ThumbsUp, ThumbsDown, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, ThumbsUp, ThumbsDown, ArrowLeft, Flame, Utensils, Heart } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/history/$id")({
   head: () => ({
@@ -45,10 +48,23 @@ const SEVERITY_BADGE: Record<string, string> = {
 
 function ScanDetailPage() {
   const { id } = Route.useParams();
+  const qc = useQueryClient();
   const fn = useServerFn(getScan);
+  const logFn = useServerFn(logConsumption);
+  const [logged, setLogged] = useState(false);
   const { data: scan, isLoading } = useQuery({
     queryKey: ["scan", id],
     queryFn: () => fn({ data: { id } }),
+  });
+
+  const logMut = useMutation({
+    mutationFn: () => logFn({ data: { scanId: id } }),
+    onSuccess: () => {
+      setLogged(true);
+      qc.invalidateQueries({ queryKey: ["weekly"] });
+      toast.success("Added to this week's log");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Couldn't log this."),
   });
 
   if (isLoading) {
@@ -69,6 +85,8 @@ function ScanDetailPage() {
   const disadvantages = (scan.disadvantages as string[] | null) ?? [];
   const cautions = (scan.cautions as { ingredient: string; concern: string; severity: string }[] | null) ?? [];
   const rating = scan.rating ?? "okay";
+  const personalAdvice = (scan.result as any)?.personalAdvice as string | undefined;
+  const calories = scan.calories_kcal ?? (scan.result as any)?.caloriesKcal ?? null;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -92,11 +110,33 @@ function ScanDetailPage() {
               {typeof scan.health_score === "number" && <HealthScore score={scan.health_score} />}
             </div>
           </div>
-          {scan.summary && (
-            <div className="p-6">
-              <p className="text-base">{scan.summary}</p>
+          <div className="p-6 space-y-4">
+            {scan.summary && <p className="text-base">{scan.summary}</p>}
+            {personalAdvice && (
+              <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm">
+                <Heart className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+                <div><span className="font-semibold">For you: </span>{personalAdvice}</div>
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-3">
+              {calories !== null && (
+                <div className="inline-flex items-center gap-2 rounded-lg bg-warning/15 px-3 py-2 text-sm font-semibold">
+                  <Flame className="h-4 w-4 text-warning-foreground" />
+                  ~{calories} kcal <span className="font-normal text-muted-foreground">per serving</span>
+                </div>
+              )}
+              <Button
+                onClick={() => logMut.mutate()}
+                disabled={logged || logMut.isPending}
+                variant={logged ? "outline" : "default"}
+                size="sm"
+                className="gap-2"
+              >
+                <Utensils className="h-4 w-4" />
+                {logged ? "Added to this week" : logMut.isPending ? "Adding…" : "I ate this"}
+              </Button>
             </div>
-          )}
+          </div>
         </Card>
 
         <div className="grid gap-5 md:grid-cols-2">

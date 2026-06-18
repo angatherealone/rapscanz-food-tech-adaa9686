@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GuidesHealthySnacksRouteImport } from './routes/guides/healthy-snacks'
+import { Route as AuthenticatedWeeklyRouteImport } from './routes/_authenticated/weekly'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
@@ -49,6 +50,11 @@ const GuidesHealthySnacksRoute = GuidesHealthySnacksRouteImport.update({
   path: '/guides/healthy-snacks',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWeeklyRoute = AuthenticatedWeeklyRouteImport.update({
+  id: '/weekly',
+  path: '/weekly',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedScanRoute = AuthenticatedScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof AuthenticatedHistoryRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
+  '/weekly': typeof AuthenticatedWeeklyRoute
   '/guides/healthy-snacks': typeof GuidesHealthySnacksRoute
   '/history/$id': typeof AuthenticatedHistoryIdRoute
 }
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/history': typeof AuthenticatedHistoryRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
+  '/weekly': typeof AuthenticatedWeeklyRoute
   '/guides/healthy-snacks': typeof GuidesHealthySnacksRoute
   '/history/$id': typeof AuthenticatedHistoryIdRoute
 }
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/_authenticated/history': typeof AuthenticatedHistoryRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/scan': typeof AuthenticatedScanRoute
+  '/_authenticated/weekly': typeof AuthenticatedWeeklyRoute
   '/guides/healthy-snacks': typeof GuidesHealthySnacksRoute
   '/_authenticated/history/$id': typeof AuthenticatedHistoryIdRoute
 }
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/profile'
     | '/scan'
+    | '/weekly'
     | '/guides/healthy-snacks'
     | '/history/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/profile'
     | '/scan'
+    | '/weekly'
     | '/guides/healthy-snacks'
     | '/history/$id'
   id:
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/history'
     | '/_authenticated/profile'
     | '/_authenticated/scan'
+    | '/_authenticated/weekly'
     | '/guides/healthy-snacks'
     | '/_authenticated/history/$id'
   fileRoutesById: FileRoutesById
@@ -195,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesHealthySnacksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/weekly': {
+      id: '/_authenticated/weekly'
+      path: '/weekly'
+      fullPath: '/weekly'
+      preLoaderRoute: typeof AuthenticatedWeeklyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/scan': {
       id: '/_authenticated/scan'
       path: '/scan'
@@ -241,12 +260,14 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedScanRoute: typeof AuthenticatedScanRoute
+  AuthenticatedWeeklyRoute: typeof AuthenticatedWeeklyRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHistoryRoute: AuthenticatedHistoryRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedScanRoute: AuthenticatedScanRoute,
+  AuthenticatedWeeklyRoute: AuthenticatedWeeklyRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

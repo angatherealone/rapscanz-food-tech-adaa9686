@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeScan, getProfile, type ScanResult } from "@/lib/scan.functions";
+import { analyzeScan, getProfile, logConsumption, type ScanResult } from "@/lib/scan.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X } from "lucide-react";
+import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
 
 export const Route = createFileRoute("/_authenticated/scan")({
@@ -43,6 +43,7 @@ function ScanPage() {
   const qc = useQueryClient();
   const profileFn = useServerFn(getProfile);
   const analyzeFn = useServerFn(analyzeScan);
+  const logFn = useServerFn(logConsumption);
 
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
 
@@ -51,10 +52,13 @@ function ScanPage() {
   const [barcode, setBarcode] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [scanId, setScanId] = useState<string | null>(null);
+  const [logged, setLogged] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const mutation = useMutation({
     mutationFn: async () => {
+      setLogged(false);
       if (tab === "ingredients") {
         if (!text.trim()) throw new Error("Paste the ingredient list first.");
         return analyzeFn({ data: { scanType: "ingredients", text } });
@@ -68,11 +72,25 @@ function ScanPage() {
     },
     onSuccess: (data) => {
       setResult(data.result);
+      setScanId(data.scanId);
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["scans"] });
       toast.success("Scan complete");
     },
     onError: (err: any) => toast.error(err?.message ?? "Scan failed"),
+  });
+
+  const logMut = useMutation({
+    mutationFn: async () => {
+      if (!scanId) throw new Error("No scan to log.");
+      return logFn({ data: { scanId } });
+    },
+    onSuccess: () => {
+      setLogged(true);
+      qc.invalidateQueries({ queryKey: ["weekly"] });
+      toast.success("Added to this week's log");
+    },
+    onError: (err: any) => toast.error(err?.message ?? "Couldn't log this."),
   });
 
   function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -201,6 +219,28 @@ function ScanPage() {
             </div>
             <div className="p-6">
               <p className="text-base">{result.summary}</p>
+              {result.personalAdvice && (
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm">
+                  <Heart className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+                  <div><span className="font-semibold">For you: </span>{result.personalAdvice}</div>
+                </div>
+              )}
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-warning/15 px-3 py-2 text-sm font-semibold text-foreground">
+                  <Flame className="h-4 w-4 text-warning-foreground" />
+                  ~{result.caloriesKcal} kcal <span className="font-normal text-muted-foreground">per serving</span>
+                </div>
+                <Button
+                  onClick={() => logMut.mutate()}
+                  disabled={!scanId || logged || logMut.isPending}
+                  variant={logged ? "outline" : "default"}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Utensils className="h-4 w-4" />
+                  {logged ? "Added to this week" : logMut.isPending ? "Adding…" : "I ate this"}
+                </Button>
+              </div>
             </div>
           </Card>
 
