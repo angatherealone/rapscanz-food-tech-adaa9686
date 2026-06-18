@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuidesHealthySnacksRouteImport } from './routes/guides/healthy-snacks'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedHistoryIdRouteImport } from './routes/_authenticated/history.$id'
@@ -34,6 +35,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesHealthySnacksRoute = GuidesHealthySnacksRouteImport.update({
+  id: '/guides/healthy-snacks',
+  path: '/guides/healthy-snacks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedScanRoute = AuthenticatedScanRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/history': typeof AuthenticatedHistoryRouteWithChildren
   '/scan': typeof AuthenticatedScanRoute
+  '/guides/healthy-snacks': typeof GuidesHealthySnacksRoute
   '/history/$id': typeof AuthenticatedHistoryIdRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/history': typeof AuthenticatedHistoryRouteWithChildren
   '/scan': typeof AuthenticatedScanRoute
+  '/guides/healthy-snacks': typeof GuidesHealthySnacksRoute
   '/history/$id': typeof AuthenticatedHistoryIdRoute
 }
 export interface FileRoutesById {
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRouteWithChildren
   '/_authenticated/scan': typeof AuthenticatedScanRoute
+  '/guides/healthy-snacks': typeof GuidesHealthySnacksRoute
   '/_authenticated/history/$id': typeof AuthenticatedHistoryIdRoute
 }
 export interface FileRouteTypes {
@@ -86,9 +95,17 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/history'
     | '/scan'
+    | '/guides/healthy-snacks'
     | '/history/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/sitemap.xml' | '/history' | '/scan' | '/history/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/history'
+    | '/scan'
+    | '/guides/healthy-snacks'
+    | '/history/$id'
   id:
     | '__root__'
     | '/'
@@ -97,6 +114,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/history'
     | '/_authenticated/scan'
+    | '/guides/healthy-snacks'
     | '/_authenticated/history/$id'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +123,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  GuidesHealthySnacksRoute: typeof GuidesHealthySnacksRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -135,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/healthy-snacks': {
+      id: '/guides/healthy-snacks'
+      path: '/guides/healthy-snacks'
+      fullPath: '/guides/healthy-snacks'
+      preLoaderRoute: typeof GuidesHealthySnacksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/scan': {
@@ -191,6 +217,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  GuidesHealthySnacksRoute: GuidesHealthySnacksRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

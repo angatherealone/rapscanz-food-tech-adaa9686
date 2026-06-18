@@ -1,15 +1,49 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucide-react";
 
+const HOME_URL = "https://healthy-food-scan.lovable.app/";
+const HOME_TITLE = "RAPscanz — Know what's really in your food";
+const HOME_DESC =
+  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then ₹300/year.";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RAPscanz — Know what's really in your food" },
-      { name: "description", content: "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then ₹300/year." },
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESC },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESC },
+      { property: "og:url", content: HOME_URL },
+      { name: "twitter:title", content: HOME_TITLE },
+      { name: "twitter:description", content: HOME_DESC },
+    ],
+    links: [{ rel: "canonical", href: HOME_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify([
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "RAPscanz",
+            url: HOME_URL,
+            description:
+              "RAPscanz analyses packaged food from its ingredient list or barcode and returns a health score, advantages, disadvantages, and chemical cautions.",
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "RAPscanz",
+            url: HOME_URL,
+            description: HOME_DESC,
+          },
+        ]),
+      },
     ],
   }),
   component: Landing,
 });
+
 
 function Landing() {
   return (
