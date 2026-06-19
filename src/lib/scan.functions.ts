@@ -504,6 +504,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     let userContent: any;
     let knownProductName: string | undefined;
+    let usedAiRegistryFallback = false;
 
     if (data.scanType === "barcode") {
       const code = data.barcode!.trim();
