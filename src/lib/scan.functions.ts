@@ -387,6 +387,9 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
   }
   return {
     productName: parsed.productName ?? "Unknown product",
+    brand: typeof parsed.brand === "string" && parsed.brand.trim() ? parsed.brand.trim() : undefined,
+    parentCompany: typeof parsed.parentCompany === "string" && parsed.parentCompany.trim() ? parsed.parentCompany.trim() : undefined,
+    category: typeof parsed.category === "string" && parsed.category.trim() ? parsed.category.trim() : undefined,
     rating: (parsed.rating ?? "okay") as ScanResult["rating"],
     healthScore: Math.max(0, Math.min(100, Math.round(Number(parsed.healthScore ?? 50)))),
     caloriesKcal: Math.max(0, Math.min(5000, Math.round(Number(parsed.caloriesKcal ?? 0)))),
@@ -400,19 +403,27 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
 }
 
 const SYSTEM_PROMPT = `You are a food-safety nutrition analyst for the RAPscanz app.
-Given the ingredients of a packaged food product (or a barcode lookup result), respond ONLY with valid JSON that matches this schema:
+You identify packaged foods — chocolates, biscuits, chips, dairy, beverages, instant foods, condiments — from BOTH Indian (Amul, Britannia, Parle, Haldiram's, Mother Dairy, MTR, Tata, ITC, Patanjali, Nestlé India, etc.) and international brands.
+Respond ONLY with valid JSON matching this schema:
 {
-  "productName": string,
+  "productName": string (the specific product / sub-brand the consumer recognises, e.g. "Dairy Milk Silk", "Maggi 2-Minute Noodles", "Amul Gold Milk"),
+  "brand": string (the sub-brand or product line if there is one, e.g. "Dairy Milk", "Maggi", "Lay's"),
+  "parentCompany": string (the parent / owner company, e.g. "Mondelez (formerly Cadbury)", "Nestlé", "PepsiCo", "Hindustan Unilever", "ITC Limited", "Amul / GCMMF"),
+  "category": string (short food category, e.g. "Milk chocolate bar", "Instant noodles", "Toned milk", "Salted potato chips"),
   "rating": "good" | "okay" | "caution" | "avoid",
   "healthScore": number (integer 0-100; penalize ultra-processing, high sugar/sodium/saturated fat, trans fats, artificial additives; reward whole ingredients, fiber, protein, healthy fats),
-  "caloriesKcal": number (integer; your best estimate of CALORIES PER TYPICAL SERVING in kcal. If a serving size isn't given, assume a standard one (e.g. 30g for chips, 250ml for a drink, 1 biscuit). Use 0 only for true zero-calorie products like water.),
+  "caloriesKcal": number (integer; best estimate of CALORIES PER TYPICAL SERVING in kcal. Use standard serving sizes if not given (e.g. 30g chips, 250ml drink, 1 biscuit, 1 chocolate piece ~12g). Use 0 only for true zero-calorie products like water.),
   "summary": string (1-2 sentences, plain English),
   "advantages": string[] (3-6 short bullets),
   "disadvantages": string[] (3-6 short bullets),
   "cautions": [ { "ingredient": string, "concern": string, "severity": "low"|"medium"|"high" } ],
-  "personalAdvice": string (1-2 sentences specific to the user's health profile if one is provided — flag allergens they listed, warn if it conflicts with their conditions like diabetes/hypertension/PCOS, reference their BMI/gender if relevant. Omit or leave empty if no profile was provided.)
+  "personalAdvice": string (1-2 sentences specific to the user's health profile if provided — flag listed allergens, warn on conflicts with diabetes/hypertension/PCOS, reference BMI/gender if relevant. Omit/empty if no profile.)
 }
-Be specific and accurate. Do NOT include medical advice beyond gentle dietary notes. Do NOT add any text outside JSON.`;
+Brand identification rules:
+- ALWAYS fill "brand" with the sub-brand/product line the consumer sees on the wrapper, and "parentCompany" with the actual owning corporation — even when they differ. Example: product "Dairy Milk Silk" → brand "Dairy Milk", parentCompany "Mondelez (formerly Cadbury)". Product "Kurkure" → brand "Kurkure", parentCompany "PepsiCo (Frito-Lay)". Product "Bournvita" → brand "Bournvita", parentCompany "Mondelez". Product "Amul Butter" → brand "Amul", parentCompany "GCMMF (Amul cooperative)". Product "Real Juice" → brand "Real", parentCompany "Dabur".
+- If unsure, give your best guess and reflect uncertainty in "summary".
+Be specific and accurate. Do NOT include medical advice beyond gentle dietary notes. Do NOT add text outside JSON.`;
+
 
 function buildHealthContext(p: { weight_kg?: number | null; height_cm?: number | null; illnesses?: string | null; allergies?: string | null; gender?: string | null }) {
   const bits: string[] = [];
