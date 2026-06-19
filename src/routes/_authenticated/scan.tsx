@@ -151,13 +151,25 @@ function ScanPage() {
       return analyzeFn({ data: { scanType: "barcode", barcode: code } });
     },
     onSuccess: (data) => {
-      if (!data) return; // local barcode path
+      if (!data) return; // local barcode (direct-tab) path
+      // Photo OCR detected a barcode that's a GS1 local/in-store code → hand off to local inventory UI.
+      if ((data as any).localBarcode) {
+        const code: string = (data as any).localBarcode;
+        toast.success(`Barcode ${code} read from photo — looks like a local/in-store item`);
+        handleLocalBarcode(code);
+        qc.invalidateQueries({ queryKey: ["profile"] });
+        return;
+      }
       setLocalItem(null);
       setResult(data.result);
       setScanId(data.scanId);
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["scans"] });
-      toast.success("Scan complete");
+      toast.success(
+        (data.result as any)?.productName && tab === "image"
+          ? "Photo scanned — barcode detected & analyzed"
+          : "Scan complete"
+      );
     },
     onError: (err: any) => toast.error(err?.message ?? "Scan failed"),
   });
