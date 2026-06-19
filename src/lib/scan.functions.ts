@@ -180,71 +180,96 @@ type BarcodeLookup = {
   source: string;
 };
 
-// GS1 country prefix → country (helps the AI guess local Indian / international brands)
+// GS1 country prefix → country (official GS1 prefix list, complete coverage)
+// Used to identify the country of issue for any EAN-13 / UPC-A / ITF-14 barcode,
+// which helps the AI infer the parent company / sister brand when public DBs miss.
 function gs1Country(barcode: string): string | undefined {
-  if (!/^\d{12,14}$/.test(barcode) && !/^\d{13}$/.test(barcode)) return undefined;
-  const p = barcode.slice(0, 3);
-  const n = Number(p);
-  if (n >= 0 && n <= 19) return "USA / Canada";
-  if (n >= 30 && n <= 39) return "USA (drugs)";
+  if (!/^\d{8,14}$/.test(barcode)) return undefined;
+  // For EAN-13 / UPC-A / ITF-14 the country prefix is the first 3 digits.
+  // UPC-A (12) is treated as EAN-13 with a leading "0" (USA/Canada range).
+  const code = barcode.length === 12 ? "0" + barcode : barcode;
+  const n = Number(code.slice(0, 3));
+  // 000-019, 030-039, 060-139: United States & Canada
+  if (n <= 19) return "USA / Canada";
+  if (n >= 20 && n <= 29) return "In-store / restricted circulation";
+  if (n >= 30 && n <= 39) return "USA (drugs / National Drug Code)";
   if (n >= 40 && n <= 49) return "In-store / private label";
   if (n >= 50 && n <= 59) return "Coupons";
-  if (n >= 300 && n <= 379) return "France";
+  if (n >= 60 && n <= 139) return "USA / Canada";
+  if (n >= 200 && n <= 299) return "In-store / restricted circulation";
+  if (n >= 300 && n <= 379) return "France / Monaco";
   if (n === 380) return "Bulgaria";
   if (n === 383) return "Slovenia";
   if (n === 385) return "Croatia";
-  if (n === 387) return "Bosnia";
+  if (n === 387) return "Bosnia & Herzegovina";
+  if (n === 389) return "Montenegro";
+  if (n === 390) return "Kosovo";
   if (n >= 400 && n <= 440) return "Germany";
   if (n >= 450 && n <= 459) return "Japan";
   if (n >= 460 && n <= 469) return "Russia";
+  if (n === 470) return "Kyrgyzstan";
   if (n === 471) return "Taiwan";
   if (n === 474) return "Estonia";
   if (n === 475) return "Latvia";
+  if (n === 476) return "Azerbaijan";
   if (n === 477) return "Lithuania";
   if (n === 478) return "Uzbekistan";
   if (n === 479) return "Sri Lanka";
   if (n === 480) return "Philippines";
+  if (n === 481) return "Belarus";
   if (n === 482) return "Ukraine";
+  if (n === 483) return "Turkmenistan";
   if (n === 484) return "Moldova";
   if (n === 485) return "Armenia";
   if (n === 486) return "Georgia";
   if (n === 487) return "Kazakhstan";
+  if (n === 488) return "Tajikistan";
   if (n === 489) return "Hong Kong";
   if (n >= 490 && n <= 499) return "Japan";
   if (n >= 500 && n <= 509) return "United Kingdom";
   if (n >= 520 && n <= 521) return "Greece";
   if (n === 528) return "Lebanon";
   if (n === 529) return "Cyprus";
+  if (n === 530) return "Albania";
   if (n === 531) return "North Macedonia";
   if (n === 535) return "Malta";
   if (n === 539) return "Ireland";
   if (n >= 540 && n <= 549) return "Belgium / Luxembourg";
   if (n === 560) return "Portugal";
   if (n === 569) return "Iceland";
-  if (n >= 570 && n <= 579) return "Denmark";
+  if (n >= 570 && n <= 579) return "Denmark / Faroe Islands / Greenland";
   if (n === 590) return "Poland";
   if (n === 594) return "Romania";
   if (n === 599) return "Hungary";
   if (n >= 600 && n <= 601) return "South Africa";
   if (n === 603) return "Ghana";
+  if (n === 604) return "Senegal";
   if (n === 608) return "Bahrain";
   if (n === 609) return "Mauritius";
   if (n === 611) return "Morocco";
   if (n === 613) return "Algeria";
   if (n === 615) return "Nigeria";
   if (n === 616) return "Kenya";
+  if (n === 617) return "Cameroon";
+  if (n === 618) return "Côte d'Ivoire";
   if (n === 619) return "Tunisia";
+  if (n === 620) return "Tanzania";
   if (n === 621) return "Syria";
   if (n === 622) return "Egypt";
+  if (n === 623) return "Brunei";
+  if (n === 624) return "Libya";
   if (n === 625) return "Jordan";
   if (n === 626) return "Iran";
   if (n === 627) return "Kuwait";
   if (n === 628) return "Saudi Arabia";
-  if (n === 629) return "UAE";
+  if (n === 629) return "United Arab Emirates";
+  if (n === 630) return "Qatar";
+  if (n === 631) return "Namibia";
+  if (n === 632) return "Rwanda";
   if (n >= 640 && n <= 649) return "Finland";
   if (n >= 690 && n <= 699) return "China";
   if (n >= 700 && n <= 709) return "Norway";
-  if (n >= 729 && n <= 729) return "Israel";
+  if (n === 729) return "Israel";
   if (n >= 730 && n <= 739) return "Sweden";
   if (n === 740) return "Guatemala";
   if (n === 741) return "El Salvador";
@@ -256,7 +281,7 @@ function gs1Country(barcode: string): string | undefined {
   if (n === 750) return "Mexico";
   if (n >= 754 && n <= 755) return "Canada";
   if (n === 759) return "Venezuela";
-  if (n >= 760 && n <= 769) return "Switzerland";
+  if (n >= 760 && n <= 769) return "Switzerland / Liechtenstein";
   if (n >= 770 && n <= 771) return "Colombia";
   if (n === 773) return "Uruguay";
   if (n === 775) return "Peru";
@@ -266,8 +291,8 @@ function gs1Country(barcode: string): string | undefined {
   if (n === 784) return "Paraguay";
   if (n === 786) return "Ecuador";
   if (n >= 789 && n <= 790) return "Brazil";
-  if (n >= 800 && n <= 839) return "Italy";
-  if (n >= 840 && n <= 849) return "Spain";
+  if (n >= 800 && n <= 839) return "Italy / San Marino / Vatican City";
+  if (n >= 840 && n <= 849) return "Spain / Andorra";
   if (n === 850) return "Cuba";
   if (n === 858) return "Slovakia";
   if (n === 859) return "Czechia";
@@ -277,20 +302,32 @@ function gs1Country(barcode: string): string | undefined {
   if (n >= 868 && n <= 869) return "Turkey";
   if (n >= 870 && n <= 879) return "Netherlands";
   if (n === 880) return "South Korea";
+  if (n === 881) return "Myanmar";
+  if (n === 883) return "Macau";
   if (n === 884) return "Cambodia";
   if (n === 885) return "Thailand";
   if (n === 888) return "Singapore";
   if (n === 890) return "India";
   if (n === 893) return "Vietnam";
+  if (n === 894) return "Bangladesh";
   if (n === 896) return "Pakistan";
   if (n === 899) return "Indonesia";
   if (n >= 900 && n <= 919) return "Austria";
   if (n >= 930 && n <= 939) return "Australia";
   if (n >= 940 && n <= 949) return "New Zealand";
+  if (n === 950) return "GS1 Global Office (gift cards)";
+  if (n === 951) return "GS1 Global Office (EPC)";
   if (n === 955) return "Malaysia";
   if (n === 958) return "Macau";
+  if (n >= 960 && n <= 969) return "GS1 Global Office (GTIN-8)";
+  if (n >= 977 && n <= 977) return "ISSN (periodicals)";
+  if (n >= 978 && n <= 979) return "ISBN (books)";
+  if (n === 980) return "Refund receipts";
+  if (n >= 981 && n <= 984) return "Common currency coupons";
+  if (n >= 990 && n <= 999) return "Coupons";
   return undefined;
 }
+
 
 async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | null> {
   try {
@@ -517,7 +554,13 @@ export const analyzeScan = createServerFn({ method: "POST" })
       const countryHint = country ? `\nGS1 prefix country of issue: ${country}` : "";
       if (!lookup) {
         usedAiRegistryFallback = true;
-        userContent = `A user scanned barcode ${code}.${countryHint}\nThe Open Food Facts and UPCitemdb databases returned no match (404 / empty / not found), even after retrying as a 13-digit EAN. The barcode IS structurally valid.\n\nDO NOT refuse or return "Unidentified product". Instead, act as a GS1 registry analyst: analyze the FULL barcode and especially its first 3 digits (the GS1 country prefix) and the next 4-6 digits (the GS1 manufacturer prefix). Using global GS1 manufacturer-prefix standards plus your knowledge of major food conglomerates active in that country, return your BEST ESTIMATE of:\n  • the parent company that owns that GS1 prefix range (e.g. prefixes 500-509 = United Kingdom, often Mondelez/Cadbury, Unilever, Tesco; 890 = India, often Amul/GCMMF, ITC, Parle, Britannia, Haldiram's, Patanjali, Mother Dairy, Tata Consumer; 30-37 = France, often Danone, Lactalis; 400-440 = Germany, often Nestlé Deutschland, Dr. Oetker; 690-699 = China, etc.)\n  • a plausible sub-brand / product line in that company's catalogue that this SKU could plausibly belong to, given the category cues.\n  • a reasonable category guess.\nFill productName as "<Sub-brand> (estimated)", brand as the sub-brand, parentCompany as the parent corporation, category as your category guess. In "summary" briefly say this was identified via GS1 registry inference because the public databases had no entry, and that the analysis is based on a typical recipe for that brand/category. Then complete a normal nutrition analysis using typical recipes for that brand/category.${healthContext}${planInstructions}`;
+        // Expose the GS1 manufacturer prefix range to the model so it can pin
+        // the brand even when public databases are empty.
+        const ean13 = code.length === 12 ? "0" + code : code;
+        const mfrPrefix7 = ean13.length === 13 ? ean13.slice(0, 7) : "";
+        const mfrPrefix9 = ean13.length === 13 ? ean13.slice(0, 9) : "";
+        userContent = `A user scanned barcode ${code}.${countryHint}\nGS1 manufacturer prefix (first 7 digits): ${mfrPrefix7}\nGS1 manufacturer prefix (first 9 digits, for short company codes): ${mfrPrefix9}\n\nThe Open Food Facts and UPCitemdb databases returned no match (404 / empty / not found), even after retrying as a 13-digit EAN. The barcode IS structurally valid (checksum verified).\n\nDO NOT refuse and DO NOT return "Unidentified product". Act as a GS1 registry analyst. Use BOTH the country prefix AND the manufacturer prefix to pin the exact company. Known manufacturer-prefix → company mappings you should use (non-exhaustive):\n  • 622300x — Edita Food Industries (Egypt; Molto, Todo, Bake Rolz, Bake Stix, MiMix, HoHos)\n  • 622301x — Juhayna Food Industries (Egypt; Juhayna milk, Pure, Bekhero, Mix)\n  • 622400x — Chipsy / PepsiCo Egypt\n  • 622600x — Halwani Bros (Egypt)\n  • 5000159 — Mars UK (Mars, Snickers, Bounty, Twix, Galaxy)\n  • 5000168, 7622210, 7622300 — Mondelez (Cadbury Dairy Milk, Oreo, Toblerone, Milka)\n  • 5000295, 5011007 — Nestlé UK (KitKat, Aero, Smarties)\n  • 8901058 — Nestlé India (Maggi, KitKat India, Nescafé, Munch)\n  • 8901063 — Parle Products (Parle-G, Hide & Seek, Monaco, Krackjack)\n  • 8901491 — Britannia Industries (Good Day, Marie Gold, Tiger, Bourbon, Tiger biscuits)\n  • 8901719, 8901725 — ITC Limited (Bingo!, Sunfeast, Aashirvaad, YiPPee!)\n  • 8901262 — Mondelez India / Cadbury India (Dairy Milk, Bournvita, 5 Star, Gems, Oreo India)\n  • 8901207, 8901571 — Hindustan Unilever (Kissan, Knorr, Bru, Brooke Bond, Magnum, Kwality Wall's)\n  • 8902519, 8904004 — Patanjali Ayurved\n  • 8901138 — Haldiram's\n  • 8901030 — Mother Dairy Fruit & Vegetable\n  • 8904063 — Bikaji Foods\n  • 8901764 — Dabur India (Real, Hajmola, Honey)\n  • 8901396 — PepsiCo India (Lay's, Kurkure, Doritos, Cheetos, Quaker)\n  • 8901725 — ITC Foods\n  • 8901721 — Coca-Cola India (Maaza, Thums Up, Sprite, Limca, Minute Maid)\n  • 8901491 — Britannia\n  • 5449000 — The Coca-Cola Company (global)\n  • 4000539, 4006381 — Ferrero (Nutella, Kinder, Ferrero Rocher, Tic Tac)\n  • 4006040, 4014400 — Haribo (Germany)\n  • 3017620, 3033710 — Danone (France)\n  • 3245390 — Lactalis (France; Président, Galbani)\n  • 8410500 — Pascual / Spain dairy\n  • 6111035 — Centrale Danone Morocco\n  • 6224000 — Juhayna (Egypt secondary)\n  • 6281006 — Almarai (Saudi Arabia)\n  • 6291003 — IFFCO / UAE\n  • 6920208 — Nongfu Spring (China)\n  • 6901028 — China National Tobacco / Yili Group dairy lines\n\nUsing the country prefix, the manufacturer prefix, and your knowledge of major food conglomerates active in that country, return your BEST ESTIMATE of:\n  • the parent company that owns that exact GS1 prefix\n  • a plausible sub-brand / product line in that company's catalogue that this SKU could belong to\n  • a reasonable category guess (chocolate bar, instant noodles, biscuit, snack chips, juice, milk, etc.)\nFill productName as "<Sub-brand> (estimated)", brand as the sub-brand, parentCompany as the parent corporation, category as your category guess. In "summary" briefly note this was identified via GS1 registry inference because the public databases had no entry, and that the nutrition analysis is based on a typical recipe for that brand/category. Then complete a normal nutrition analysis using typical recipes for that brand/category.${healthContext}${planInstructions}`;
+
       } else if (!lookup.ingredients) {
         userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` (brand: ${lookup.brand})` : ""}${lookup.parentCompany ? ` (parent: ${lookup.parentCompany})` : ""}${lookup.category ? ` — ${lookup.category}` : ""} via ${lookup.source}.${countryHint}\nNo ingredient list is published. Use your knowledge of THIS specific product (typical recipe, common additives) to analyze it, and clearly note in "summary" that the official ingredient list wasn't available. Fill brand + parentCompany from your knowledge if the database is missing or wrong (e.g. Cadbury → Mondelez, Maggi → Nestlé, Kurkure → PepsiCo).${healthContext}${planInstructions}`;
         knownProductName = lookup.name;

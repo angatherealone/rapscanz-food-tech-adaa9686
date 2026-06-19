@@ -144,6 +144,17 @@ function ScanPage() {
       )}
 
       <Card className="p-5">
+        <div
+          onKeyDown={(e) => {
+            // Press Enter to scan & analyze on any tab (Shift+Enter still adds a newline in the textarea).
+            if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+            const target = e.target as HTMLElement;
+            const isTextarea = target.tagName === "TEXTAREA";
+            if (isTextarea) e.preventDefault();
+            if (mutation.isPending || outOfScans) return;
+            mutation.mutate();
+          }}
+        >
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="ingredients"><FileText className="mr-2 h-4 w-4" /> Text</TabsTrigger>
@@ -153,14 +164,14 @@ function ScanPage() {
 
           <TabsContent value="ingredients" className="mt-4">
             <Textarea
-              placeholder="Paste the ingredient list from the back of the packet…"
+              placeholder="Paste the ingredient list from the back of the packet…  (Enter to scan, Shift+Enter for newline)"
               rows={6}
               value={text}
               onChange={(e) => setText(e.target.value)}
             />
           </TabsContent>
 
-          <TabsContent value="image" className="mt-4">
+          <TabsContent value="image" className="mt-4" tabIndex={0}>
             <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={onPickFile} />
             {imageDataUrl ? (
               <div className="relative">
@@ -172,6 +183,7 @@ function ScanPage() {
                 >
                   <X className="h-4 w-4" />
                 </button>
+                <p className="mt-2 text-xs text-muted-foreground">Press Enter to scan & analyze.</p>
               </div>
             ) : (
               <button
@@ -186,13 +198,13 @@ function ScanPage() {
 
           <TabsContent value="barcode" className="mt-4">
             <Input
-              placeholder="e.g. 8901058851234"
+              placeholder="e.g. 8901058851234  (Enter to scan)"
               value={barcode}
               onChange={(e) => setBarcode(e.target.value.replace(/\s+/g, "").replace(/\D/g, ""))}
               inputMode="numeric"
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              EAN-8, UPC-A, EAN-13 or ITF-14. We strip spaces, auto-retry 12-digit UPCs as 13-digit EANs, then look it up across Open Food Facts and UPCitemdb — including Indian & international brands. If the databases come up empty, our AI Registry Lookup uses GS1 prefixes to estimate the parent company.
+              EAN-8, UPC-A, EAN-13 or ITF-14. We strip spaces, auto-retry 12-digit UPCs as 13-digit EANs, then look it up across Open Food Facts and UPCitemdb — including Indian, Egyptian & international brands. If the databases come up empty, our AI Registry Lookup uses the full GS1 country + manufacturer prefix to pin the exact parent company and sister brand.
             </p>
 
           </TabsContent>
@@ -208,7 +220,9 @@ function ScanPage() {
             ? (tab === "barcode" ? "Looking up barcode & consulting AI registry…" : "Analyzing…")
             : "Scan & analyze"}
         </Button>
+        </div>
       </Card>
+
 
       {result && (
         <div className="mt-8 space-y-5">
