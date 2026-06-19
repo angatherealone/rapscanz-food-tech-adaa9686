@@ -470,8 +470,9 @@ export const analyzeScan = createServerFn({ method: "POST" })
     }
 
 
-    const { data: quota, error: quotaErr } = await supabase
-      .rpc("consume_scan_quota")
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: quota, error: quotaErr } = await supabaseAdmin
+      .rpc("consume_scan_quota", { _uid: context.userId })
       .single();
 
     if (quotaErr) {
