@@ -459,7 +459,10 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     if (data.scanType === "barcode") {
       if (!data.barcode) throw new Error("Barcode is required.");
-      if (!isValidBarcodeChecksum(data.barcode.trim())) {
+      // Strip whitespace defensively (also handled client-side).
+      const sanitized = data.barcode.replace(/\s+/g, "");
+      data.barcode = sanitized;
+      if (!isValidBarcodeChecksum(sanitized)) {
         throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
       }
     } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
