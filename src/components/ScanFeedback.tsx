@@ -22,7 +22,13 @@ const POLL_OPTIONS: { value: BuyAgain; label: string; emoji: string }[] = [
   { value: "no", label: "No", emoji: "👎" },
 ];
 
-export function ScanFeedback({ scanId }: { scanId: string }) {
+export function ScanFeedback({
+  scanId,
+  onAfterSubmit,
+}: {
+  scanId: string;
+  onAfterSubmit?: () => void;
+}) {
   const qc = useQueryClient();
   const getFn = useServerFn(getScanFeedback);
   const saveFn = useServerFn(saveScanFeedback);
