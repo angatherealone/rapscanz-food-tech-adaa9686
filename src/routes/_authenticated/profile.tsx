@@ -17,13 +17,14 @@ export const Route = createFileRoute("/_authenticated/profile")({
 type Form = {
   username: string;
   gender: string;
+  age: string;
   weight_kg: string;
   height_cm: string;
   illnesses: string;
   allergies: string;
 };
 
-const empty: Form = { username: "", gender: "", weight_kg: "", height_cm: "", illnesses: "", allergies: "" };
+const empty: Form = { username: "", gender: "", age: "", weight_kg: "", height_cm: "", illnesses: "", allergies: "" };
 
 function bmi(w: string, h: string) {
   const wn = Number(w), hn = Number(h);
@@ -43,13 +44,14 @@ function ProfilePage() {
       if (!u.user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("username, weight_kg, height_cm, illnesses, allergies, gender")
+        .select("username, weight_kg, height_cm, illnesses, allergies, gender, age")
         .eq("id", u.user.id)
         .maybeSingle();
       const d = (data ?? {}) as any;
       setForm({
         username: d.username ?? "",
         gender: d.gender ?? "",
+        age: d.age?.toString() ?? "",
         weight_kg: d.weight_kg?.toString() ?? "",
         height_cm: d.height_cm?.toString() ?? "",
         illnesses: d.illnesses ?? "",
@@ -71,8 +73,10 @@ function ProfilePage() {
     }
     const w = form.weight_kg ? Number(form.weight_kg) : null;
     const h = form.height_cm ? Number(form.height_cm) : null;
+    const a = form.age ? Number(form.age) : null;
     if (w !== null && (isNaN(w) || w <= 0 || w >= 500)) return toast.error("Enter a valid weight in kg.");
     if (h !== null && (isNaN(h) || h <= 0 || h >= 300)) return toast.error("Enter a valid height in cm.");
+    if (a !== null && (isNaN(a) || !Number.isInteger(a) || a <= 0 || a >= 130)) return toast.error("Enter a valid age (1–129).");
 
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
@@ -80,6 +84,7 @@ function ProfilePage() {
     const { error } = await supabase.from("profiles").update({
       username: form.username || null,
       gender: form.gender || null,
+      age: a,
       weight_kg: w,
       height_cm: h,
       illnesses: form.illnesses.slice(0, 500) || null,
@@ -152,6 +157,19 @@ function ProfilePage() {
               <option value="non_binary">Non-binary</option>
               <option value="other">Other</option>
             </select>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="age" className="text-sm font-medium">Age</label>
+            <input
+              id="age" type="number" inputMode="numeric" step="1" min="1" max="129"
+              value={form.age}
+              onChange={(e) => set("age", e.target.value)}
+              disabled={loading}
+              placeholder="e.g. 28"
+              className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Used to personalise per-age dietary advice.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
