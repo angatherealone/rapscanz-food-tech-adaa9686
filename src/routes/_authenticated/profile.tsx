@@ -44,13 +44,14 @@ function ProfilePage() {
       if (!u.user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("username, weight_kg, height_cm, illnesses, allergies, gender")
+        .select("username, weight_kg, height_cm, illnesses, allergies, gender, age")
         .eq("id", u.user.id)
         .maybeSingle();
       const d = (data ?? {}) as any;
       setForm({
         username: d.username ?? "",
         gender: d.gender ?? "",
+        age: d.age?.toString() ?? "",
         weight_kg: d.weight_kg?.toString() ?? "",
         height_cm: d.height_cm?.toString() ?? "",
         illnesses: d.illnesses ?? "",
