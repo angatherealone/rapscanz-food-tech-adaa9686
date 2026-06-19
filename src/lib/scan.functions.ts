@@ -39,6 +39,7 @@ export type ScanResult = {
   cautions: { ingredient: string; concern: string; severity: "low" | "medium" | "high" }[];
   personalAdvice?: string;
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
+  aiRegistryFallback?: boolean;
 };
 
 
