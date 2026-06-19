@@ -573,9 +573,23 @@ function ScanPage() {
               <p className="mb-4 text-sm text-muted-foreground">
                 Tap any glowing point or list item to see which organ is affected.
               </p>
-              <BodyDamageMap items={result.bodyDamage} />
+              <BodyDamageMap items={result.bodyDamage} variant="damage" />
             </Card>
           )}
+
+          {result.bodyBenefit && result.bodyBenefit.length > 0 && (
+            <Card className="p-5">
+              <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                <PersonStanding className="h-5 w-5 text-success" /> Body-benefit map
+                <span className="chip ml-auto bg-success/15 text-success">Pro Max</span>
+              </div>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Organs that genuinely gain from this product. Only organs with a real, ingredient-backed benefit are shown.
+              </p>
+              <BodyDamageMap items={result.bodyBenefit} variant="benefit" />
+            </Card>
+          )}
+
 
         </div>
       )}
