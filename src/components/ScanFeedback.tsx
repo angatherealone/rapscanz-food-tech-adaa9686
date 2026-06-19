@@ -4,7 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, MessageSquare, CheckCircle2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Star, MessageSquare, CheckCircle2, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
 import { getScanFeedback, saveScanFeedback } from "@/lib/feedback.functions";
 
