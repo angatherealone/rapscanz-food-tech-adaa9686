@@ -306,13 +306,14 @@ function ScanPage() {
         <Button
           className="mt-5 w-full"
           size="lg"
-          disabled={mutation.isPending || outOfScans}
+          disabled={mutation.isPending || (outOfScans && !(tab === "barcode" && isLocalBarcode(barcode)))}
           onClick={() => mutation.mutate()}
         >
           {mutation.isPending
             ? (tab === "barcode" ? "Looking up barcode & consulting AI registry…" : "Analyzing…")
-            : "Scan & analyze"}
+            : (tab === "barcode" && isLocalBarcode(barcode) ? "Look up local item" : "Scan & analyze")}
         </Button>
+
         </div>
       </Card>
 
