@@ -39,6 +39,7 @@ export type ScanResult = {
   cautions: { ingredient: string; concern: string; severity: "low" | "medium" | "high" }[];
   personalAdvice?: string;
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
+  aiRegistryFallback?: boolean;
 };
 
 
@@ -340,16 +341,25 @@ async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
 }
 
 async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
-  const off = await lookupOpenFoodFacts(barcode);
-  if (off && off.ingredients) return off;
-  const upc = await lookupUpcItemDb(barcode);
-  if (upc) return {
-    ...upc,
-    ingredients: off?.ingredients ?? upc.ingredients,
-    parentCompany: off?.parentCompany ?? upc.parentCompany,
-    category: upc.category ?? off?.category,
+  const tryOne = async (code: string): Promise<BarcodeLookup | null> => {
+    const off = await lookupOpenFoodFacts(code);
+    if (off && off.ingredients) return off;
+    const upc = await lookupUpcItemDb(code);
+    if (upc) return {
+      ...upc,
+      ingredients: off?.ingredients ?? upc.ingredients,
+      parentCompany: off?.parentCompany ?? upc.parentCompany,
+      category: upc.category ?? off?.category,
+    };
+    return off;
   };
-  return off;
+  let result = await tryOne(barcode);
+  // UPC-A (12 digits) is equivalent to EAN-13 with a leading "0".
+  // Retry the padded form if the first lookup came back empty / not found.
+  if (!result && /^\d{12}$/.test(barcode)) {
+    result = await tryOne("0" + barcode);
+  }
+  return result;
 }
 
 
@@ -449,7 +459,10 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     if (data.scanType === "barcode") {
       if (!data.barcode) throw new Error("Barcode is required.");
-      if (!isValidBarcodeChecksum(data.barcode.trim())) {
+      // Strip whitespace defensively (also handled client-side).
+      const sanitized = data.barcode.replace(/\s+/g, "");
+      data.barcode = sanitized;
+      if (!isValidBarcodeChecksum(sanitized)) {
         throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
       }
     } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
@@ -491,6 +504,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     let userContent: any;
     let knownProductName: string | undefined;
+    let usedAiRegistryFallback = false;
 
     if (data.scanType === "barcode") {
       const code = data.barcode!.trim();
@@ -501,7 +515,8 @@ export const analyzeScan = createServerFn({ method: "POST" })
       const lookup = await lookupBarcode(code);
       const countryHint = country ? `\nGS1 prefix country of issue: ${country}` : "";
       if (!lookup) {
-        userContent = `A user scanned barcode ${code}.${countryHint}\nNo product was found in Open Food Facts or UPCitemdb. The barcode is structurally valid but unregistered in public databases — it may be a regional Indian/local product (Amul, Britannia, Parle, Haldiram's, Patanjali, MTR, local dairies/sweet shops), a private label, or a very new SKU. Use the GS1 country and the barcode prefix to infer the most likely brand and parent company. If you can't, set "productName" to "Unidentified product" and explain. Set rating to "okay" only if you truly can't tell.${healthContext}${planInstructions}`;
+        usedAiRegistryFallback = true;
+        userContent = `A user scanned barcode ${code}.${countryHint}\nThe Open Food Facts and UPCitemdb databases returned no match (404 / empty / not found), even after retrying as a 13-digit EAN. The barcode IS structurally valid.\n\nDO NOT refuse or return "Unidentified product". Instead, act as a GS1 registry analyst: analyze the FULL barcode and especially its first 3 digits (the GS1 country prefix) and the next 4-6 digits (the GS1 manufacturer prefix). Using global GS1 manufacturer-prefix standards plus your knowledge of major food conglomerates active in that country, return your BEST ESTIMATE of:\n  • the parent company that owns that GS1 prefix range (e.g. prefixes 500-509 = United Kingdom, often Mondelez/Cadbury, Unilever, Tesco; 890 = India, often Amul/GCMMF, ITC, Parle, Britannia, Haldiram's, Patanjali, Mother Dairy, Tata Consumer; 30-37 = France, often Danone, Lactalis; 400-440 = Germany, often Nestlé Deutschland, Dr. Oetker; 690-699 = China, etc.)\n  • a plausible sub-brand / product line in that company's catalogue that this SKU could plausibly belong to, given the category cues.\n  • a reasonable category guess.\nFill productName as "<Sub-brand> (estimated)", brand as the sub-brand, parentCompany as the parent corporation, category as your category guess. In "summary" briefly say this was identified via GS1 registry inference because the public databases had no entry, and that the analysis is based on a typical recipe for that brand/category. Then complete a normal nutrition analysis using typical recipes for that brand/category.${healthContext}${planInstructions}`;
       } else if (!lookup.ingredients) {
         userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` (brand: ${lookup.brand})` : ""}${lookup.parentCompany ? ` (parent: ${lookup.parentCompany})` : ""}${lookup.category ? ` — ${lookup.category}` : ""} via ${lookup.source}.${countryHint}\nNo ingredient list is published. Use your knowledge of THIS specific product (typical recipe, common additives) to analyze it, and clearly note in "summary" that the official ingredient list wasn't available. Fill brand + parentCompany from your knowledge if the database is missing or wrong (e.g. Cadbury → Mondelez, Maggi → Nestlé, Kurkure → PepsiCo).${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
@@ -528,6 +543,9 @@ export const analyzeScan = createServerFn({ method: "POST" })
     const result = await callGemini(messages);
     if (knownProductName && (!result.productName || result.productName === "Unknown product")) {
       result.productName = knownProductName;
+    }
+    if (usedAiRegistryFallback) {
+      result.aiRegistryFallback = true;
     }
 
     const { data: inserted, error: insertErr } = await supabase.from("scans").insert({
