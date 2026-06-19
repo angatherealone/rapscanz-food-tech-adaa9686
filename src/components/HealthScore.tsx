@@ -75,8 +75,12 @@ export function HealthScore({ score, size = "lg" }: Props) {
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-wider opacity-80">Health score</div>
           <div className="font-display text-sm font-semibold">{scoreLabel(clamped)}</div>
+          <div className={`mt-0.5 font-mono text-xs font-bold ${text}`}>
+            {(clamped / 10).toFixed(1)}<span className="opacity-60"> / 10</span>
+          </div>
         </div>
       )}
+
     </div>
   );
 }
