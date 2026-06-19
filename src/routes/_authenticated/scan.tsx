@@ -318,7 +318,63 @@ function ScanPage() {
       </Card>
 
 
+      {localItem && (
+        <Card className="mt-6 p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-warning-foreground">
+                <Store className="h-3 w-3" /> Local inventory item
+              </div>
+              <div className="font-display text-2xl font-bold">{localItem.item.name}</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Barcode <span className="font-mono">{localItem.code}</span>
+                {localItem.item.price && <span> · {localItem.item.price}</span>}
+                {localItem.item.weight && <span> · {localItem.item.weight}</span>}
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Saved on this device. Re-scanning <span className="font-mono">{localItem.code}</span> will recognize it instantly — no scan credit used.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => deleteLocalItem(localItem.code)} className="gap-1 text-danger hover:text-danger">
+              <Trash2 className="h-4 w-4" /> Remove
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <Dialog open={!!localPrompt} onOpenChange={(o) => { if (!o) setLocalPrompt(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Store className="h-5 w-5 text-warning-foreground" /> Local / in-store barcode detected</DialogTitle>
+            <DialogDescription>
+              Barcode <span className="font-mono">{localPrompt}</span> looks like a supermarket or loose-item label (GS1 restricted prefix 20–29). It isn't in any global product database. Name it once and we'll recognize it instantly next time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="li-name">Item name</Label>
+              <Input id="li-name" placeholder="e.g. Loose bananas, Deli sandwich" value={localForm.name} onChange={(e) => setLocalForm((f) => ({ ...f, name: e.target.value }))} autoFocus />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="li-price">Price (optional)</Label>
+                <Input id="li-price" placeholder="₹120" value={localForm.price} onChange={(e) => setLocalForm((f) => ({ ...f, price: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="li-weight">Weight / size (optional)</Label>
+                <Input id="li-weight" placeholder="500 g" value={localForm.weight} onChange={(e) => setLocalForm((f) => ({ ...f, weight: e.target.value }))} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLocalPrompt(null)}>Cancel</Button>
+            <Button onClick={saveLocalItem}>Save to local inventory</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {result && (
+
         <div className="mt-8 space-y-5">
           <Card className="overflow-hidden p-0">
             <div className={`px-6 py-4 ${RATING_STYLES[result.rating]?.bg ?? "bg-muted"}`}>
