@@ -80,7 +80,7 @@ function ScanPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Local/in-store barcode state
-  const [localDb, setLocalDb] = useState<Record<string, LocalItem>>({});
+  const [, setLocalDb] = useState<Record<string, LocalItem>>({});
   const [localItem, setLocalItem] = useState<{ code: string; item: LocalItem } | null>(null);
   const [localPrompt, setLocalPrompt] = useState<string | null>(null); // barcode awaiting naming
   const [localForm, setLocalForm] = useState<{ name: string; price: string; weight: string }>({ name: "", price: "", weight: "" });
