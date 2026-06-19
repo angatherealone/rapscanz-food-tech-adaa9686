@@ -42,6 +42,7 @@ export function ScanFeedback({
   const [hover, setHover] = useState(0);
   const [buyAgain, setBuyAgain] = useState<BuyAgain | null>(null);
   const [comment, setComment] = useState("");
+  const [showThanks, setShowThanks] = useState(false);
 
   useEffect(() => {
     if (!existing) return;
