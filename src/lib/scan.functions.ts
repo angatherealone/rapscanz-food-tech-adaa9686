@@ -586,7 +586,7 @@ Respond ONLY with valid JSON matching this schema:
   "productName": string (the specific product / sub-brand the consumer recognises, e.g. "Dairy Milk Silk", "Maggi 2-Minute Noodles", "Amul Gold Milk"),
   "brand": string (the sub-brand or product line if there is one, e.g. "Dairy Milk", "Maggi", "Lay's"),
   "parentCompany": string (the parent / owner company, e.g. "Mondelez (formerly Cadbury)", "Nestlé", "PepsiCo", "Hindustan Unilever", "ITC Limited", "Amul / GCMMF"),
-  "category": string (short food category, e.g. "Milk chocolate bar", "Instant noodles", "Toned milk", "Salted potato chips"),
+  "category": string (short, SPECIFIC food category, e.g. "Milk chocolate bar", "Cream-filled biscuit", "Salted potato chips", "Energy/protein bar", "Extruded corn snack (chiki/kurkure-style)", "Peanut-jaggery chikki", "Toned milk"),
   "rating": "good" | "okay" | "caution" | "avoid",
   "healthScore": number (integer 0-100; penalize ultra-processing, high sugar/sodium/saturated fat, trans fats, artificial additives; reward whole ingredients, fiber, protein, healthy fats),
   "caloriesKcal": number (integer; best estimate of CALORIES PER TYPICAL SERVING in kcal. Use standard serving sizes if not given (e.g. 30g chips, 250ml drink, 1 biscuit, 1 chocolate piece ~12g). Use 0 only for true zero-calorie products like water.),
@@ -594,8 +594,21 @@ Respond ONLY with valid JSON matching this schema:
   "advantages": string[] (3-6 short bullets),
   "disadvantages": string[] (3-6 short bullets),
   "cautions": [ { "ingredient": string, "concern": string, "severity": "low"|"medium"|"high" } ],
-  "personalAdvice": string (1-2 sentences specific to the user's health profile if provided — flag listed allergens, warn on conflicts with diabetes/hypertension/PCOS, reference BMI/gender if relevant. Omit/empty if no profile.)
+  "personalAdvice": string (1-2 sentences specific to the user's health profile if provided — flag listed allergens, warn on conflicts with diabetes/hypertension/PCOS, reference BMI/gender if relevant. Omit/empty if no profile.),
+  "dietaryType": "veg" | "non-veg" | "vegan" | "unknown" (REQUIRED — see rules below),
+  "dietaryReason": string (one short clause explaining the classification, e.g. "Contains milk solids and butter (lacto-vegetarian)", "Contains gelatin (animal-derived)", "Plant-based ingredients only")
 }
+CATEGORY ACCURACY RULES (CRITICAL — do NOT mix up product types):
+- Be PRECISE. An energy/protein bar (oats, whey, dates, nuts) is NOT a chocolate bar and NOT a biscuit. A chikki (peanut + jaggery brittle) is NOT kurkure and NOT a biscuit. A cream biscuit (Oreo, Bourbon) is NOT a wafer and NOT a chocolate. An extruded corn snack (Kurkure, Cheetos) is NOT a chip and NOT a biscuit.
+- Distinguish: chocolate bar vs energy/protein bar vs cereal/granola bar vs nut-brittle (chikki) vs biscuit (hard/soft/cream/cracker) vs wafer vs extruded snack vs fried chip vs baked chip.
+- If the image / ingredient list / barcode lookup is ambiguous and you cannot confidently identify the category, set productName to "Unidentified product", category to "Unknown", and explain in summary that the image/barcode was not clear enough. DO NOT guess a different product just to give an answer.
+- The healthScore, caloriesKcal, advantages, disadvantages, and dietaryType MUST match the category you returned. A chikki's calories/nutrition is NOT the same as a kurkure's — do not copy values across categories.
+DIETARY CLASSIFICATION RULES (required for every scan):
+- "non-veg" = contains meat, poultry, fish, seafood, gelatin, lard/tallow, animal rennet, carmine/cochineal (E120), shellac (E904), or egg (in India egg is non-veg; if region unknown treat egg as non-veg by Indian convention but mention egg explicitly in dietaryReason).
+- "veg" (lacto-vegetarian) = plant-based PLUS one or more of: milk, butter, ghee, cheese, whey, casein, honey — and no non-veg ingredients.
+- "vegan" = entirely plant-based, no dairy, no honey, no egg, no animal-derived additives.
+- "unknown" = only when the ingredient list is truly unreadable AND there is no brand/category to infer from. Avoid this when possible.
+- Common additives to watch: gelatin (non-veg), L-cysteine from hair/feathers (non-veg unless labelled microbial), rennet (non-veg unless labelled microbial/vegetable), vitamin D3 from lanolin (still vegetarian; D3 from lichen is vegan), mono- and diglycerides (source ambiguous — assume veg unless clearly animal).
 Brand identification rules:
 - ALWAYS fill "brand" with the sub-brand/product line the consumer sees on the wrapper, and "parentCompany" with the actual owning corporation — even when they differ. Example: product "Dairy Milk Silk" → brand "Dairy Milk", parentCompany "Mondelez (formerly Cadbury)". Product "Kurkure" → brand "Kurkure", parentCompany "PepsiCo (Frito-Lay)". Product "Bournvita" → brand "Bournvita", parentCompany "Mondelez". Product "Amul Butter" → brand "Amul", parentCompany "GCMMF (Amul cooperative)". Product "Real Juice" → brand "Real", parentCompany "Dabur".
 - If unsure, give your best guess and reflect uncertainty in "summary".
