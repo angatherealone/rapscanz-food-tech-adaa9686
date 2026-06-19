@@ -228,6 +228,12 @@ function ScanPage() {
                       {result.category && <span className="ml-2 opacity-75">· {result.category}</span>}
                     </div>
                   )}
+                  {result.aiRegistryFallback && (
+                    <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-background/25 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ring-background/40">
+                      <Sparkles className="h-3 w-3" />
+                      Identified via AI Registry Lookup
+                    </div>
+                  )}
 
                 </div>
                 <HealthScore score={result.healthScore} />
