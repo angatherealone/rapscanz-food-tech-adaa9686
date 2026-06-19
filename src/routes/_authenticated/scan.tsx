@@ -1,17 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeScan, getProfile, logConsumption, type ScanResult } from "@/lib/scan.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding } from "lucide-react";
+import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2 } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
 import { BodyDamageMap } from "@/components/BodyDamageMap";
+
+// ---- Local / in-store barcode (GS1 Restricted Distribution Numbers) ----
+// Prefixes 02, 20-29, and 04, 40-49 are reserved for in-store / private-label use
+// and are NOT registered in global GS1 product databases — Open Food Facts /
+// UPCitemdb will always 404 on them. Handle entirely client-side.
+type LocalItem = { name: string; price?: string; weight?: string; savedAt: number };
+const LOCAL_KEY = "rapscanz.localBarcodes.v1";
+
+function isLocalBarcode(code: string): boolean {
+  if (!/^\d{8,14}$/.test(code)) return false;
+  // EAN-13 prefixes 20-29 (restricted distribution / in-store)
+  return /^2\d/.test(code);
+}
+function loadLocalDb(): Record<string, LocalItem> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(window.localStorage.getItem(LOCAL_KEY) || "{}"); } catch { return {}; }
+}
+function saveLocalDb(db: Record<string, LocalItem>) {
+  try { window.localStorage.setItem(LOCAL_KEY, JSON.stringify(db)); } catch {}
+}
 
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
@@ -57,6 +79,57 @@ function ScanPage() {
   const [logged, setLogged] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Local/in-store barcode state
+  const [, setLocalDb] = useState<Record<string, LocalItem>>({});
+  const [localItem, setLocalItem] = useState<{ code: string; item: LocalItem } | null>(null);
+  const [localPrompt, setLocalPrompt] = useState<string | null>(null); // barcode awaiting naming
+  const [localForm, setLocalForm] = useState<{ name: string; price: string; weight: string }>({ name: "", price: "", weight: "" });
+
+  useEffect(() => { setLocalDb(loadLocalDb()); }, []);
+
+  function handleLocalBarcode(code: string) {
+    const db = loadLocalDb();
+    setLocalDb(db);
+    if (db[code]) {
+      setLocalItem({ code, item: db[code] });
+      setResult(null);
+      setScanId(null);
+      toast.success("Recognized your saved local item");
+      return;
+    }
+    setLocalForm({ name: "", price: "", weight: "" });
+    setLocalPrompt(code);
+  }
+
+  function saveLocalItem() {
+    if (!localPrompt) return;
+    const name = localForm.name.trim();
+    if (!name) { toast.error("Give this item a name."); return; }
+    const item: LocalItem = {
+      name,
+      price: localForm.price.trim() || undefined,
+      weight: localForm.weight.trim() || undefined,
+      savedAt: Date.now(),
+    };
+    const db = { ...loadLocalDb(), [localPrompt]: item };
+    saveLocalDb(db);
+    setLocalDb(db);
+    setLocalItem({ code: localPrompt, item });
+    setLocalPrompt(null);
+    setResult(null);
+    setScanId(null);
+    toast.success("Saved to your local inventory");
+  }
+
+  function deleteLocalItem(code: string) {
+    const db = { ...loadLocalDb() };
+    delete db[code];
+    saveLocalDb(db);
+    setLocalDb(db);
+    setLocalItem(null);
+    toast.success("Removed from local inventory");
+  }
+
   const mutation = useMutation({
     mutationFn: async () => {
       setLogged(false);
@@ -68,10 +141,18 @@ function ScanPage() {
         if (!imageDataUrl) throw new Error("Upload a photo of the label first.");
         return analyzeFn({ data: { scanType: "ingredients", imageDataUrl } });
       }
-      if (!barcode.trim()) throw new Error("Enter a barcode number.");
-      return analyzeFn({ data: { scanType: "barcode", barcode: barcode.trim() } });
+      const code = barcode.trim();
+      if (!code) throw new Error("Enter a barcode number.");
+      if (isLocalBarcode(code)) {
+        // Bypass global API entirely — handled client-side.
+        handleLocalBarcode(code);
+        return null as any;
+      }
+      return analyzeFn({ data: { scanType: "barcode", barcode: code } });
     },
     onSuccess: (data) => {
+      if (!data) return; // local barcode path
+      setLocalItem(null);
       setResult(data.result);
       setScanId(data.scanId);
       qc.invalidateQueries({ queryKey: ["profile"] });
@@ -203,28 +284,97 @@ function ScanPage() {
               onChange={(e) => setBarcode(e.target.value.replace(/\s+/g, "").replace(/\D/g, ""))}
               inputMode="numeric"
             />
+            {isLocalBarcode(barcode) && (
+              <div className="mt-3 flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
+                <Store className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
+                <div>
+                  <div className="font-semibold text-foreground">Local / in-store barcode detected</div>
+                  <div className="text-muted-foreground">
+                    GS1 prefix 20–29 is reserved for supermarket/loose-item labels and isn't in any global product database. We'll look it up in your local inventory instead — no scan credit used.
+                  </div>
+                </div>
+              </div>
+            )}
             <p className="mt-2 text-xs text-muted-foreground">
               EAN-8, UPC-A, EAN-13 or ITF-14. We strip spaces, auto-retry 12-digit UPCs as 13-digit EANs, then look it up across Open Food Facts and UPCitemdb — including Indian, Egyptian & international brands. If the databases come up empty, our AI Registry Lookup uses the full GS1 country + manufacturer prefix to pin the exact parent company and sister brand.
             </p>
 
           </TabsContent>
+
         </Tabs>
 
         <Button
           className="mt-5 w-full"
           size="lg"
-          disabled={mutation.isPending || outOfScans}
+          disabled={mutation.isPending || (outOfScans && !(tab === "barcode" && isLocalBarcode(barcode)))}
           onClick={() => mutation.mutate()}
         >
           {mutation.isPending
             ? (tab === "barcode" ? "Looking up barcode & consulting AI registry…" : "Analyzing…")
-            : "Scan & analyze"}
+            : (tab === "barcode" && isLocalBarcode(barcode) ? "Look up local item" : "Scan & analyze")}
         </Button>
+
         </div>
       </Card>
 
 
+      {localItem && (
+        <Card className="mt-6 p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-warning-foreground">
+                <Store className="h-3 w-3" /> Local inventory item
+              </div>
+              <div className="font-display text-2xl font-bold">{localItem.item.name}</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Barcode <span className="font-mono">{localItem.code}</span>
+                {localItem.item.price && <span> · {localItem.item.price}</span>}
+                {localItem.item.weight && <span> · {localItem.item.weight}</span>}
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Saved on this device. Re-scanning <span className="font-mono">{localItem.code}</span> will recognize it instantly — no scan credit used.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => deleteLocalItem(localItem.code)} className="gap-1 text-danger hover:text-danger">
+              <Trash2 className="h-4 w-4" /> Remove
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <Dialog open={!!localPrompt} onOpenChange={(o) => { if (!o) setLocalPrompt(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Store className="h-5 w-5 text-warning-foreground" /> Local / in-store barcode detected</DialogTitle>
+            <DialogDescription>
+              Barcode <span className="font-mono">{localPrompt}</span> looks like a supermarket or loose-item label (GS1 restricted prefix 20–29). It isn't in any global product database. Name it once and we'll recognize it instantly next time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="li-name">Item name</Label>
+              <Input id="li-name" placeholder="e.g. Loose bananas, Deli sandwich" value={localForm.name} onChange={(e) => setLocalForm((f) => ({ ...f, name: e.target.value }))} autoFocus />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="li-price">Price (optional)</Label>
+                <Input id="li-price" placeholder="₹120" value={localForm.price} onChange={(e) => setLocalForm((f) => ({ ...f, price: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="li-weight">Weight / size (optional)</Label>
+                <Input id="li-weight" placeholder="500 g" value={localForm.weight} onChange={(e) => setLocalForm((f) => ({ ...f, weight: e.target.value }))} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLocalPrompt(null)}>Cancel</Button>
+            <Button onClick={saveLocalItem}>Save to local inventory</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {result && (
+
         <div className="mt-8 space-y-5">
           <Card className="overflow-hidden p-0">
             <div className={`px-6 py-4 ${RATING_STYLES[result.rating]?.bg ?? "bg-muted"}`}>
