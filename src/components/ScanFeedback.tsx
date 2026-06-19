@@ -65,8 +65,8 @@ export function ScanFeedback({
       });
     },
     onSuccess: () => {
-      toast.success(existing ? "Feedback updated" : "Thanks for the feedback!");
       qc.invalidateQueries({ queryKey: ["scan-feedback", scanId] });
+      setShowThanks(true);
     },
     onError: (e: any) => toast.error(e?.message ?? "Couldn't save feedback"),
   });
