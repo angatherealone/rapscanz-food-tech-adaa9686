@@ -100,6 +100,47 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_feedback: {
+        Row: {
+          buy_again: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          scan_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buy_again: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          scan_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buy_again?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          scan_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_feedback_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scans: {
         Row: {
           advantages: Json | null
