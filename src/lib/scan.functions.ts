@@ -61,9 +61,22 @@ export const getProfile = createServerFn({ method: "GET" })
       throw new Error("Unable to load your profile. Please try again.");
     }
     const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null };
-    const effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus" || profile.plan === "pro_max") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
-      ? "free"
-      : (profile.plan ?? "free");
+
+    const { data: roleRows } = await supabase
+      .from("user_roles" as any)
+      .select("role")
+      .eq("user_id", userId);
+    const roles = (roleRows ?? []).map((r: any) => r.role as string);
+    const isUnlimited = roles.some((r) => r === "admin" || r === "founder" || r === "collaborator");
+
+    let effectivePlan: string;
+    if (isUnlimited) {
+      effectivePlan = "unlimited";
+    } else {
+      effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus" || profile.plan === "pro_max") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
+        ? "free"
+        : (profile.plan ?? "free");
+    }
     const limit = planLimit(effectivePlan);
     return {
       ...profile,
@@ -71,7 +84,9 @@ export const getProfile = createServerFn({ method: "GET" })
       planLabel: PLAN_LABELS[effectivePlan] ?? "Free",
       scanLimit: limit,
       freeLimit: FREE_LIMIT,
-      remaining: Math.max(0, limit - (profile.scan_count ?? 0)),
+      remaining: isUnlimited ? UNLIMITED_LIMIT : Math.max(0, limit - (profile.scan_count ?? 0)),
+      roles,
+      isUnlimited,
     };
   });
 
