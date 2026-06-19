@@ -301,9 +301,13 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     if (data.scanType === "barcode") {
       if (!data.barcode) throw new Error("Barcode is required.");
+      if (!isValidBarcodeChecksum(data.barcode.trim())) {
+        throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
+      }
     } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
       throw new Error("Please provide ingredients text, an image, or a barcode.");
     }
+
 
     const { data: quota, error: quotaErr } = await supabase
       .rpc("consume_scan_quota")
