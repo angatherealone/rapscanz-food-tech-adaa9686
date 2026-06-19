@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucide-react";
 import { LogoIcon } from "@/components/Logo";
+import { ScanChamber } from "@/components/ScanChamber";
 
 const HOME_URL = "https://healthy-food-scan.lovable.app/";
 const HOME_TITLE = "RAPscanz — Know what's really in your food";
@@ -68,22 +69,32 @@ function Landing() {
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 ink-grid opacity-40" aria-hidden />
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
-            <div className="max-w-3xl">
-              <span className="chip"><Sparkles className="h-3 w-3" /> 30 free scans · Pro from ₹200/mo</span>
-              <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
-                Know what's <span className="bg-accent px-2 py-0.5">actually</span> in your food.
-              </h1>
-              <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
-                Snap a label, paste ingredients, or scan a barcode. RAPscanz breaks down the good, the bad,
-                and the chemicals worth a second look — in plain English.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/auth" className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:opacity-90">
-                  Start scanning free <ScanLine className="h-4 w-4" />
-                </Link>
-                <a href="#how" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 text-base font-semibold hover:bg-muted">
-                  How it works
-                </a>
+            <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
+              <div className="max-w-2xl">
+                <span className="chip"><Sparkles className="h-3 w-3" /> 30 free scans · Pro from ₹200/mo</span>
+                <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
+                  Know what's <span className="bg-accent px-2 py-0.5">actually</span> in your food.
+                </h1>
+                <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+                  Snap a label, paste ingredients, or scan a barcode. RAPscanz breaks down the good, the bad,
+                  and the chemicals worth a second look — in plain English.
+                </p>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Link to="/auth" className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:opacity-90">
+                    Start scanning free <ScanLine className="h-4 w-4" />
+                  </Link>
+                  <a href="#how" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 text-base font-semibold hover:bg-muted">
+                    How it works
+                  </a>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_-20px_hsl(180_90%_30%/0.35)]">
+                  <ScanChamber />
+                </div>
+                <p className="mt-3 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  6-second live scan preview
+                </p>
               </div>
             </div>
           </div>
