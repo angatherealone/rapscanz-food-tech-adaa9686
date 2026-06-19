@@ -58,6 +58,7 @@ export type ScanResult = {
     organDamage: string[];
   };
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
+  bodyBenefit?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
   aiRegistryFallback?: boolean;
 };
 
@@ -570,9 +571,8 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
           }
         : undefined,
     bodyDamage: Array.isArray(parsed.bodyDamage) ? parsed.bodyDamage : undefined,
-
+    bodyBenefit: Array.isArray(parsed.bodyBenefit) ? parsed.bodyBenefit : undefined,
   };
-
 }
 
 const SYSTEM_PROMPT = `You are a food-safety nutrition analyst for the RAPscanz app.
@@ -661,9 +661,11 @@ export const analyzeScan = createServerFn({ method: "POST" })
     const consumptionTipRule = `ALSO return a top-level "consumptionTip" object: { "safeDaily": "<short sentence with a NUMBER — typical safe per-day amount for an average adult, e.g. '1 small bar (~25g) per day' or 'up to 250 ml/day'>", "limit": "<short sentence with the UPPER LIMIT and what happens beyond it, e.g. 'More than 50g/day raises risk of weight gain & cavities'>", "source": "<the genuine guideline source, e.g. 'WHO sugar guideline', 'FDA daily value', 'EFSA ADI', 'ICMR-NIN dietary guideline'>" }. Base the numbers on real published guidelines (WHO, FDA, EFSA, ICMR-NIN, AHA). Do NOT invent.`;
 
     const riskProfileRule = `ALSO return a top-level "riskProfile" object describing what genuinely happens to a person who over-consumes THIS specific product (above the safe daily limit, regularly, for weeks/months). Only populate when the product is rated "okay", "caution", or "avoid" (i.e. healthScore < 75); for clearly healthy products return an empty riskProfile with all arrays empty. Shape: { "illnesses": string[] (specific diseases/conditions linked to over-consumption — e.g. "Type 2 diabetes (excess refined sugar)", "Hypertension (high sodium load)", "NAFLD — non-alcoholic fatty liver disease"), "addictions": string[] (dependence patterns this product can drive — e.g. "Sugar/dopamine cravings", "Caffeine dependence", "MSG-driven snacking compulsion"), "chronicDamage": string[] (long-term irreversible harm — e.g. "Insulin resistance over years", "Permanent arterial plaque buildup", "Enamel erosion"), "temporaryEffects": string[] (short-term reversible reactions within hours/days — e.g. "Energy crash 1-2h after", "Bloating and gas", "Headache from artificial sweeteners"), "organDamage": string[] (named-organ damage with mechanism — e.g. "Liver: fat accumulation from fructose", "Kidneys: extra filtration load from sodium", "Pancreas: beta-cell stress from sugar spikes") }. Each array: 2-5 concise items, each item one short clause. Be specific to the actual ingredients in THIS product — do not write generic junk-food warnings. Base on real nutrition science (WHO, AHA, NIH, ICMR). Do NOT invent diseases.`;
+    const bodyBenefitRule = `ALSO return a top-level "bodyBenefit": an array of objects { "part": string, "severity": "low"|"medium"|"high", "reason": string } listing human body parts/organs that genuinely BENEFIT from consuming THIS product in normal amounts. Use the SAME allowed part-name list as bodyDamage (brain, eyes, teeth, throat, heart, lungs, liver, stomach, pancreas, kidneys, intestines, skin, bones). Severity here means MAGNITUDE of benefit (low = mild, high = strong, well-evidenced). Reason is one short sentence tied to a specific ingredient/nutrient in this product (e.g. "Bones: calcium + vitamin D support bone density", "Brain: omega-3 DHA supports cognition"). ONLY include organs that actually change for the better — if there is no genuine benefit for an organ, OMIT it; do NOT pad. Return an empty array [] if the product offers no real organ-level benefit. For products rated "good" / healthScore >= 75, prefer a fuller bodyBenefit list and an empty or near-empty bodyDamage.`;
     const planInstructions =
       plan === "pro_max"
-        ? `\n\nPRO MAX TIER: (1) ${proPlusCautionRule} (2) ${consumptionTipRule} (3) ${riskProfileRule} (4) ALSO return an additional field "bodyDamage": an array of objects { "part": string, "severity": "low"|"medium"|"high", "reason": string } listing human body parts/organs that can be harmed by consuming THIS product too often. Use part names from this list only: brain, eyes, teeth, throat, heart, lungs, liver, stomach, pancreas, kidneys, intestines, skin, bones. Severity reflects typical damage risk at high consumption. Reason is one short sentence specific to ingredients in this product.`
+        ? `\n\nPRO MAX TIER: (1) ${proPlusCautionRule} (2) ${consumptionTipRule} (3) ${riskProfileRule} (4) ALSO return an additional field "bodyDamage": an array of objects { "part": string, "severity": "low"|"medium"|"high", "reason": string } listing human body parts/organs that can be harmed by consuming THIS product too often. Use part names from this list only: brain, eyes, teeth, throat, heart, lungs, liver, stomach, pancreas, kidneys, intestines, skin, bones. Severity reflects typical damage risk at high consumption. Reason is one short sentence specific to ingredients in this product. For clearly healthy products (rating "good" / healthScore >= 75) return an empty bodyDamage array []. (5) ${bodyBenefitRule}`
+
 
         : plan === "pro_plus"
           ? `\n\nPRO+ TIER: (1) ${proPlusCautionRule} (2) ${consumptionTipRule}`
