@@ -157,7 +157,7 @@ export type Database = {
     }
     Functions: {
       consume_scan_quota: {
-        Args: never
+        Args: { _uid: string }
         Returns: {
           new_count: number
           plan: string
