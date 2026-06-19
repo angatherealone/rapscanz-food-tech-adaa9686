@@ -202,7 +202,8 @@ function ScanPage() {
   const scanLimit = (profile as any)?.scanLimit ?? 30;
   const remaining = profile?.remaining ?? scanLimit;
   const planLabel = (profile as any)?.planLabel ?? "Free";
-  const outOfScans = remaining <= 0;
+  const isUnlimited = (profile as any)?.isUnlimited === true || planLabel === "Unlimited";
+  const outOfScans = !isUnlimited && remaining <= 0;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -215,9 +216,10 @@ function ScanPage() {
         </div>
         <div className={`chip ${planLabel !== "Free" ? "bg-success text-success-foreground" : ""}`}>
           <Sparkles className="h-3 w-3" />
-          {planLabel} · {remaining} of {scanLimit} scans left
+          {isUnlimited ? `${planLabel} · Unlimited scans` : `${planLabel} · ${remaining} of ${scanLimit} scans left`}
         </div>
       </div>
+
 
       {outOfScans && (
         <Card className="mb-6 border-2 border-warning bg-warning/10 p-5">
