@@ -128,8 +128,10 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
+    font-weight: 700;
   }
+
 }
 
 @utility ink-grid {
