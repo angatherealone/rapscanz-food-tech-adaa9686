@@ -284,11 +284,23 @@ function ScanPage() {
               onChange={(e) => setBarcode(e.target.value.replace(/\s+/g, "").replace(/\D/g, ""))}
               inputMode="numeric"
             />
+            {isLocalBarcode(barcode) && (
+              <div className="mt-3 flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
+                <Store className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
+                <div>
+                  <div className="font-semibold text-foreground">Local / in-store barcode detected</div>
+                  <div className="text-muted-foreground">
+                    GS1 prefix 20–29 is reserved for supermarket/loose-item labels and isn't in any global product database. We'll look it up in your local inventory instead — no scan credit used.
+                  </div>
+                </div>
+              </div>
+            )}
             <p className="mt-2 text-xs text-muted-foreground">
               EAN-8, UPC-A, EAN-13 or ITF-14. We strip spaces, auto-retry 12-digit UPCs as 13-digit EANs, then look it up across Open Food Facts and UPCitemdb — including Indian, Egyptian & international brands. If the databases come up empty, our AI Registry Lookup uses the full GS1 country + manufacturer prefix to pin the exact parent company and sister brand.
             </p>
 
           </TabsContent>
+
         </Tabs>
 
         <Button
