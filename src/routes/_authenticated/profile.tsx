@@ -159,6 +159,19 @@ function ProfilePage() {
             </select>
           </div>
 
+          <div className="mb-4">
+            <label htmlFor="age" className="text-sm font-medium">Age</label>
+            <input
+              id="age" type="number" inputMode="numeric" step="1" min="1" max="129"
+              value={form.age}
+              onChange={(e) => set("age", e.target.value)}
+              disabled={loading}
+              placeholder="e.g. 28"
+              className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Used to personalise per-age dietary advice.</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="weight_kg" className="text-sm font-medium">Weight (kg)</label>
