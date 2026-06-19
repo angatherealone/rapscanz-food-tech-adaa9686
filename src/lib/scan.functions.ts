@@ -574,6 +574,8 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
         : undefined,
     bodyDamage: Array.isArray(parsed.bodyDamage) ? parsed.bodyDamage : undefined,
     bodyBenefit: Array.isArray(parsed.bodyBenefit) ? parsed.bodyBenefit : undefined,
+    dietaryType: ["veg", "non-veg", "vegan", "unknown"].includes(parsed.dietaryType) ? parsed.dietaryType : undefined,
+    dietaryReason: typeof parsed.dietaryReason === "string" ? parsed.dietaryReason : undefined,
   };
 }
 
