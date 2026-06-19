@@ -1,17 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeScan, getProfile, logConsumption, type ScanResult } from "@/lib/scan.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding } from "lucide-react";
+import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2 } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
 import { BodyDamageMap } from "@/components/BodyDamageMap";
+
+// ---- Local / in-store barcode (GS1 Restricted Distribution Numbers) ----
+// Prefixes 02, 20-29, and 04, 40-49 are reserved for in-store / private-label use
+// and are NOT registered in global GS1 product databases — Open Food Facts /
+// UPCitemdb will always 404 on them. Handle entirely client-side.
+type LocalItem = { name: string; price?: string; weight?: string; savedAt: number };
+const LOCAL_KEY = "rapscanz.localBarcodes.v1";
+
+function isLocalBarcode(code: string): boolean {
+  if (!/^\d{8,14}$/.test(code)) return false;
+  // EAN-13 prefixes 20-29 (restricted distribution / in-store)
+  return /^2\d/.test(code);
+}
+function loadLocalDb(): Record<string, LocalItem> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(window.localStorage.getItem(LOCAL_KEY) || "{}"); } catch { return {}; }
+}
+function saveLocalDb(db: Record<string, LocalItem>) {
+  try { window.localStorage.setItem(LOCAL_KEY, JSON.stringify(db)); } catch {}
+}
 
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
