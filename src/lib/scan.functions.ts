@@ -614,6 +614,33 @@ export const analyzeScan = createServerFn({ method: "POST" })
     let knownProductName: string | undefined;
     let usedAiRegistryFallback = false;
 
+    // PHOTO → BARCODE: if the user uploaded an image, first try to OCR a
+    // mathematically-valid EAN/UPC off the package. If we find one, treat
+    // the request exactly like a direct barcode scan (incl. 20-29 local
+    // prefix bypass) so accuracy matches the barcode tab.
+    let ocrBarcode: string | null = null;
+    if (data.scanType === "ingredients" && data.imageDataUrl) {
+      ocrBarcode = await extractBarcodeFromImage(data.imageDataUrl);
+      if (ocrBarcode) {
+        // Local / in-store GS1 restricted range — bubble up for client-side
+        // local-inventory handling instead of calling the global API.
+        if (/^2\d/.test(ocrBarcode) && /^\d{12,13}$/.test(ocrBarcode)) {
+          return {
+            result: null as any,
+            scanId: null,
+            remaining: Math.max(0, scanLimit - newCount),
+            scanLimit,
+            plan,
+            planLabel: PLAN_LABELS[plan] ?? "Free",
+            localBarcode: ocrBarcode,
+          };
+        }
+        // Promote to barcode path for the rest of the handler.
+        data = { ...data, scanType: "barcode", barcode: ocrBarcode, imageDataUrl: undefined } as any;
+      }
+    }
+
+
     if (data.scanType === "barcode") {
       const code = data.barcode!.trim();
       if (!isValidBarcodeChecksum(code)) {
