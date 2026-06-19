@@ -559,7 +559,18 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
             source: String(parsed.consumptionTip.source ?? ""),
           }
         : undefined,
+    riskProfile:
+      parsed.riskProfile && typeof parsed.riskProfile === "object"
+        ? {
+            illnesses: Array.isArray(parsed.riskProfile.illnesses) ? parsed.riskProfile.illnesses.map(String) : [],
+            addictions: Array.isArray(parsed.riskProfile.addictions) ? parsed.riskProfile.addictions.map(String) : [],
+            chronicDamage: Array.isArray(parsed.riskProfile.chronicDamage) ? parsed.riskProfile.chronicDamage.map(String) : [],
+            temporaryEffects: Array.isArray(parsed.riskProfile.temporaryEffects) ? parsed.riskProfile.temporaryEffects.map(String) : [],
+            organDamage: Array.isArray(parsed.riskProfile.organDamage) ? parsed.riskProfile.organDamage.map(String) : [],
+          }
+        : undefined,
     bodyDamage: Array.isArray(parsed.bodyDamage) ? parsed.bodyDamage : undefined,
+
   };
 
 }
