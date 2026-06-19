@@ -807,6 +807,24 @@ export const analyzeScan = createServerFn({ method: "POST" })
       console.error("scans insert error", insertErr);
     }
 
+    // Persist shared cache so every other user scanning this barcode gets the same data.
+    const cacheBarcode = data.scanType === "barcode" ? data.barcode : ocrBarcode;
+    if (cacheBarcode) {
+      const { error: cacheErr } = await supabaseAdmin
+        .from("barcode_cache" as any)
+        .upsert({
+          barcode: cacheBarcode,
+          product_name: result.productName,
+          rating: result.rating,
+          health_score: result.healthScore,
+          calories_kcal: result.caloriesKcal,
+          summary: result.summary,
+          result: result as any,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "barcode", ignoreDuplicates: true });
+      if (cacheErr) console.error("barcode_cache upsert error", cacheErr);
+    }
+
     return {
       result,
       scanId: inserted?.id ?? null,
