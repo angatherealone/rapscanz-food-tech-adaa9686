@@ -27,6 +27,9 @@ const ScanInput = z.object({
 
 export type ScanResult = {
   productName: string;
+  brand?: string;
+  parentCompany?: string;
+  category?: string;
   rating: "good" | "okay" | "caution" | "avoid";
   healthScore: number;
   caloriesKcal: number;
@@ -37,6 +40,7 @@ export type ScanResult = {
   personalAdvice?: string;
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
 };
+
 
 export const getProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
