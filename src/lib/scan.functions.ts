@@ -50,9 +50,17 @@ export type ScanResult = {
   }[];
   personalAdvice?: string;
   consumptionTip?: { safeDaily: string; limit: string; source: string };
+  riskProfile?: {
+    illnesses: string[];
+    addictions: string[];
+    chronicDamage: string[];
+    temporaryEffects: string[];
+    organDamage: string[];
+  };
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
   aiRegistryFallback?: boolean;
 };
+
 
 
 
