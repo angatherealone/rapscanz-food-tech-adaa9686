@@ -544,6 +544,9 @@ export const analyzeScan = createServerFn({ method: "POST" })
     if (knownProductName && (!result.productName || result.productName === "Unknown product")) {
       result.productName = knownProductName;
     }
+    if (usedAiRegistryFallback) {
+      result.aiRegistryFallback = true;
+    }
 
     const { data: inserted, error: insertErr } = await supabase.from("scans").insert({
       user_id: userId,
