@@ -615,9 +615,10 @@ Brand identification rules:
 Be specific and accurate. Do NOT include medical advice beyond gentle dietary notes. Do NOT add text outside JSON.`;
 
 
-function buildHealthContext(p: { weight_kg?: number | null; height_cm?: number | null; illnesses?: string | null; allergies?: string | null; gender?: string | null }) {
+function buildHealthContext(p: { weight_kg?: number | null; height_cm?: number | null; illnesses?: string | null; allergies?: string | null; gender?: string | null; age?: number | null }) {
   const bits: string[] = [];
   if (p.gender) bits.push(`gender: ${p.gender}`);
+  if (p.age) bits.push(`age: ${p.age}`);
   if (p.weight_kg) bits.push(`weight: ${p.weight_kg} kg`);
   if (p.height_cm) bits.push(`height: ${p.height_cm} cm`);
   if (p.weight_kg && p.height_cm) {
