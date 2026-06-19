@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucide-react";
+import { LogoIcon } from "@/components/Logo";
 
 const HOME_URL = "https://healthy-food-scan.lovable.app/";
 const HOME_TITLE = "RAPscanz — Know what's really in your food";
@@ -50,10 +51,8 @@ function Landing() {
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tight">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <ScanLine className="h-4 w-4" />
-            </div>
-            RAPscanz
+            <LogoIcon size={32} />
+            RAP<span className="text-primary">scanz</span>
           </Link>
           <nav className="flex items-center gap-2">
             <Link to="/leaderboard" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted">Leaderboard</Link>
