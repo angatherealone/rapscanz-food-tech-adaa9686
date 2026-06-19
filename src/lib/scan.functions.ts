@@ -705,6 +705,42 @@ export const analyzeScan = createServerFn({ method: "POST" })
     }
 
 
+    // SHARED RESULTS: every user must see the SAME analysis for the SAME barcode.
+    // Check the cache before spending an AI call.
+    if (data.scanType === "barcode" && data.barcode) {
+      const { data: cached } = await supabaseAdmin
+        .from("barcode_cache" as any)
+        .select("result")
+        .eq("barcode", data.barcode)
+        .maybeSingle();
+      if (cached && (cached as any).result) {
+        const cachedResult = (cached as any).result as ScanResult;
+        const { data: inserted } = await supabase.from("scans").insert({
+          user_id: userId,
+          product_name: cachedResult.productName,
+          scan_type: "barcode",
+          input_text: data.barcode,
+          rating: cachedResult.rating,
+          health_score: cachedResult.healthScore,
+          calories_kcal: cachedResult.caloriesKcal,
+          summary: cachedResult.summary,
+          advantages: cachedResult.advantages,
+          disadvantages: cachedResult.disadvantages,
+          cautions: cachedResult.cautions,
+          result: cachedResult as any,
+        }).select("id").single();
+        return {
+          result: cachedResult,
+          scanId: inserted?.id ?? null,
+          remaining: Math.max(0, scanLimit - newCount),
+          scanLimit,
+          plan,
+          planLabel: PLAN_LABELS[plan] ?? "Free",
+        };
+      }
+    }
+
+
     if (data.scanType === "barcode") {
       const code = data.barcode!.trim();
       if (!isValidBarcodeChecksum(code)) {
@@ -769,6 +805,24 @@ export const analyzeScan = createServerFn({ method: "POST" })
     }).select("id").single();
     if (insertErr) {
       console.error("scans insert error", insertErr);
+    }
+
+    // Persist shared cache so every other user scanning this barcode gets the same data.
+    const cacheBarcode = data.scanType === "barcode" ? data.barcode : ocrBarcode;
+    if (cacheBarcode) {
+      const { error: cacheErr } = await supabaseAdmin
+        .from("barcode_cache" as any)
+        .upsert({
+          barcode: cacheBarcode,
+          product_name: result.productName,
+          rating: result.rating,
+          health_score: result.healthScore,
+          calories_kcal: result.caloriesKcal,
+          summary: result.summary,
+          result: result as any,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "barcode", ignoreDuplicates: true });
+      if (cacheErr) console.error("barcode_cache upsert error", cacheErr);
     }
 
     return {

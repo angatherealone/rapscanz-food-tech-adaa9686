@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      barcode_cache: {
+        Row: {
+          barcode: string
+          calories_kcal: number
+          created_at: string
+          health_score: number
+          product_name: string
+          rating: string
+          result: Json
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          barcode: string
+          calories_kcal: number
+          created_at?: string
+          health_score: number
+          product_name: string
+          rating: string
+          result: Json
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string
+          calories_kcal?: number
+          created_at?: string
+          health_score?: number
+          product_name?: string
+          rating?: string
+          result?: Json
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       consumption: {
         Row: {
           calories_kcal: number
