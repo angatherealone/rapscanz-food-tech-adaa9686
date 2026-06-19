@@ -59,6 +59,8 @@ export type ScanResult = {
   };
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
   bodyBenefit?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
+  dietaryType?: "veg" | "non-veg" | "vegan" | "unknown";
+  dietaryReason?: string;
   aiRegistryFallback?: boolean;
 };
 
