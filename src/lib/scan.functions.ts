@@ -180,71 +180,96 @@ type BarcodeLookup = {
   source: string;
 };
 
-// GS1 country prefix → country (helps the AI guess local Indian / international brands)
+// GS1 country prefix → country (official GS1 prefix list, complete coverage)
+// Used to identify the country of issue for any EAN-13 / UPC-A / ITF-14 barcode,
+// which helps the AI infer the parent company / sister brand when public DBs miss.
 function gs1Country(barcode: string): string | undefined {
-  if (!/^\d{12,14}$/.test(barcode) && !/^\d{13}$/.test(barcode)) return undefined;
-  const p = barcode.slice(0, 3);
-  const n = Number(p);
-  if (n >= 0 && n <= 19) return "USA / Canada";
-  if (n >= 30 && n <= 39) return "USA (drugs)";
+  if (!/^\d{8,14}$/.test(barcode)) return undefined;
+  // For EAN-13 / UPC-A / ITF-14 the country prefix is the first 3 digits.
+  // UPC-A (12) is treated as EAN-13 with a leading "0" (USA/Canada range).
+  const code = barcode.length === 12 ? "0" + barcode : barcode;
+  const n = Number(code.slice(0, 3));
+  // 000-019, 030-039, 060-139: United States & Canada
+  if (n <= 19) return "USA / Canada";
+  if (n >= 20 && n <= 29) return "In-store / restricted circulation";
+  if (n >= 30 && n <= 39) return "USA (drugs / National Drug Code)";
   if (n >= 40 && n <= 49) return "In-store / private label";
   if (n >= 50 && n <= 59) return "Coupons";
-  if (n >= 300 && n <= 379) return "France";
+  if (n >= 60 && n <= 139) return "USA / Canada";
+  if (n >= 200 && n <= 299) return "In-store / restricted circulation";
+  if (n >= 300 && n <= 379) return "France / Monaco";
   if (n === 380) return "Bulgaria";
   if (n === 383) return "Slovenia";
   if (n === 385) return "Croatia";
-  if (n === 387) return "Bosnia";
+  if (n === 387) return "Bosnia & Herzegovina";
+  if (n === 389) return "Montenegro";
+  if (n === 390) return "Kosovo";
   if (n >= 400 && n <= 440) return "Germany";
   if (n >= 450 && n <= 459) return "Japan";
   if (n >= 460 && n <= 469) return "Russia";
+  if (n === 470) return "Kyrgyzstan";
   if (n === 471) return "Taiwan";
   if (n === 474) return "Estonia";
   if (n === 475) return "Latvia";
+  if (n === 476) return "Azerbaijan";
   if (n === 477) return "Lithuania";
   if (n === 478) return "Uzbekistan";
   if (n === 479) return "Sri Lanka";
   if (n === 480) return "Philippines";
+  if (n === 481) return "Belarus";
   if (n === 482) return "Ukraine";
+  if (n === 483) return "Turkmenistan";
   if (n === 484) return "Moldova";
   if (n === 485) return "Armenia";
   if (n === 486) return "Georgia";
   if (n === 487) return "Kazakhstan";
+  if (n === 488) return "Tajikistan";
   if (n === 489) return "Hong Kong";
   if (n >= 490 && n <= 499) return "Japan";
   if (n >= 500 && n <= 509) return "United Kingdom";
   if (n >= 520 && n <= 521) return "Greece";
   if (n === 528) return "Lebanon";
   if (n === 529) return "Cyprus";
+  if (n === 530) return "Albania";
   if (n === 531) return "North Macedonia";
   if (n === 535) return "Malta";
   if (n === 539) return "Ireland";
   if (n >= 540 && n <= 549) return "Belgium / Luxembourg";
   if (n === 560) return "Portugal";
   if (n === 569) return "Iceland";
-  if (n >= 570 && n <= 579) return "Denmark";
+  if (n >= 570 && n <= 579) return "Denmark / Faroe Islands / Greenland";
   if (n === 590) return "Poland";
   if (n === 594) return "Romania";
   if (n === 599) return "Hungary";
   if (n >= 600 && n <= 601) return "South Africa";
   if (n === 603) return "Ghana";
+  if (n === 604) return "Senegal";
   if (n === 608) return "Bahrain";
   if (n === 609) return "Mauritius";
   if (n === 611) return "Morocco";
   if (n === 613) return "Algeria";
   if (n === 615) return "Nigeria";
   if (n === 616) return "Kenya";
+  if (n === 617) return "Cameroon";
+  if (n === 618) return "Côte d'Ivoire";
   if (n === 619) return "Tunisia";
+  if (n === 620) return "Tanzania";
   if (n === 621) return "Syria";
   if (n === 622) return "Egypt";
+  if (n === 623) return "Brunei";
+  if (n === 624) return "Libya";
   if (n === 625) return "Jordan";
   if (n === 626) return "Iran";
   if (n === 627) return "Kuwait";
   if (n === 628) return "Saudi Arabia";
-  if (n === 629) return "UAE";
+  if (n === 629) return "United Arab Emirates";
+  if (n === 630) return "Qatar";
+  if (n === 631) return "Namibia";
+  if (n === 632) return "Rwanda";
   if (n >= 640 && n <= 649) return "Finland";
   if (n >= 690 && n <= 699) return "China";
   if (n >= 700 && n <= 709) return "Norway";
-  if (n >= 729 && n <= 729) return "Israel";
+  if (n === 729) return "Israel";
   if (n >= 730 && n <= 739) return "Sweden";
   if (n === 740) return "Guatemala";
   if (n === 741) return "El Salvador";
@@ -256,7 +281,7 @@ function gs1Country(barcode: string): string | undefined {
   if (n === 750) return "Mexico";
   if (n >= 754 && n <= 755) return "Canada";
   if (n === 759) return "Venezuela";
-  if (n >= 760 && n <= 769) return "Switzerland";
+  if (n >= 760 && n <= 769) return "Switzerland / Liechtenstein";
   if (n >= 770 && n <= 771) return "Colombia";
   if (n === 773) return "Uruguay";
   if (n === 775) return "Peru";
@@ -266,8 +291,8 @@ function gs1Country(barcode: string): string | undefined {
   if (n === 784) return "Paraguay";
   if (n === 786) return "Ecuador";
   if (n >= 789 && n <= 790) return "Brazil";
-  if (n >= 800 && n <= 839) return "Italy";
-  if (n >= 840 && n <= 849) return "Spain";
+  if (n >= 800 && n <= 839) return "Italy / San Marino / Vatican City";
+  if (n >= 840 && n <= 849) return "Spain / Andorra";
   if (n === 850) return "Cuba";
   if (n === 858) return "Slovakia";
   if (n === 859) return "Czechia";
@@ -277,20 +302,32 @@ function gs1Country(barcode: string): string | undefined {
   if (n >= 868 && n <= 869) return "Turkey";
   if (n >= 870 && n <= 879) return "Netherlands";
   if (n === 880) return "South Korea";
+  if (n === 881) return "Myanmar";
+  if (n === 883) return "Macau";
   if (n === 884) return "Cambodia";
   if (n === 885) return "Thailand";
   if (n === 888) return "Singapore";
   if (n === 890) return "India";
   if (n === 893) return "Vietnam";
+  if (n === 894) return "Bangladesh";
   if (n === 896) return "Pakistan";
   if (n === 899) return "Indonesia";
   if (n >= 900 && n <= 919) return "Austria";
   if (n >= 930 && n <= 939) return "Australia";
   if (n >= 940 && n <= 949) return "New Zealand";
+  if (n === 950) return "GS1 Global Office (gift cards)";
+  if (n === 951) return "GS1 Global Office (EPC)";
   if (n === 955) return "Malaysia";
   if (n === 958) return "Macau";
+  if (n >= 960 && n <= 969) return "GS1 Global Office (GTIN-8)";
+  if (n >= 977 && n <= 977) return "ISSN (periodicals)";
+  if (n >= 978 && n <= 979) return "ISBN (books)";
+  if (n === 980) return "Refund receipts";
+  if (n >= 981 && n <= 984) return "Common currency coupons";
+  if (n >= 990 && n <= 999) return "Coupons";
   return undefined;
 }
+
 
 async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | null> {
   try {
