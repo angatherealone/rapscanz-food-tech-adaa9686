@@ -9,9 +9,13 @@ const PLAN_LABELS: Record<string, string> = {
   pro: "Pro",
   pro_plus: "Pro+",
   pro_max: "Pro Max",
+  unlimited: "Unlimited",
 };
 
+const UNLIMITED_LIMIT = 999_999;
+
 function planLimit(plan: string | null | undefined): number {
+  if (plan === "unlimited") return UNLIMITED_LIMIT;
   if (plan === "pro_max") return 240;
   if (plan === "pro_plus") return 120;
   if (plan === "pro") return 60;
