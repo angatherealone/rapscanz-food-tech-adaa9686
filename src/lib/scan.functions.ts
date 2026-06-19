@@ -401,6 +401,76 @@ async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
 
 
 
+// ------------------------------------------------------------
+// OCR: extract candidate EAN-13 / UPC-A barcodes from a photo.
+// Uses Gemini vision to read printed numeric sequences off a
+// package or receipt, then filters them with the GS1 check-digit
+// algorithm so we only ever forward mathematically-valid barcodes.
+// ------------------------------------------------------------
+async function extractBarcodeFromImage(imageDataUrl: string): Promise<string | null> {
+  const key = process.env.LOVABLE_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              `You are an OCR engine for product packaging photos. Read ALL printed numeric sequences from the image — especially the digits printed under / next to the barcode lines on the package, on a price-tag sticker, or on a printed receipt. Return ONLY this JSON: { "numbers": string[] }. Each item must be digits-only (strip spaces, dashes, "EAN", "UPC", "No."). Include ANY numeric run you can read of length 8 to 14. DO NOT include dates (DD/MM/YYYY, MFG, EXP, USE BY), prices (with currency symbols or decimal points), batch codes shorter than 8 digits, phone numbers, or weight/volume figures (g, ml, kg). Return [] if nothing is readable.`,
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Extract candidate barcode numbers from this image." },
+              { type: "image_url", image_url: { url: imageDataUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as any;
+    const content = data?.choices?.[0]?.message?.content ?? "{}";
+    let parsed: any;
+    try { parsed = JSON.parse(content); } catch {
+      const m = content.match(/\{[\s\S]*\}/);
+      parsed = m ? JSON.parse(m[0]) : {};
+    }
+    const raw: string[] = Array.isArray(parsed?.numbers) ? parsed.numbers : [];
+    // Normalise, then also try every 12/13-digit window inside longer runs.
+    const candidates = new Set<string>();
+    for (const r of raw) {
+      const digits = String(r).replace(/\D/g, "");
+      if (!digits) continue;
+      if (digits.length >= 8 && digits.length <= 14) candidates.add(digits);
+      // sliding windows for 12 and 13 digit barcodes embedded in longer strings
+      for (const w of [12, 13]) {
+        if (digits.length > w) {
+          for (let i = 0; i + w <= digits.length; i++) candidates.add(digits.slice(i, i + w));
+        }
+      }
+    }
+    // Prefer EAN-13, then UPC-A (12, also retry padded), then EAN-8/ITF-14.
+    const ranked = [...candidates].sort((a, b) => {
+      const rank = (s: string) => (s.length === 13 ? 0 : s.length === 12 ? 1 : s.length === 14 ? 2 : 3);
+      return rank(a) - rank(b);
+    });
+    for (const c of ranked) {
+      if (isValidBarcodeChecksum(c)) return c;
+      // UPC-A padded to EAN-13
+      if (c.length === 12 && isValidBarcodeChecksum("0" + c)) return "0" + c;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function callGemini(messages: any[]): Promise<ScanResult> {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("AI service is not configured.");
