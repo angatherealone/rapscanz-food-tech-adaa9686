@@ -341,15 +341,22 @@ export const analyzeScan = createServerFn({ method: "POST" })
     let knownProductName: string | undefined;
 
     if (data.scanType === "barcode") {
-      const lookup = await lookupBarcode(data.barcode!);
-      if (!lookup || !lookup.ingredients) {
-        userContent = `A user scanned barcode ${data.barcode}. ${lookup ? `Product name: ${lookup.name}. ` : ""}No ingredient list is available from the open database. Make a best-effort general assessment and clearly note that ingredient data was unavailable. Set rating to "okay" if unknown.${healthContext}${planInstructions}`;
-        knownProductName = lookup?.name;
+      const code = data.barcode!.trim();
+      if (!isValidBarcodeChecksum(code)) {
+        throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
+      }
+      const lookup = await lookupBarcode(code);
+      if (!lookup) {
+        userContent = `A user scanned barcode ${code}. No product was found in Open Food Facts or UPCitemdb. The barcode is structurally valid but unregistered in public databases — it may be a regional Indian/local product, a private label, or very new. Give a cautious general assessment, clearly state ingredient data was unavailable, and set rating to "okay".${healthContext}${planInstructions}`;
+      } else if (!lookup.ingredients) {
+        userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` by ${lookup.brand}` : ""} (source: ${lookup.source}), but no ingredient list is published. Use your knowledge of this specific product to make a best-effort analysis and clearly note that the official ingredient list wasn't available.${healthContext}${planInstructions}`;
+        knownProductName = lookup.name;
       } else {
-        userContent = `Product: ${lookup.name}\nBarcode: ${data.barcode}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}${planInstructions}`;
+        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand: ${lookup.brand}` : ""}\nBarcode: ${code}\nSource: ${lookup.source}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       }
     } else if (data.imageDataUrl) {
+
       userContent = [
         { type: "text", text: `Read the ingredient list from this food label image and analyze the product.${healthContext}${planInstructions}` },
         { type: "image_url", image_url: { url: data.imageDataUrl } },
