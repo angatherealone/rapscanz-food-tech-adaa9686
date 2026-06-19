@@ -340,16 +340,25 @@ async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
 }
 
 async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
-  const off = await lookupOpenFoodFacts(barcode);
-  if (off && off.ingredients) return off;
-  const upc = await lookupUpcItemDb(barcode);
-  if (upc) return {
-    ...upc,
-    ingredients: off?.ingredients ?? upc.ingredients,
-    parentCompany: off?.parentCompany ?? upc.parentCompany,
-    category: upc.category ?? off?.category,
+  const tryOne = async (code: string): Promise<BarcodeLookup | null> => {
+    const off = await lookupOpenFoodFacts(code);
+    if (off && off.ingredients) return off;
+    const upc = await lookupUpcItemDb(code);
+    if (upc) return {
+      ...upc,
+      ingredients: off?.ingredients ?? upc.ingredients,
+      parentCompany: off?.parentCompany ?? upc.parentCompany,
+      category: upc.category ?? off?.category,
+    };
+    return off;
   };
-  return off;
+  let result = await tryOne(barcode);
+  // UPC-A (12 digits) is equivalent to EAN-13 with a leading "0".
+  // Retry the padded form if the first lookup came back empty / not found.
+  if (!result && /^\d{12}$/.test(barcode)) {
+    result = await tryOne("0" + barcode);
+  }
+  return result;
 }
 
 
