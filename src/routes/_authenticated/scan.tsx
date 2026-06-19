@@ -15,6 +15,7 @@ import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkle
 import { HealthScore } from "@/components/HealthScore";
 import { BodyDamageMap } from "@/components/BodyDamageMap";
 import { ScanFeedback } from "@/components/ScanFeedback";
+import { MiniScannerLoader } from "@/components/MiniScannerLoader";
 
 // ---- Local / in-store barcode (GS1 Restricted Distribution Numbers) ----
 // Prefixes 02, 20-29, and 04, 40-49 are reserved for in-store / private-label use
@@ -331,6 +332,14 @@ function ScanPage() {
 
         </div>
       </Card>
+
+      {mutation.isPending && (
+        <Card className="mt-6 p-5">
+          <MiniScannerLoader
+            label={tab === "barcode" ? "Looking up barcode & consulting AI registry…" : "Analyzing your scan…"}
+          />
+        </Card>
+      )}
 
 
       {localItem && (
