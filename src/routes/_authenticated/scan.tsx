@@ -525,7 +525,46 @@ function ScanPage() {
             )}
           </Card>
 
+          {result.riskProfile &&
+            (result.riskProfile.illnesses.length +
+              result.riskProfile.addictions.length +
+              result.riskProfile.chronicDamage.length +
+              result.riskProfile.temporaryEffects.length +
+              result.riskProfile.organDamage.length) > 0 && (
+            <Card className="p-5">
+              <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                <AlertTriangle className="h-5 w-5 text-danger" /> What over-consumption can cause
+                <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+              </div>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Honest, science-based picture of what happens when this product is eaten well above the safe daily amount, regularly.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { title: "Illnesses & conditions", items: result.riskProfile.illnesses, color: "text-danger", dot: "bg-danger" },
+                  { title: "Addiction patterns", items: result.riskProfile.addictions, color: "text-warning-foreground", dot: "bg-warning" },
+                  { title: "Chronic (long-term) damage", items: result.riskProfile.chronicDamage, color: "text-danger", dot: "bg-danger" },
+                  { title: "Temporary effects", items: result.riskProfile.temporaryEffects, color: "text-accent-foreground", dot: "bg-accent" },
+                  { title: "Organ-specific damage", items: result.riskProfile.organDamage, color: "text-danger", dot: "bg-danger" },
+                ].filter((b) => b.items.length > 0).map((b, i) => (
+                  <div key={i} className="rounded-lg border border-border bg-muted/30 p-3">
+                    <div className={`mb-2 text-xs font-bold uppercase tracking-wider ${b.color}`}>{b.title}</div>
+                    <ul className="space-y-1.5 text-sm">
+                      {b.items.map((it, j) => (
+                        <li key={j} className="flex gap-2">
+                          <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${b.dot}`} />
+                          <span>{it}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {result.bodyDamage && result.bodyDamage.length > 0 && (
+
             <Card className="p-5">
               <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
                 <PersonStanding className="h-5 w-5 text-primary" /> Body-damage map
