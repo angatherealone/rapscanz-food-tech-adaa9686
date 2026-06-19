@@ -17,13 +17,14 @@ export const Route = createFileRoute("/_authenticated/profile")({
 type Form = {
   username: string;
   gender: string;
+  age: string;
   weight_kg: string;
   height_cm: string;
   illnesses: string;
   allergies: string;
 };
 
-const empty: Form = { username: "", gender: "", weight_kg: "", height_cm: "", illnesses: "", allergies: "" };
+const empty: Form = { username: "", gender: "", age: "", weight_kg: "", height_cm: "", illnesses: "", allergies: "" };
 
 function bmi(w: string, h: string) {
   const wn = Number(w), hn = Number(h);
