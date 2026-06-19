@@ -467,6 +467,34 @@ function ScanPage() {
             </div>
           </Card>
 
+          {result.dietaryType && (() => {
+            const dt = result.dietaryType;
+            const cfg =
+              dt === "vegan"   ? { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/40", label: "Vegan",     blurb: "Entirely plant-based — no dairy, no honey, no egg, no animal-derived additives." } :
+              dt === "veg"     ? { dot: "bg-green-500",   text: "text-green-600 dark:text-green-400",     border: "border-green-500/40",   label: "Vegetarian", blurb: "Plant-based with permitted dairy ingredients. Contains no meat, fish, egg, or animal-derived additives." } :
+              dt === "non-veg" ? { dot: "bg-red-600",     text: "text-red-600 dark:text-red-400",         border: "border-red-600/40",     label: "Non-Vegetarian", blurb: "Contains animal-derived ingredients (meat, fish, egg, gelatin, or similar)." } :
+                                 { dot: "bg-muted-foreground", text: "text-muted-foreground", border: "border-border", label: "Unknown", blurb: "Couldn't determine the dietary classification with confidence." };
+            return (
+              <Card className={`overflow-hidden border-2 ${cfg.border} p-0`}>
+                <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 text-xs font-bold uppercase tracking-wider">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" /> Dietary classification
+                  <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+                </div>
+                <div className="flex items-center gap-4 p-5">
+                  <div className={`grid h-14 w-14 shrink-0 place-items-center rounded-lg border-2 ${cfg.border} bg-background`}>
+                    <span className={`h-6 w-6 rounded-sm ${cfg.dot}`} aria-hidden />
+                  </div>
+                  <div className="min-w-0">
+                    <div className={`font-display text-2xl font-bold ${cfg.text}`}>{cfg.label}</div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {result.dietaryReason || cfg.blurb}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })()}
+
           <div className="grid gap-5 md:grid-cols-2">
             <Card className="p-5">
               <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
