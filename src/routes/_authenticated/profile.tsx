@@ -73,8 +73,10 @@ function ProfilePage() {
     }
     const w = form.weight_kg ? Number(form.weight_kg) : null;
     const h = form.height_cm ? Number(form.height_cm) : null;
+    const a = form.age ? Number(form.age) : null;
     if (w !== null && (isNaN(w) || w <= 0 || w >= 500)) return toast.error("Enter a valid weight in kg.");
     if (h !== null && (isNaN(h) || h <= 0 || h >= 300)) return toast.error("Enter a valid height in cm.");
+    if (a !== null && (isNaN(a) || !Number.isInteger(a) || a <= 0 || a >= 130)) return toast.error("Enter a valid age (1–129).");
 
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
@@ -82,6 +84,7 @@ function ProfilePage() {
     const { error } = await supabase.from("profiles").update({
       username: form.username || null,
       gender: form.gender || null,
+      age: a,
       weight_kg: w,
       height_cm: h,
       illnesses: form.illnesses.slice(0, 500) || null,
