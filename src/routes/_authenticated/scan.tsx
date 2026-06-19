@@ -276,7 +276,7 @@ function ScanPage() {
                 >
                   <X className="h-4 w-4" />
                 </button>
-                <p className="mt-2 text-xs text-muted-foreground">Press Enter to scan & analyze.</p>
+                <p className="mt-2 text-xs text-muted-foreground">Press Enter to scan & analyze. If a barcode is visible on the pack or receipt, we'll OCR it and look it up like a direct barcode scan.</p>
               </div>
             ) : (
               <button
