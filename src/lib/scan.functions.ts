@@ -40,11 +40,20 @@ export type ScanResult = {
   summary: string;
   advantages: string[];
   disadvantages: string[];
-  cautions: { ingredient: string; concern: string; severity: "low" | "medium" | "high" }[];
+  cautions: {
+    ingredient: string;
+    concern: string;
+    severity: "low" | "medium" | "high";
+    percentage?: string;
+    chemicalFormula?: string;
+    scientificName?: string;
+  }[];
   personalAdvice?: string;
+  consumptionTip?: { safeDaily: string; limit: string; source: string };
   bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
   aiRegistryFallback?: boolean;
 };
+
 
 
 export const getProfile = createServerFn({ method: "GET" })
@@ -534,8 +543,17 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
     disadvantages: Array.isArray(parsed.disadvantages) ? parsed.disadvantages : [],
     cautions: Array.isArray(parsed.cautions) ? parsed.cautions : [],
     personalAdvice: typeof parsed.personalAdvice === "string" ? parsed.personalAdvice : undefined,
+    consumptionTip:
+      parsed.consumptionTip && typeof parsed.consumptionTip === "object"
+        ? {
+            safeDaily: String(parsed.consumptionTip.safeDaily ?? ""),
+            limit: String(parsed.consumptionTip.limit ?? ""),
+            source: String(parsed.consumptionTip.source ?? ""),
+          }
+        : undefined,
     bodyDamage: Array.isArray(parsed.bodyDamage) ? parsed.bodyDamage : undefined,
   };
+
 }
 
 const SYSTEM_PROMPT = `You are a food-safety nutrition analyst for the RAPscanz app.
@@ -620,14 +638,18 @@ export const analyzeScan = createServerFn({ method: "POST" })
       .maybeSingle();
     const healthContext = hp ? buildHealthContext(hp) : "";
 
+    const proPlusCautionRule = `For EACH item in "cautions", ALSO populate these structured fields (in ADDITION to keeping "concern" as a plain-English health-effect description): "percentage" = best-estimate weight-% of that additive in the finished product as a string (e.g. "0.3%", "~12%", "<0.01%"); "chemicalFormula" = the molecular formula in standard notation (e.g. "C6H8O7" for citric acid, "NaHCO3" for baking soda, "C12H22O11" for sucrose) — empty string if it is a mixture/natural extract with no single formula; "scientificName" = the IUPAC / biochemical / botanical scientific name (e.g. "2-hydroxypropane-1,2,3-tricarboxylic acid", "Theobroma cacao", "monosodium L-glutamate"). Use "" only when truly unknown.`;
+    const consumptionTipRule = `ALSO return a top-level "consumptionTip" object: { "safeDaily": "<short sentence with a NUMBER — typical safe per-day amount for an average adult, e.g. '1 small bar (~25g) per day' or 'up to 250 ml/day'>", "limit": "<short sentence with the UPPER LIMIT and what happens beyond it, e.g. 'More than 50g/day raises risk of weight gain & cavities'>", "source": "<the genuine guideline source, e.g. 'WHO sugar guideline', 'FDA daily value', 'EFSA ADI', 'ICMR-NIN dietary guideline'>" }. Base the numbers on real published guidelines (WHO, FDA, EFSA, ICMR-NIN, AHA). Do NOT invent.`;
+
     const planInstructions =
       plan === "pro_max"
-        ? `\n\nPRO MAX TIER: (1) For EACH item in "cautions", begin "concern" with the estimated percentage of that chemical/additive (e.g. "~0.3% — ..."), then describe the specific health effects. (2) ALSO return an additional field "bodyDamage": an array of objects { "part": string, "severity": "low"|"medium"|"high", "reason": string } listing human body parts/organs that can be harmed by consuming THIS product too often. Use part names from this list only: brain, eyes, teeth, throat, heart, lungs, liver, stomach, pancreas, kidneys, intestines, skin, bones. Severity reflects typical damage risk at high consumption. Reason is one short sentence specific to ingredients in this product.`
+        ? `\n\nPRO MAX TIER: (1) ${proPlusCautionRule} (2) ${consumptionTipRule} (3) ALSO return an additional field "bodyDamage": an array of objects { "part": string, "severity": "low"|"medium"|"high", "reason": string } listing human body parts/organs that can be harmed by consuming THIS product too often. Use part names from this list only: brain, eyes, teeth, throat, heart, lungs, liver, stomach, pancreas, kidneys, intestines, skin, bones. Severity reflects typical damage risk at high consumption. Reason is one short sentence specific to ingredients in this product.`
         : plan === "pro_plus"
-          ? `\n\nPRO+ TIER: For EACH item in "cautions", set "concern" to start with the estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then a brief description of the specific health effects it can cause (organs/systems affected, symptoms, conditions linked to it).`
+          ? `\n\nPRO+ TIER: (1) ${proPlusCautionRule} (2) ${consumptionTipRule}`
           : plan === "pro"
             ? `\n\nPRO TIER: For EACH item in "cautions", begin "concern" with an estimated percentage of that chemical/additive in the product (best estimate, e.g. "~0.3% — ..."), then the concern.`
             : "";
+
 
     let userContent: any;
     let knownProductName: string | undefined;

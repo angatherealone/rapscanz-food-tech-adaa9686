@@ -83,10 +83,12 @@ function ScanDetailPage() {
 
   const advantages = (scan.advantages as string[] | null) ?? [];
   const disadvantages = (scan.disadvantages as string[] | null) ?? [];
-  const cautions = (scan.cautions as { ingredient: string; concern: string; severity: string }[] | null) ?? [];
+  const cautions = (scan.cautions as { ingredient: string; concern: string; severity: string; percentage?: string; chemicalFormula?: string; scientificName?: string }[] | null) ?? [];
   const rating = scan.rating ?? "okay";
   const personalAdvice = (scan.result as any)?.personalAdvice as string | undefined;
+  const consumptionTip = (scan.result as any)?.consumptionTip as { safeDaily?: string; limit?: string; source?: string } | undefined;
   const calories = scan.calories_kcal ?? (scan.result as any)?.caloriesKcal ?? null;
+
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -162,6 +164,26 @@ function ScanDetailPage() {
           </Card>
         </div>
 
+        {consumptionTip && (consumptionTip.safeDaily || consumptionTip.limit) && (
+          <Card className="p-5">
+            <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
+              <Heart className="h-5 w-5 text-primary" /> Safe consumption guide
+              <span className="chip ml-auto bg-primary/15 text-primary">Pro+</span>
+            </div>
+            <div className="space-y-2 text-sm">
+              {consumptionTip.safeDaily && (
+                <div className="flex gap-2"><span className="font-semibold text-success">Safe / day:</span><span>{consumptionTip.safeDaily}</span></div>
+              )}
+              {consumptionTip.limit && (
+                <div className="flex gap-2"><span className="font-semibold text-danger">Upper limit:</span><span>{consumptionTip.limit}</span></div>
+              )}
+              {consumptionTip.source && (
+                <div className="text-xs text-muted-foreground">Source: {consumptionTip.source}</div>
+              )}
+            </div>
+          </Card>
+        )}
+
         <Card className="p-5">
           <div className="mb-4 flex items-center gap-2 font-display text-lg font-semibold">
             <AlertTriangle className="h-5 w-5 text-warning" /> Chemical & ingredient cautions
@@ -171,8 +193,25 @@ function ScanDetailPage() {
               {cautions.map((c, i) => (
                 <li key={i} className="flex flex-wrap items-start justify-between gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="font-semibold">{c.ingredient}</div>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="font-semibold">{c.ingredient}</span>
+                      {c.percentage && (
+                        <span className="rounded bg-warning/15 px-1.5 py-0.5 font-mono text-xs font-bold text-warning-foreground">
+                          {c.percentage}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-muted-foreground">{c.concern}</div>
+                    {(c.chemicalFormula || c.scientificName) && (
+                      <div className="mt-1 space-y-0.5 text-xs">
+                        {c.chemicalFormula && (
+                          <div className="font-mono text-primary">⚗ {c.chemicalFormula}</div>
+                        )}
+                        {c.scientificName && (
+                          <div className="italic text-muted-foreground">{c.scientificName}</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <span className={`chip ${SEVERITY_BADGE[c.severity] ?? ""}`}>{c.severity}</span>
                 </li>
@@ -182,6 +221,7 @@ function ScanDetailPage() {
             <p className="text-sm text-muted-foreground">No flagged chemicals. 🎉</p>
           )}
         </Card>
+
       </div>
     </main>
   );
