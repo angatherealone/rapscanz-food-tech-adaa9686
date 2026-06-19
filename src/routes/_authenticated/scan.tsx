@@ -218,6 +218,15 @@ function ScanPage() {
                     {RATING_STYLES[result.rating]?.label ?? result.rating}
                   </div>
                   <div className="font-display text-2xl font-bold">{result.productName}</div>
+                  {(result.brand || result.parentCompany || result.category) && (
+                    <div className="mt-1 text-xs opacity-90">
+                      {result.brand && <span className="font-semibold">{result.brand}</span>}
+                      {result.brand && result.parentCompany && <span> · </span>}
+                      {result.parentCompany && <span>by {result.parentCompany}</span>}
+                      {result.category && <span className="ml-2 opacity-75">· {result.category}</span>}
+                    </div>
+                  )}
+
                 </div>
                 <HealthScore score={result.healthScore} />
               </div>
