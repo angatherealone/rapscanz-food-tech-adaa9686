@@ -497,16 +497,19 @@ export const analyzeScan = createServerFn({ method: "POST" })
       if (!isValidBarcodeChecksum(code)) {
         throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
       }
+      const country = gs1Country(code);
       const lookup = await lookupBarcode(code);
+      const countryHint = country ? `\nGS1 prefix country of issue: ${country}` : "";
       if (!lookup) {
-        userContent = `A user scanned barcode ${code}. No product was found in Open Food Facts or UPCitemdb. The barcode is structurally valid but unregistered in public databases — it may be a regional Indian/local product, a private label, or very new. Give a cautious general assessment, clearly state ingredient data was unavailable, and set rating to "okay".${healthContext}${planInstructions}`;
+        userContent = `A user scanned barcode ${code}.${countryHint}\nNo product was found in Open Food Facts or UPCitemdb. The barcode is structurally valid but unregistered in public databases — it may be a regional Indian/local product (Amul, Britannia, Parle, Haldiram's, Patanjali, MTR, local dairies/sweet shops), a private label, or a very new SKU. Use the GS1 country and the barcode prefix to infer the most likely brand and parent company. If you can't, set "productName" to "Unidentified product" and explain. Set rating to "okay" only if you truly can't tell.${healthContext}${planInstructions}`;
       } else if (!lookup.ingredients) {
-        userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` by ${lookup.brand}` : ""} (source: ${lookup.source}), but no ingredient list is published. Use your knowledge of this specific product to make a best-effort analysis and clearly note that the official ingredient list wasn't available.${healthContext}${planInstructions}`;
+        userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` (brand: ${lookup.brand})` : ""}${lookup.parentCompany ? ` (parent: ${lookup.parentCompany})` : ""}${lookup.category ? ` — ${lookup.category}` : ""} via ${lookup.source}.${countryHint}\nNo ingredient list is published. Use your knowledge of THIS specific product (typical recipe, common additives) to analyze it, and clearly note in "summary" that the official ingredient list wasn't available. Fill brand + parentCompany from your knowledge if the database is missing or wrong (e.g. Cadbury → Mondelez, Maggi → Nestlé, Kurkure → PepsiCo).${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       } else {
-        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand: ${lookup.brand}` : ""}\nBarcode: ${code}\nSource: ${lookup.source}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}${planInstructions}`;
+        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand (sub-brand): ${lookup.brand}` : ""}${lookup.parentCompany ? `\nParent company: ${lookup.parentCompany}` : ""}${lookup.category ? `\nCategory: ${lookup.category}` : ""}${lookup.quantity ? `\nPack size: ${lookup.quantity}` : ""}\nBarcode: ${code}${countryHint}\nSource: ${lookup.source}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product. If parentCompany is missing, fill it from your knowledge (Cadbury → Mondelez, Maggi → Nestlé, Kurkure → PepsiCo, Amul → GCMMF, Bournvita → Mondelez, Real → Dabur, Bingo → ITC, Tata Salt → Tata Consumer Products).${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       }
+
     } else if (data.imageDataUrl) {
 
       userContent = [
