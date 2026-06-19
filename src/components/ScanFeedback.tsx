@@ -168,6 +168,31 @@ export function ScanFeedback({
         {save.isPending ? "Saving…" : existing ? "Update feedback" : "Submit feedback"}
       </Button>
     </Card>
+
+    <Dialog open={showThanks} onOpenChange={(o) => { if (!o) setShowThanks(false); }}>
+      <DialogContent className="text-center">
+        <DialogHeader>
+          <DialogTitle className="flex flex-col items-center gap-3">
+            <PartyPopper className="h-10 w-10 text-success" />
+            <span>Thank you!</span>
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Your review has been saved. It helps us serve you better.
+        </p>
+        <Button
+          size="lg"
+          className="mt-2 w-full"
+          onClick={() => {
+            setShowThanks(false);
+            onAfterSubmit?.();
+          }}
+        >
+          Start a new scan
+        </Button>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
