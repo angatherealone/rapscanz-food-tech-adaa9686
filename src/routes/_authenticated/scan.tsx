@@ -79,6 +79,57 @@ function ScanPage() {
   const [logged, setLogged] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Local/in-store barcode state
+  const [localDb, setLocalDb] = useState<Record<string, LocalItem>>({});
+  const [localItem, setLocalItem] = useState<{ code: string; item: LocalItem } | null>(null);
+  const [localPrompt, setLocalPrompt] = useState<string | null>(null); // barcode awaiting naming
+  const [localForm, setLocalForm] = useState<{ name: string; price: string; weight: string }>({ name: "", price: "", weight: "" });
+
+  useEffect(() => { setLocalDb(loadLocalDb()); }, []);
+
+  function handleLocalBarcode(code: string) {
+    const db = loadLocalDb();
+    setLocalDb(db);
+    if (db[code]) {
+      setLocalItem({ code, item: db[code] });
+      setResult(null);
+      setScanId(null);
+      toast.success("Recognized your saved local item");
+      return;
+    }
+    setLocalForm({ name: "", price: "", weight: "" });
+    setLocalPrompt(code);
+  }
+
+  function saveLocalItem() {
+    if (!localPrompt) return;
+    const name = localForm.name.trim();
+    if (!name) { toast.error("Give this item a name."); return; }
+    const item: LocalItem = {
+      name,
+      price: localForm.price.trim() || undefined,
+      weight: localForm.weight.trim() || undefined,
+      savedAt: Date.now(),
+    };
+    const db = { ...loadLocalDb(), [localPrompt]: item };
+    saveLocalDb(db);
+    setLocalDb(db);
+    setLocalItem({ code: localPrompt, item });
+    setLocalPrompt(null);
+    setResult(null);
+    setScanId(null);
+    toast.success("Saved to your local inventory");
+  }
+
+  function deleteLocalItem(code: string) {
+    const db = { ...loadLocalDb() };
+    delete db[code];
+    saveLocalDb(db);
+    setLocalDb(db);
+    setLocalItem(null);
+    toast.success("Removed from local inventory");
+  }
+
   const mutation = useMutation({
     mutationFn: async () => {
       setLogged(false);
@@ -90,10 +141,18 @@ function ScanPage() {
         if (!imageDataUrl) throw new Error("Upload a photo of the label first.");
         return analyzeFn({ data: { scanType: "ingredients", imageDataUrl } });
       }
-      if (!barcode.trim()) throw new Error("Enter a barcode number.");
-      return analyzeFn({ data: { scanType: "barcode", barcode: barcode.trim() } });
+      const code = barcode.trim();
+      if (!code) throw new Error("Enter a barcode number.");
+      if (isLocalBarcode(code)) {
+        // Bypass global API entirely — handled client-side.
+        handleLocalBarcode(code);
+        return null as any;
+      }
+      return analyzeFn({ data: { scanType: "barcode", barcode: code } });
     },
     onSuccess: (data) => {
+      if (!data) return; // local barcode path
+      setLocalItem(null);
       setResult(data.result);
       setScanId(data.scanId);
       qc.invalidateQueries({ queryKey: ["profile"] });
