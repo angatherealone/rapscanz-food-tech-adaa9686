@@ -204,7 +204,9 @@ function ScanPage() {
           disabled={mutation.isPending || outOfScans}
           onClick={() => mutation.mutate()}
         >
-          {mutation.isPending ? "Analyzing…" : "Scan & analyze"}
+          {mutation.isPending
+            ? (tab === "barcode" ? "Looking up barcode & consulting AI registry…" : "Analyzing…")
+            : "Scan & analyze"}
         </Button>
       </Card>
 
