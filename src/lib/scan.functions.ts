@@ -169,7 +169,127 @@ function isValidBarcodeChecksum(code: string): boolean {
   return calc === check;
 }
 
-type BarcodeLookup = { name: string; brand?: string; ingredients: string; source: string };
+type BarcodeLookup = {
+  name: string;
+  brand?: string;
+  parentCompany?: string;
+  category?: string;
+  quantity?: string;
+  ingredients: string;
+  source: string;
+};
+
+// GS1 country prefix → country (helps the AI guess local Indian / international brands)
+function gs1Country(barcode: string): string | undefined {
+  if (!/^\d{12,14}$/.test(barcode) && !/^\d{13}$/.test(barcode)) return undefined;
+  const p = barcode.slice(0, 3);
+  const n = Number(p);
+  if (n >= 0 && n <= 19) return "USA / Canada";
+  if (n >= 30 && n <= 39) return "USA (drugs)";
+  if (n >= 40 && n <= 49) return "In-store / private label";
+  if (n >= 50 && n <= 59) return "Coupons";
+  if (n >= 300 && n <= 379) return "France";
+  if (n === 380) return "Bulgaria";
+  if (n === 383) return "Slovenia";
+  if (n === 385) return "Croatia";
+  if (n === 387) return "Bosnia";
+  if (n >= 400 && n <= 440) return "Germany";
+  if (n >= 450 && n <= 459) return "Japan";
+  if (n >= 460 && n <= 469) return "Russia";
+  if (n === 471) return "Taiwan";
+  if (n === 474) return "Estonia";
+  if (n === 475) return "Latvia";
+  if (n === 477) return "Lithuania";
+  if (n === 478) return "Uzbekistan";
+  if (n === 479) return "Sri Lanka";
+  if (n === 480) return "Philippines";
+  if (n === 482) return "Ukraine";
+  if (n === 484) return "Moldova";
+  if (n === 485) return "Armenia";
+  if (n === 486) return "Georgia";
+  if (n === 487) return "Kazakhstan";
+  if (n === 489) return "Hong Kong";
+  if (n >= 490 && n <= 499) return "Japan";
+  if (n >= 500 && n <= 509) return "United Kingdom";
+  if (n >= 520 && n <= 521) return "Greece";
+  if (n === 528) return "Lebanon";
+  if (n === 529) return "Cyprus";
+  if (n === 531) return "North Macedonia";
+  if (n === 535) return "Malta";
+  if (n === 539) return "Ireland";
+  if (n >= 540 && n <= 549) return "Belgium / Luxembourg";
+  if (n === 560) return "Portugal";
+  if (n === 569) return "Iceland";
+  if (n >= 570 && n <= 579) return "Denmark";
+  if (n === 590) return "Poland";
+  if (n === 594) return "Romania";
+  if (n === 599) return "Hungary";
+  if (n >= 600 && n <= 601) return "South Africa";
+  if (n === 603) return "Ghana";
+  if (n === 608) return "Bahrain";
+  if (n === 609) return "Mauritius";
+  if (n === 611) return "Morocco";
+  if (n === 613) return "Algeria";
+  if (n === 615) return "Nigeria";
+  if (n === 616) return "Kenya";
+  if (n === 619) return "Tunisia";
+  if (n === 621) return "Syria";
+  if (n === 622) return "Egypt";
+  if (n === 625) return "Jordan";
+  if (n === 626) return "Iran";
+  if (n === 627) return "Kuwait";
+  if (n === 628) return "Saudi Arabia";
+  if (n === 629) return "UAE";
+  if (n >= 640 && n <= 649) return "Finland";
+  if (n >= 690 && n <= 699) return "China";
+  if (n >= 700 && n <= 709) return "Norway";
+  if (n >= 729 && n <= 729) return "Israel";
+  if (n >= 730 && n <= 739) return "Sweden";
+  if (n === 740) return "Guatemala";
+  if (n === 741) return "El Salvador";
+  if (n === 742) return "Honduras";
+  if (n === 743) return "Nicaragua";
+  if (n === 744) return "Costa Rica";
+  if (n === 745) return "Panama";
+  if (n === 746) return "Dominican Republic";
+  if (n === 750) return "Mexico";
+  if (n >= 754 && n <= 755) return "Canada";
+  if (n === 759) return "Venezuela";
+  if (n >= 760 && n <= 769) return "Switzerland";
+  if (n >= 770 && n <= 771) return "Colombia";
+  if (n === 773) return "Uruguay";
+  if (n === 775) return "Peru";
+  if (n === 777) return "Bolivia";
+  if (n === 778 || n === 779) return "Argentina";
+  if (n === 780) return "Chile";
+  if (n === 784) return "Paraguay";
+  if (n === 786) return "Ecuador";
+  if (n >= 789 && n <= 790) return "Brazil";
+  if (n >= 800 && n <= 839) return "Italy";
+  if (n >= 840 && n <= 849) return "Spain";
+  if (n === 850) return "Cuba";
+  if (n === 858) return "Slovakia";
+  if (n === 859) return "Czechia";
+  if (n === 860) return "Serbia";
+  if (n === 865) return "Mongolia";
+  if (n === 867) return "North Korea";
+  if (n >= 868 && n <= 869) return "Turkey";
+  if (n >= 870 && n <= 879) return "Netherlands";
+  if (n === 880) return "South Korea";
+  if (n === 884) return "Cambodia";
+  if (n === 885) return "Thailand";
+  if (n === 888) return "Singapore";
+  if (n === 890) return "India";
+  if (n === 893) return "Vietnam";
+  if (n === 896) return "Pakistan";
+  if (n === 899) return "Indonesia";
+  if (n >= 900 && n <= 919) return "Austria";
+  if (n >= 930 && n <= 939) return "Australia";
+  if (n >= 940 && n <= 949) return "New Zealand";
+  if (n === 955) return "Malaysia";
+  if (n === 958) return "Macau";
+  return undefined;
+}
 
 async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | null> {
   try {
@@ -183,9 +303,15 @@ async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | nul
     const name = p.product_name || p.product_name_en || p.generic_name || "";
     const ingredients = p.ingredients_text || p.ingredients_text_en || p.ingredients_text_hi || "";
     if (!name && !ingredients) return null;
+    const brand = (p.brands || "").split(",")[0]?.trim() || undefined;
+    const parentCompany = p.brand_owner || p.owner || undefined;
+    const category = (p.categories || "").split(",").pop()?.trim() || undefined;
     return {
       name: name || `Product ${barcode}`,
-      brand: p.brands || undefined,
+      brand,
+      parentCompany,
+      category,
+      quantity: p.quantity || undefined,
       ingredients,
       source: "Open Food Facts",
     };
@@ -206,7 +332,8 @@ async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
     return {
       name,
       brand: item.brand || undefined,
-      ingredients: "", // UPCitemdb doesn't return ingredients
+      category: item.category || undefined,
+      ingredients: "",
       source: "UPCitemdb",
     };
   } catch { return null; }
@@ -216,9 +343,15 @@ async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
   const off = await lookupOpenFoodFacts(barcode);
   if (off && off.ingredients) return off;
   const upc = await lookupUpcItemDb(barcode);
-  if (upc) return { ...upc, ingredients: off?.ingredients ?? upc.ingredients };
+  if (upc) return {
+    ...upc,
+    ingredients: off?.ingredients ?? upc.ingredients,
+    parentCompany: off?.parentCompany ?? upc.parentCompany,
+    category: upc.category ?? off?.category,
+  };
   return off;
 }
+
 
 
 async function callGemini(messages: any[]): Promise<ScanResult> {
