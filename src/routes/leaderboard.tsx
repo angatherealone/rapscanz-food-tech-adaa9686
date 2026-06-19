@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getLeaderboard, type LeaderboardRow } from "@/lib/leaderboard.functions";
 import { Trophy, ScanLine, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -15,16 +16,13 @@ export const Route = createFileRoute("/leaderboard")({
   component: LeaderboardPage,
 });
 
-type Row = { username: string; avg_score: number; scan_count: number };
+type Row = LeaderboardRow;
 
 function LeaderboardPage() {
+  const fetchLeaderboard = useServerFn(getLeaderboard);
   const { data, isLoading, error } = useQuery({
     queryKey: ["leaderboard"],
-    queryFn: async (): Promise<Row[]> => {
-      const { data, error } = await supabase.rpc("get_leaderboard");
-      if (error) throw error;
-      return (data ?? []) as Row[];
-    },
+    queryFn: () => fetchLeaderboard(),
   });
 
   return (
