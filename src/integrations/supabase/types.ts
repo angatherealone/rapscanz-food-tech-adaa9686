@@ -87,6 +87,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           allergies: string | null
           created_at: string
           email: string | null
@@ -103,6 +104,7 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
+          age?: number | null
           allergies?: string | null
           created_at?: string
           email?: string | null
@@ -119,6 +121,7 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
+          age?: number | null
           allergies?: string | null
           created_at?: string
           email?: string | null

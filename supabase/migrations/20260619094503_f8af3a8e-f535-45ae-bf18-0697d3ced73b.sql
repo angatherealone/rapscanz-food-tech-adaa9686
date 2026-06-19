@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS age integer CHECK (age IS NULL OR (age > 0 AND age < 130));
