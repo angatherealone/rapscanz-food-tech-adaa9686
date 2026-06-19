@@ -149,21 +149,73 @@ export const getWeeklyConsumption = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
-async function lookupBarcode(barcode: string): Promise<{ name: string; ingredients: string } | null> {
+function isValidBarcodeChecksum(code: string): boolean {
+  // Supports EAN-8, UPC-A (12), EAN-13, ITF-14
+  if (!/^\d+$/.test(code)) return false;
+  const len = code.length;
+  if (![8, 12, 13, 14].includes(len)) return false;
+  const digits = code.split("").map(Number);
+  const check = digits.pop()!;
+  // From rightmost data digit, weights alternate 3,1,3,1...
+  let sum = 0;
+  for (let i = digits.length - 1, w = 3; i >= 0; i--, w = w === 3 ? 1 : 3) {
+    sum += digits[i] * w;
+  }
+  const calc = (10 - (sum % 10)) % 10;
+  return calc === check;
+}
+
+type BarcodeLookup = { name: string; brand?: string; ingredients: string; source: string };
+
+async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | null> {
   try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`);
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`, {
+      headers: { "User-Agent": "RAPscanz/1.0 (https://rapscanz-food-tech.lovable.app)" },
+    });
     if (!res.ok) return null;
     const json = await res.json() as any;
     const p = json?.product;
-    if (!p) return null;
+    if (!p || json?.status === 0) return null;
+    const name = p.product_name || p.product_name_en || p.generic_name || "";
+    const ingredients = p.ingredients_text || p.ingredients_text_en || p.ingredients_text_hi || "";
+    if (!name && !ingredients) return null;
     return {
-      name: p.product_name || p.generic_name || `Product ${barcode}`,
-      ingredients: p.ingredients_text || p.ingredients_text_en || "",
+      name: name || `Product ${barcode}`,
+      brand: p.brands || undefined,
+      ingredients,
+      source: "Open Food Facts",
     };
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
+
+async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
+  try {
+    const res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(barcode)}`, {
+      headers: { "User-Agent": "RAPscanz/1.0" },
+    });
+    if (!res.ok) return null;
+    const json = await res.json() as any;
+    const item = json?.items?.[0];
+    if (!item) return null;
+    const name: string = item.title || "";
+    if (!name) return null;
+    return {
+      name,
+      brand: item.brand || undefined,
+      ingredients: "", // UPCitemdb doesn't return ingredients
+      source: "UPCitemdb",
+    };
+  } catch { return null; }
+}
+
+async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
+  const off = await lookupOpenFoodFacts(barcode);
+  if (off && off.ingredients) return off;
+  const upc = await lookupUpcItemDb(barcode);
+  if (upc) return { ...upc, ingredients: off?.ingredients ?? upc.ingredients };
+  return off;
+}
+
 
 async function callGemini(messages: any[]): Promise<ScanResult> {
   const key = process.env.LOVABLE_API_KEY;
