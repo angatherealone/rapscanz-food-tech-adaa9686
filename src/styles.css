@@ -1,19 +1,21 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import "@fontsource/Space Grotesk/400.css";
-@import "@fontsource/Space Grotesk/500.css";
-@import "@fontsource/Space Grotesk/600.css";
-@import "@fontsource/Space Grotesk/700.css";
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
+@import "@fontsource/bricolage-grotesque/400.css";
+@import "@fontsource/bricolage-grotesque/600.css";
+@import "@fontsource/bricolage-grotesque/700.css";
+@import "@fontsource/bricolage-grotesque/800.css";
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -126,8 +128,10 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
+    font-weight: 700;
   }
+
 }
 
 @utility ink-grid {

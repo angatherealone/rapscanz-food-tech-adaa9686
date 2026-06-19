@@ -149,21 +149,73 @@ export const getWeeklyConsumption = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
-async function lookupBarcode(barcode: string): Promise<{ name: string; ingredients: string } | null> {
+function isValidBarcodeChecksum(code: string): boolean {
+  // Supports EAN-8, UPC-A (12), EAN-13, ITF-14
+  if (!/^\d+$/.test(code)) return false;
+  const len = code.length;
+  if (![8, 12, 13, 14].includes(len)) return false;
+  const digits = code.split("").map(Number);
+  const check = digits.pop()!;
+  // From rightmost data digit, weights alternate 3,1,3,1...
+  let sum = 0;
+  for (let i = digits.length - 1, w = 3; i >= 0; i--, w = w === 3 ? 1 : 3) {
+    sum += digits[i] * w;
+  }
+  const calc = (10 - (sum % 10)) % 10;
+  return calc === check;
+}
+
+type BarcodeLookup = { name: string; brand?: string; ingredients: string; source: string };
+
+async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | null> {
   try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`);
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`, {
+      headers: { "User-Agent": "RAPscanz/1.0 (https://rapscanz-food-tech.lovable.app)" },
+    });
     if (!res.ok) return null;
     const json = await res.json() as any;
     const p = json?.product;
-    if (!p) return null;
+    if (!p || json?.status === 0) return null;
+    const name = p.product_name || p.product_name_en || p.generic_name || "";
+    const ingredients = p.ingredients_text || p.ingredients_text_en || p.ingredients_text_hi || "";
+    if (!name && !ingredients) return null;
     return {
-      name: p.product_name || p.generic_name || `Product ${barcode}`,
-      ingredients: p.ingredients_text || p.ingredients_text_en || "",
+      name: name || `Product ${barcode}`,
+      brand: p.brands || undefined,
+      ingredients,
+      source: "Open Food Facts",
     };
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
+
+async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
+  try {
+    const res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(barcode)}`, {
+      headers: { "User-Agent": "RAPscanz/1.0" },
+    });
+    if (!res.ok) return null;
+    const json = await res.json() as any;
+    const item = json?.items?.[0];
+    if (!item) return null;
+    const name: string = item.title || "";
+    if (!name) return null;
+    return {
+      name,
+      brand: item.brand || undefined,
+      ingredients: "", // UPCitemdb doesn't return ingredients
+      source: "UPCitemdb",
+    };
+  } catch { return null; }
+}
+
+async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
+  const off = await lookupOpenFoodFacts(barcode);
+  if (off && off.ingredients) return off;
+  const upc = await lookupUpcItemDb(barcode);
+  if (upc) return { ...upc, ingredients: off?.ingredients ?? upc.ingredients };
+  return off;
+}
+
 
 async function callGemini(messages: any[]): Promise<ScanResult> {
   const key = process.env.LOVABLE_API_KEY;
@@ -249,9 +301,13 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     if (data.scanType === "barcode") {
       if (!data.barcode) throw new Error("Barcode is required.");
+      if (!isValidBarcodeChecksum(data.barcode.trim())) {
+        throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
+      }
     } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
       throw new Error("Please provide ingredients text, an image, or a barcode.");
     }
+
 
     const { data: quota, error: quotaErr } = await supabase
       .rpc("consume_scan_quota")
@@ -289,15 +345,22 @@ export const analyzeScan = createServerFn({ method: "POST" })
     let knownProductName: string | undefined;
 
     if (data.scanType === "barcode") {
-      const lookup = await lookupBarcode(data.barcode!);
-      if (!lookup || !lookup.ingredients) {
-        userContent = `A user scanned barcode ${data.barcode}. ${lookup ? `Product name: ${lookup.name}. ` : ""}No ingredient list is available from the open database. Make a best-effort general assessment and clearly note that ingredient data was unavailable. Set rating to "okay" if unknown.${healthContext}${planInstructions}`;
-        knownProductName = lookup?.name;
+      const code = data.barcode!.trim();
+      if (!isValidBarcodeChecksum(code)) {
+        throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
+      }
+      const lookup = await lookupBarcode(code);
+      if (!lookup) {
+        userContent = `A user scanned barcode ${code}. No product was found in Open Food Facts or UPCitemdb. The barcode is structurally valid but unregistered in public databases — it may be a regional Indian/local product, a private label, or very new. Give a cautious general assessment, clearly state ingredient data was unavailable, and set rating to "okay".${healthContext}${planInstructions}`;
+      } else if (!lookup.ingredients) {
+        userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` by ${lookup.brand}` : ""} (source: ${lookup.source}), but no ingredient list is published. Use your knowledge of this specific product to make a best-effort analysis and clearly note that the official ingredient list wasn't available.${healthContext}${planInstructions}`;
+        knownProductName = lookup.name;
       } else {
-        userContent = `Product: ${lookup.name}\nBarcode: ${data.barcode}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}${planInstructions}`;
+        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand: ${lookup.brand}` : ""}\nBarcode: ${code}\nSource: ${lookup.source}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product.${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       }
     } else if (data.imageDataUrl) {
+
       userContent = [
         { type: "text", text: `Read the ingredient list from this food label image and analyze the product.${healthContext}${planInstructions}` },
         { type: "image_url", image_url: { url: data.imageDataUrl } },

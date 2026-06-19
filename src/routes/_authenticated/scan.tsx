@@ -192,8 +192,9 @@ function ScanPage() {
               inputMode="numeric"
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              We'll look this up in the Open Food Facts database.
+              EAN-8, UPC-A, EAN-13 or ITF-14. We check the digits, then look it up across Open Food Facts and UPCitemdb — including Indian & international brands. Fake / mistyped codes are rejected.
             </p>
+
           </TabsContent>
         </Tabs>
 
