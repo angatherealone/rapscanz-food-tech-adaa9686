@@ -670,7 +670,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     const { data: hp } = await supabase
       .from("profiles")
-      .select("weight_kg, height_cm, illnesses, allergies, gender")
+      .select("weight_kg, height_cm, illnesses, allergies, gender, age")
       .eq("id", userId)
       .maybeSingle();
     const healthContext = hp ? buildHealthContext(hp) : "";
