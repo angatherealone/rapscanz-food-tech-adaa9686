@@ -4,7 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, MessageSquare, CheckCircle2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Star, MessageSquare, CheckCircle2, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
 import { getScanFeedback, saveScanFeedback } from "@/lib/feedback.functions";
 
@@ -16,7 +22,13 @@ const POLL_OPTIONS: { value: BuyAgain; label: string; emoji: string }[] = [
   { value: "no", label: "No", emoji: "👎" },
 ];
 
-export function ScanFeedback({ scanId }: { scanId: string }) {
+export function ScanFeedback({
+  scanId,
+  onAfterSubmit,
+}: {
+  scanId: string;
+  onAfterSubmit?: () => void;
+}) {
   const qc = useQueryClient();
   const getFn = useServerFn(getScanFeedback);
   const saveFn = useServerFn(saveScanFeedback);
@@ -30,6 +42,7 @@ export function ScanFeedback({ scanId }: { scanId: string }) {
   const [hover, setHover] = useState(0);
   const [buyAgain, setBuyAgain] = useState<BuyAgain | null>(null);
   const [comment, setComment] = useState("");
+  const [showThanks, setShowThanks] = useState(false);
 
   useEffect(() => {
     if (!existing) return;
@@ -52,13 +65,14 @@ export function ScanFeedback({ scanId }: { scanId: string }) {
       });
     },
     onSuccess: () => {
-      toast.success(existing ? "Feedback updated" : "Thanks for the feedback!");
       qc.invalidateQueries({ queryKey: ["scan-feedback", scanId] });
+      setShowThanks(true);
     },
     onError: (e: any) => toast.error(e?.message ?? "Couldn't save feedback"),
   });
 
   return (
+    <>
     <Card className="p-5">
       <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
         <MessageSquare className="h-5 w-5 text-primary" /> Rate this product
@@ -154,6 +168,31 @@ export function ScanFeedback({ scanId }: { scanId: string }) {
         {save.isPending ? "Saving…" : existing ? "Update feedback" : "Submit feedback"}
       </Button>
     </Card>
+
+    <Dialog open={showThanks} onOpenChange={(o) => { if (!o) setShowThanks(false); }}>
+      <DialogContent className="text-center">
+        <DialogHeader>
+          <DialogTitle className="flex flex-col items-center gap-3">
+            <PartyPopper className="h-10 w-10 text-success" />
+            <span>Thank you!</span>
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Your review has been saved. It helps us serve you better.
+        </p>
+        <Button
+          size="lg"
+          className="mt-2 w-full"
+          onClick={() => {
+            setShowThanks(false);
+            onAfterSubmit?.();
+          }}
+        >
+          Start a new scan
+        </Button>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 

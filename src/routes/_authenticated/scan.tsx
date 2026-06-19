@@ -600,7 +600,21 @@ function ScanPage() {
             </Card>
           )}
 
-          {scanId && <ScanFeedback scanId={scanId} />}
+          {scanId && (
+            <ScanFeedback
+              scanId={scanId}
+              onAfterSubmit={() => {
+                setResult(null);
+                setScanId(null);
+                setLogged(false);
+                setLocalItem(null);
+                setText("");
+                setImageDataUrl(null);
+                setBarcode("");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          )}
 
         </div>
       )}
