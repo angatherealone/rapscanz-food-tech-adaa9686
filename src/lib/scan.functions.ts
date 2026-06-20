@@ -217,7 +217,10 @@ type BarcodeLookup = {
   quantity?: string;
   ingredients: string;
   source: string;
+  nutriments?: any;
+  labels?: string;
 };
+
 
 // GS1 country prefix → country (official GS1 prefix list, complete coverage)
 // Used to identify the country of issue for any EAN-13 / UPC-A / ITF-14 barcode,
@@ -391,9 +394,12 @@ async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | nul
       quantity: p.quantity || undefined,
       ingredients,
       source: "Open Food Facts",
+      nutriments: p.nutriments ?? null,
+      labels: p.labels || "",
     };
   } catch { return null; }
 }
+
 
 async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
   try {
