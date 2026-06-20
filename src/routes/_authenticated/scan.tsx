@@ -11,11 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2 } from "lucide-react";
+import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2, Lock } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
 import { BodyDamageMap } from "@/components/BodyDamageMap";
 import { ScanFeedback } from "@/components/ScanFeedback";
 import { MiniScannerLoader } from "@/components/MiniScannerLoader";
+import bodyTeaserImg from "@/assets/body-map-teaser.jpg";
+import { Link } from "@tanstack/react-router";
+
 
 // ---- Local / in-store barcode (GS1 Restricted Distribution Numbers) ----
 // Prefixes 02, 20-29, and 04, 40-49 are reserved for in-store / private-label use
@@ -78,7 +81,9 @@ function ScanPage() {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [scanId, setScanId] = useState<string | null>(null);
+  const [scanPlan, setScanPlan] = useState<string>("free");
   const [logged, setLogged] = useState(false);
+
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Local/in-store barcode state
@@ -165,8 +170,10 @@ function ScanPage() {
       setLocalItem(null);
       setResult(data.result);
       setScanId(data.scanId);
+      setScanPlan((data as any).plan ?? "free");
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["scans"] });
+
       toast.success(
         (data.result as any)?.productName && tab === "image"
           ? "Photo scanned — barcode detected & analyzed"
