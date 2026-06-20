@@ -653,9 +653,10 @@ function ScanPage() {
                       <p className="max-w-sm text-sm text-muted-foreground">
                         Unlock the interactive organ-by-organ breakdown for every product you scan.
                       </p>
-                      <Link to="/pricing">
+                      <Link to="/profile">
                         <Button size="sm" className="mt-1">Upgrade to Pro Max</Button>
                       </Link>
+
                     </div>
                   </div>
                 </Card>
