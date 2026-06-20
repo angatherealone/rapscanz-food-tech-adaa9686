@@ -621,32 +621,79 @@ function ScanPage() {
             </Card>
           )}
 
-          {result.bodyDamage && result.bodyDamage.length > 0 && (
+          {(() => {
+            const isProMax = scanPlan === "pro_max" || scanPlan === "unlimited";
+            const hasDamage = result.bodyDamage && result.bodyDamage.length > 0;
+            const hasBenefit = result.bodyBenefit && result.bodyBenefit.length > 0;
+            if (!hasDamage && !hasBenefit) return null;
 
-            <Card className="p-5">
-              <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                <PersonStanding className="h-5 w-5 text-primary" /> Body-damage map
-                <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
-              </div>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Tap any glowing point or list item to see which organ is affected.
-              </p>
-              <BodyDamageMap items={result.bodyDamage} variant="damage" />
-            </Card>
-          )}
+            // Locked teaser for non-Pro Max users — always present on every scan.
+            if (!isProMax) {
+              return (
+                <Card className="overflow-hidden p-5">
+                  <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                    <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
+                    <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+                  </div>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    See exactly which organs are harmed{hasBenefit ? " and which ones benefit" : ""} from this product, with severity per organ.
+                  </p>
+                  <div className="relative overflow-hidden rounded-xl border border-border bg-black/40">
+                    <img
+                      src={bodyTeaserImg}
+                      alt="Locked body-impact map preview"
+                      loading="lazy"
+                      width={768}
+                      height={1024}
+                      className="h-auto w-full opacity-70"
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-background/30 via-background/60 to-background/85 p-6 text-center">
+                      <Lock className="h-10 w-10 text-primary" />
+                      <div className="font-display text-lg font-semibold">Pro Max feature</div>
+                      <p className="max-w-sm text-sm text-muted-foreground">
+                        Unlock the interactive organ-by-organ breakdown for every product you scan.
+                      </p>
+                      <Link to="/pricing">
+                        <Button size="sm" className="mt-1">Upgrade to Pro Max</Button>
+                      </Link>
+                    </div>
+                  </div>
+                </Card>
+              );
+            }
 
-          {result.bodyBenefit && result.bodyBenefit.length > 0 && (
-            <Card className="p-5">
-              <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                <PersonStanding className="h-5 w-5 text-success" /> Body-benefit map
-                <span className="chip ml-auto bg-success/15 text-success">Pro Max</span>
-              </div>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Organs that genuinely gain from this product. Only organs with a real, ingredient-backed benefit are shown.
-              </p>
-              <BodyDamageMap items={result.bodyBenefit} variant="benefit" />
-            </Card>
-          )}
+            // Pro Max: render whichever map(s) actually have content.
+            return (
+              <>
+                {hasDamage && (
+                  <Card className="p-5">
+                    <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                      <PersonStanding className="h-5 w-5 text-primary" /> Body-damage map
+                      <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+                    </div>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                      Tap any glowing point or list item to see which organ is affected.
+                    </p>
+                    <BodyDamageMap items={result.bodyDamage!} variant="damage" />
+                  </Card>
+                )}
+                {hasBenefit && (
+                  <Card className="p-5">
+                    <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                      <PersonStanding className="h-5 w-5 text-success" /> Body-benefit map
+                      <span className="chip ml-auto bg-success/15 text-success">Pro Max</span>
+                    </div>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                      Organs that genuinely gain from this product. Only organs with a real, ingredient-backed benefit are shown.
+                    </p>
+                    <BodyDamageMap items={result.bodyBenefit!} variant="benefit" />
+                  </Card>
+                )}
+              </>
+            );
+          })()}
+
+
 
           {scanId && (
             <ScanFeedback
