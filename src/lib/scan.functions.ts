@@ -773,20 +773,18 @@ export const analyzeScan = createServerFn({ method: "POST" })
       const country = gs1Country(code);
       const lookup = await lookupBarcode(code);
       const countryHint = country ? `\nGS1 prefix country of issue: ${country}` : "";
-      if (!lookup) {
-        usedAiRegistryFallback = true;
-        // Expose the GS1 manufacturer prefix range to the model so it can pin
-        // the brand even when public databases are empty.
-        const ean13 = code.length === 12 ? "0" + code : code;
-        const mfrPrefix7 = ean13.length === 13 ? ean13.slice(0, 7) : "";
-        const mfrPrefix9 = ean13.length === 13 ? ean13.slice(0, 9) : "";
-        userContent = `A user scanned barcode ${code}.${countryHint}\nGS1 manufacturer prefix (first 7 digits): ${mfrPrefix7}\nGS1 manufacturer prefix (first 9 digits, for short company codes): ${mfrPrefix9}\n\nThe Open Food Facts and UPCitemdb databases returned no match (404 / empty / not found), even after retrying as a 13-digit EAN. The barcode IS structurally valid (checksum verified).\n\nDO NOT refuse and DO NOT return "Unidentified product". Act as a GS1 registry analyst. Use BOTH the country prefix AND the manufacturer prefix to pin the exact company. Known manufacturer-prefix → company mappings you should use (non-exhaustive):\n  • 622300x — Edita Food Industries (Egypt; Molto, Todo, Bake Rolz, Bake Stix, MiMix, HoHos)\n  • 622301x — Juhayna Food Industries (Egypt; Juhayna milk, Pure, Bekhero, Mix)\n  • 622400x — Chipsy / PepsiCo Egypt\n  • 622600x — Halwani Bros (Egypt)\n  • 5000159 — Mars UK (Mars, Snickers, Bounty, Twix, Galaxy)\n  • 5000168, 7622210, 7622300 — Mondelez (Cadbury Dairy Milk, Oreo, Toblerone, Milka)\n  • 5000295, 5011007 — Nestlé UK (KitKat, Aero, Smarties)\n  • 8901058 — Nestlé India (Maggi, KitKat India, Nescafé, Munch)\n  • 8901063 — Parle Products (Parle-G, Hide & Seek, Monaco, Krackjack)\n  • 8901491 — Britannia Industries (Good Day, Marie Gold, Tiger, Bourbon, Tiger biscuits)\n  • 8901719, 8901725 — ITC Limited (Bingo!, Sunfeast, Aashirvaad, YiPPee!)\n  • 8901262 — Mondelez India / Cadbury India (Dairy Milk, Bournvita, 5 Star, Gems, Oreo India)\n  • 8901207, 8901571 — Hindustan Unilever (Kissan, Knorr, Bru, Brooke Bond, Magnum, Kwality Wall's)\n  • 8902519, 8904004 — Patanjali Ayurved\n  • 8901138 — Haldiram's\n  • 8901030 — Mother Dairy Fruit & Vegetable\n  • 8904063 — Bikaji Foods\n  • 8901764 — Dabur India (Real, Hajmola, Honey)\n  • 8901396 — PepsiCo India (Lay's, Kurkure, Doritos, Cheetos, Quaker)\n  • 8901725 — ITC Foods\n  • 8901721 — Coca-Cola India (Maaza, Thums Up, Sprite, Limca, Minute Maid)\n  • 8901491 — Britannia\n  • 5449000 — The Coca-Cola Company (global)\n  • 4000539, 4006381 — Ferrero (Nutella, Kinder, Ferrero Rocher, Tic Tac)\n  • 4006040, 4014400 — Haribo (Germany)\n  • 3017620, 3033710 — Danone (France)\n  • 3245390 — Lactalis (France; Président, Galbani)\n  • 8410500 — Pascual / Spain dairy\n  • 6111035 — Centrale Danone Morocco\n  • 6224000 — Juhayna (Egypt secondary)\n  • 6281006 — Almarai (Saudi Arabia)\n  • 6291003 — IFFCO / UAE\n  • 6920208 — Nongfu Spring (China)\n  • 6901028 — China National Tobacco / Yili Group dairy lines\n\nUsing the country prefix, the manufacturer prefix, and your knowledge of major food conglomerates active in that country, return your BEST ESTIMATE of:\n  • the parent company that owns that exact GS1 prefix\n  • a plausible sub-brand / product line in that company's catalogue that this SKU could belong to\n  • a reasonable category guess (chocolate bar, instant noodles, biscuit, snack chips, juice, milk, etc.)\nFill productName as "<Sub-brand> (estimated)", brand as the sub-brand, parentCompany as the parent corporation, category as your category guess. In "summary" briefly note this was identified via GS1 registry inference because the public databases had no entry, and that the nutrition analysis is based on a typical recipe for that brand/category. Then complete a normal nutrition analysis using typical recipes for that brand/category.${healthContext}${planInstructions}`;
 
-      } else if (!lookup.ingredients) {
-        userContent = `Barcode ${code} matched product "${lookup.name}"${lookup.brand ? ` (brand: ${lookup.brand})` : ""}${lookup.parentCompany ? ` (parent: ${lookup.parentCompany})` : ""}${lookup.category ? ` — ${lookup.category}` : ""} via ${lookup.source}.${countryHint}\nNo ingredient list is published. Use your knowledge of THIS specific product (typical recipe, common additives) to analyze it, and clearly note in "summary" that the official ingredient list wasn't available. Fill brand + parentCompany from your knowledge if the database is missing or wrong (e.g. Cadbury → Mondelez, Maggi → Nestlé, Kurkure → PepsiCo).${healthContext}${planInstructions}`;
+      // DETERMINISTIC: barcode lookups MUST come from the public GS1/OFF registry.
+      // No AI guessing of brand/product identity is allowed.
+      if (!lookup) {
+        throw new Error(`Product not found in the Open Food Facts / GS1 registry for barcode ${code}. We don't guess product identity from barcode prefixes — please scan the label photo or paste the ingredients instead.`);
+      }
+
+      if (!lookup.ingredients) {
+        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand: ${lookup.brand}` : ""}${lookup.parentCompany ? `\nParent company: ${lookup.parentCompany}` : ""}${lookup.category ? `\nCategory: ${lookup.category}` : ""}${lookup.quantity ? `\nPack size: ${lookup.quantity}` : ""}\nBarcode: ${code}${countryHint}\nSource: ${lookup.source} (verified registry)\n\nThe registry has no ingredient list for this product. Compute the NUTRITION analysis (rating, healthScore, calories, advantages, disadvantages, cautions) for this category. DO NOT change productName, brand, parentCompany, or category — keep them exactly as given above (they come from the GS1/Open Food Facts registry and must not be rewritten).${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       } else {
-        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand (sub-brand): ${lookup.brand}` : ""}${lookup.parentCompany ? `\nParent company: ${lookup.parentCompany}` : ""}${lookup.category ? `\nCategory: ${lookup.category}` : ""}${lookup.quantity ? `\nPack size: ${lookup.quantity}` : ""}\nBarcode: ${code}${countryHint}\nSource: ${lookup.source}\nIngredients: ${lookup.ingredients}\n\nAnalyze this product. If parentCompany is missing, fill it from your knowledge (Cadbury → Mondelez, Maggi → Nestlé, Kurkure → PepsiCo, Amul → GCMMF, Bournvita → Mondelez, Real → Dabur, Bingo → ITC, Tata Salt → Tata Consumer Products).${healthContext}${planInstructions}`;
+        userContent = `Product: ${lookup.name}${lookup.brand ? `\nBrand: ${lookup.brand}` : ""}${lookup.parentCompany ? `\nParent company: ${lookup.parentCompany}` : ""}${lookup.category ? `\nCategory: ${lookup.category}` : ""}${lookup.quantity ? `\nPack size: ${lookup.quantity}` : ""}\nBarcode: ${code}${countryHint}\nSource: ${lookup.source} (verified registry)\nIngredients: ${lookup.ingredients}\n\nCompute the NUTRITION analysis for this product. DO NOT change productName, brand, parentCompany, or category — keep them exactly as given above (they come from the GS1/Open Food Facts registry and must not be rewritten).${healthContext}${planInstructions}`;
         knownProductName = lookup.name;
       }
 
@@ -806,12 +804,34 @@ export const analyzeScan = createServerFn({ method: "POST" })
     ];
 
     const result = await callGemini(messages);
+
+    // DETERMINISTIC OVERRIDE: when the barcode resolves in the registry,
+    // the registry's name/brand/category/parentCompany are authoritative.
+    // The AI is only allowed to compute the nutrition analysis.
+    if (data.scanType === "barcode") {
+      const lookupCode = data.barcode!.trim();
+      const lookup = await lookupBarcode(lookupCode);
+      if (lookup) {
+        result.productName = lookup.name;
+        if (lookup.brand) result.brand = lookup.brand;
+        if (lookup.parentCompany) result.parentCompany = lookup.parentCompany;
+        if (lookup.category) result.category = lookup.category;
+
+        // Rule-based organ impact from OFF nutriments + ingredients.
+        if (lookup.nutriments) {
+          const { extractNutriments, computeOrganImpact } = await import("@/lib/organImpact");
+          const nutri = extractNutriments({ nutriments: lookup.nutriments });
+          const { bodyDamage, bodyBenefit } = computeOrganImpact(nutri, lookup.ingredients || "");
+          if (bodyDamage.length) result.bodyDamage = bodyDamage;
+          if (bodyBenefit.length) result.bodyBenefit = bodyBenefit;
+        }
+      }
+    }
+
     if (knownProductName && (!result.productName || result.productName === "Unknown product")) {
       result.productName = knownProductName;
     }
-    if (usedAiRegistryFallback) {
-      result.aiRegistryFallback = true;
-    }
+
 
     const { data: inserted, error: insertErr } = await supabase.from("scans").insert({
       user_id: userId,
