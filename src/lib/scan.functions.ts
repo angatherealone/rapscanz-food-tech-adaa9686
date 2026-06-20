@@ -703,7 +703,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     let userContent: any;
     let knownProductName: string | undefined;
-    let usedAiRegistryFallback = false;
+    
 
     // PHOTO → BARCODE: if the user uploaded an image, first try to OCR a
     // mathematically-valid EAN/UPC off the package. If we find one, treat
