@@ -663,34 +663,37 @@ function ScanPage() {
               );
             }
 
-            // Pro Max: render whichever map(s) actually have content.
+            // Pro Max: render damage and benefit figures side-by-side when both exist.
             return (
-              <>
-                {hasDamage && (
-                  <Card className="p-5">
-                    <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                      <PersonStanding className="h-5 w-5 text-primary" /> Body-damage map
-                      <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+              <Card className="p-5">
+                <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
+                  <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
+                  <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+                </div>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Exact anatomical view of which organs this product affects. Tap any glowing organ for details.
+                </p>
+                <div className={`grid gap-6 ${hasDamage && hasBenefit ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+                  {hasDamage && (
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
+                        <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
+                        Harms — organs at risk
+                      </div>
+                      <BodyDamageMap items={result.bodyDamage!} variant="damage" />
                     </div>
-                    <p className="mb-4 text-sm text-muted-foreground">
-                      Tap any glowing point or list item to see which organ is affected.
-                    </p>
-                    <BodyDamageMap items={result.bodyDamage!} variant="damage" />
-                  </Card>
-                )}
-                {hasBenefit && (
-                  <Card className="p-5">
-                    <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                      <PersonStanding className="h-5 w-5 text-success" /> Body-benefit map
-                      <span className="chip ml-auto bg-success/15 text-success">Pro Max</span>
+                  )}
+                  {hasBenefit && (
+                    <div className="rounded-xl border border-success/30 bg-success/5 p-4">
+                      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
+                        <span className="inline-block h-2 w-2 rounded-full bg-success" />
+                        Benefits — organs that gain
+                      </div>
+                      <BodyDamageMap items={result.bodyBenefit!} variant="benefit" />
                     </div>
-                    <p className="mb-4 text-sm text-muted-foreground">
-                      Organs that genuinely gain from this product. Only organs with a real, ingredient-backed benefit are shown.
-                    </p>
-                    <BodyDamageMap items={result.bodyBenefit!} variant="benefit" />
-                  </Card>
-                )}
-              </>
+                  )}
+                </div>
+              </Card>
             );
           })()}
 

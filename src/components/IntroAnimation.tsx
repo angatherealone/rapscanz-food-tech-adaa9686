@@ -13,8 +13,39 @@ export function IntroAnimation() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // ---- Detect whether this page-load is a "reload/refresh" ----
+    // Modern API (preferred): performance.getEntriesByType("navigation").
+    // Legacy fallback: performance.navigation.type === 1.
+    // On a reload we ALWAYS reset and replay the intro from the very beginning.
+    let isReload = false;
     try {
-      if (sessionStorage.getItem("rapz-intro-played") === "1") {
+      const navEntries = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+      if (navEntries.length && navEntries[0].type === "reload") {
+        isReload = true;
+      } else {
+        const legacyNav = (performance as unknown as { navigation?: { type: number } }).navigation;
+        if (legacyNav && legacyNav.type === 1) {
+          isReload = true;
+        }
+      }
+    } catch {
+      // ignore — fall back to non-reload behaviour
+    }
+
+    // On reload, wipe the "already-played" flag so the animation restarts.
+    if (isReload) {
+      try {
+        sessionStorage.removeItem("rapz-intro-played");
+      } catch {
+        /* ignore storage errors */
+      }
+    }
+
+    // For in-app navigations (SPA route changes) we still want to play once
+    // per browser session and skip if already shown.
+    try {
+      if (!isReload && sessionStorage.getItem("rapz-intro-played") === "1") {
         setPhase("done");
         return;
       }
@@ -22,6 +53,8 @@ export function IntroAnimation() {
     } catch {
       // ignore storage errors
     }
+
+    // ---- Trigger the animation lifecycle (insert CSS class toggles here) ----
     setPhase("show");
     const leave = setTimeout(() => setPhase("leaving"), 3600);
     const done = setTimeout(() => setPhase("done"), 4300);
