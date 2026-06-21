@@ -623,9 +623,13 @@ function ScanPage() {
 
           {(() => {
             const isProMax = scanPlan === "pro_max" || scanPlan === "unlimited";
-            const hasDamage = result.bodyDamage && result.bodyDamage.length > 0;
-            const hasBenefit = result.bodyBenefit && result.bodyBenefit.length > 0;
-            if (!hasDamage && !hasBenefit) return null;
+            const damageItems = result.bodyDamage ?? [];
+            const benefitItems = result.bodyBenefit ?? [];
+            const hasDamage = damageItems.length > 0;
+            const hasBenefit = benefitItems.length > 0;
+            // Body-impact map is shown on EVERY scan — even when neither array
+            // has organs flagged we still render the silhouettes so the user
+            // gets the same visual feedback for every product they scan.
 
             // Locked teaser for non-Pro Max users — always present on every scan.
             if (!isProMax) {
@@ -636,7 +640,7 @@ function ScanPage() {
                     <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
                   </div>
                   <p className="mb-4 text-sm text-muted-foreground">
-                    See exactly which organs are harmed{hasBenefit ? " and which ones benefit" : ""} from this product, with severity per organ.
+                    See exactly which organs are harmed and which ones benefit from this product, with severity per organ.
                   </p>
                   <div className="relative overflow-hidden rounded-xl border border-border bg-black/40">
                     <img
@@ -656,14 +660,13 @@ function ScanPage() {
                       <Link to="/profile">
                         <Button size="sm" className="mt-1">Upgrade to Pro Max</Button>
                       </Link>
-
                     </div>
                   </div>
                 </Card>
               );
             }
 
-            // Pro Max: render damage and benefit figures side-by-side when both exist.
+            // Pro Max: ALWAYS render both figures side-by-side, on every scan.
             return (
               <Card className="p-5">
                 <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
@@ -673,25 +676,39 @@ function ScanPage() {
                 <p className="mb-4 text-sm text-muted-foreground">
                   Exact anatomical view of which organs this product affects. Tap any glowing organ for details.
                 </p>
-                <div className={`grid gap-6 ${hasDamage && hasBenefit ? "lg:grid-cols-2" : "grid-cols-1"}`}>
-                  {hasDamage && (
-                    <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
-                        <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
-                        Harms — organs at risk
-                      </div>
-                      <BodyDamageMap items={result.bodyDamage!} variant="damage" />
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
+                      <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
+                      Harms — organs at risk
                     </div>
-                  )}
-                  {hasBenefit && (
-                    <div className="rounded-xl border border-success/30 bg-success/5 p-4">
-                      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
-                        <span className="inline-block h-2 w-2 rounded-full bg-success" />
-                        Benefits — organs that gain
+                    {hasDamage ? (
+                      <BodyDamageMap items={damageItems} variant="damage" />
+                    ) : (
+                      <div>
+                        <BodyDamageMap items={[]} variant="damage" />
+                        <p className="mt-3 text-center text-sm text-muted-foreground">
+                          No specific organ harm detected for this product.
+                        </p>
                       </div>
-                      <BodyDamageMap items={result.bodyBenefit!} variant="benefit" />
+                    )}
+                  </div>
+                  <div className="rounded-xl border border-success/30 bg-success/5 p-4">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
+                      <span className="inline-block h-2 w-2 rounded-full bg-success" />
+                      Benefits — organs that gain
                     </div>
-                  )}
+                    {hasBenefit ? (
+                      <BodyDamageMap items={benefitItems} variant="benefit" />
+                    ) : (
+                      <div>
+                        <BodyDamageMap items={[]} variant="benefit" />
+                        <p className="mt-3 text-center text-sm text-muted-foreground">
+                          No specific organ benefit detected for this product.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Card>
             );
