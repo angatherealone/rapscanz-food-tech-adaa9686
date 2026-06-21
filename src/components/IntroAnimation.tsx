@@ -23,12 +23,11 @@ export function IntroAnimation() {
       const navEntries = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
       if (navEntries.length && navEntries[0].type === "reload") {
         isReload = true;
-      } else if (
-        typeof performance !== "undefined" &&
-        // @ts-expect-error - legacy API
-        performance.navigation && performance.navigation.type === 1
-      ) {
-        isReload = true;
+      } else {
+        const legacyNav = (performance as unknown as { navigation?: { type: number } }).navigation;
+        if (legacyNav && legacyNav.type === 1) {
+          isReload = true;
+        }
       }
     } catch {
       // ignore — fall back to non-reload behaviour
