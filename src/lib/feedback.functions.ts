@@ -29,7 +29,10 @@ export const getScanFeedback = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .eq("scan_id", data.scanId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("getScanFeedback error", error);
+      throw new Error("Unable to load feedback. Please try again.");
+    }
     if (!row) return null;
     return {
       rating: row.rating as number,
@@ -57,6 +60,9 @@ export const saveScanFeedback = createServerFn({ method: "POST" })
         },
         { onConflict: "user_id,scan_id" },
       );
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("saveScanFeedback error", error);
+      throw new Error("Unable to save feedback. Please try again.");
+    }
     return { ok: true };
   });
