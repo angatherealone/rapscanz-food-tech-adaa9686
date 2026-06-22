@@ -423,7 +423,7 @@ function ScanPage() {
                       {result.category && <span className="ml-2 opacity-75">· {result.category}</span>}
                     </div>
                   )}
-                  {result.dietaryType && result.dietaryType !== "unknown" && (() => {
+                  {result.dietaryType && result.dietaryType !== "unknown" && (scanPlan === "pro_max" || scanPlan === "unlimited") && (() => {
                     const dt = result.dietaryType;
                     const styles =
                       dt === "vegan"   ? { dot: "bg-emerald-500", ring: "ring-emerald-500/60", label: "VEGAN" } :
