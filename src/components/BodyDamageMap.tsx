@@ -312,12 +312,25 @@ export function BodyDamageMap({
                   fontWeight="700"
                   style={{ filter: `drop-shadow(0 0 4px ${palette[activeItem.severity]})` }}
                 >
-                  {activeOrgan.label}
+                  {activeOrgan.label.includes(" / ") ? (
+                    <>
+                      <tspan x="0" dy="0">{activeOrgan.label.split(" / ")[0]}</tspan>
+                      <tspan x="0" dy="12">/ {activeOrgan.label.split(" / ")[1]}</tspan>
+                    </>
+                  ) : (
+                    activeOrgan.label
+                  )}
                 </text>
-                <text y="10" fill="#cbd5e1" fontSize="9" fontWeight="500">
+                <text
+                  y={activeOrgan.label.includes(" / ") ? 22 : 10}
+                  fill="#cbd5e1"
+                  fontSize="9"
+                  fontWeight="500"
+                >
                   {activeItem.severity.toUpperCase()} {sideLabel}
                 </text>
               </g>
+
             </g>
           )}
         </svg>
