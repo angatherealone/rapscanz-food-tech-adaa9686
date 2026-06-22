@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { OrganDetailDialog } from "@/components/OrganDetail";
+
 
 export type BodyDamage = {
   part: string;
