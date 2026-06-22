@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { BodyDamage, BodyMapVariant } from "@/components/BodyDamageMap";
 
@@ -9,7 +9,7 @@ import type { BodyDamage, BodyMapVariant } from "@/components/BodyDamageMap";
  *
  * `color` is the severity color used for the highlight/danger wash.
  */
-type OrganRenderer = (color: string) => JSX.Element;
+type OrganRenderer = (color: string) => ReactNode;
 
 const ORGAN_ART: Record<string, OrganRenderer> = {
   heart: (c) => (
