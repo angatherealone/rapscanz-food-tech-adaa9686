@@ -4,6 +4,8 @@ export type BodyDamage = {
   part: string;
   severity: "low" | "medium" | "high";
   reason: string;
+  /** The specific chemical / nutrient / ingredient that triggered this impact. */
+  trigger?: string;
 };
 
 export type BodyMapVariant = "damage" | "benefit";
@@ -338,6 +340,16 @@ export function BodyDamageMap({
                     {it.severity}
                   </span>
                 </div>
+                {it.trigger && (
+                  <div className="mt-1.5">
+                    <span
+                      className="inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                      style={{ color, borderColor: color, background: `${color}14` }}
+                    >
+                      {variant === "benefit" ? "From " : "Caused by "}{it.trigger}
+                    </span>
+                  </div>
+                )}
                 <p className="mt-1 text-muted-foreground">{it.reason}</p>
               </li>
             );

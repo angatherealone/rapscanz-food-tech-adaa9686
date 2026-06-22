@@ -423,7 +423,7 @@ function ScanPage() {
                       {result.category && <span className="ml-2 opacity-75">· {result.category}</span>}
                     </div>
                   )}
-                  {result.dietaryType && result.dietaryType !== "unknown" && (() => {
+                  {result.dietaryType && result.dietaryType !== "unknown" && (scanPlan === "pro_max" || scanPlan === "unlimited") && (() => {
                     const dt = result.dietaryType;
                     const styles =
                       dt === "vegan"   ? { dot: "bg-emerald-500", ring: "ring-emerald-500/60", label: "VEGAN" } :
@@ -475,6 +475,31 @@ function ScanPage() {
           </Card>
 
           {result.dietaryType && (() => {
+            const isProMax = scanPlan === "pro_max" || scanPlan === "unlimited";
+            if (!isProMax) {
+              return (
+                <Card className="overflow-hidden border-2 border-dashed border-primary/40 p-0">
+                  <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 text-xs font-bold uppercase tracking-wider">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" /> Dietary classification
+                    <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+                  </div>
+                  <div className="flex items-center gap-4 p-5">
+                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-lg border-2 border-primary/40 bg-background">
+                      <Lock className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-display text-lg font-semibold">Veg · Non-Veg · Vegan</div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Unlock dietary classification (with the specific ingredient reason) for every product you scan.
+                      </p>
+                    </div>
+                    <Link to="/profile">
+                      <Button size="sm">Upgrade</Button>
+                    </Link>
+                  </div>
+                </Card>
+              );
+            }
             const dt = result.dietaryType;
             const cfg =
               dt === "vegan"   ? { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/40", label: "Vegan",     blurb: "Entirely plant-based — no dairy, no honey, no egg, no animal-derived additives." } :

@@ -7,6 +7,8 @@ export type OrganImpact = {
   part: string;
   severity: "low" | "medium" | "high";
   reason: string;
+  /** The specific chemical / nutrient / ingredient that caused this impact. */
+  trigger: string;
 };
 
 export type Nutriments = {
@@ -63,129 +65,138 @@ export function computeOrganImpact(
   // ── DAMAGE RULES (per 100g thresholds aligned with FSA / WHO traffic-light) ──
   if (nutri.sugars_100g !== undefined) {
     const s = nutri.sugars_100g;
+    const trig = `Sugar (${s.toFixed(1)} g/100g)`;
     if (s >= 22.5) {
-      damage.push({ part: "pancreas", severity: "high", reason: `Very high sugar (${s.toFixed(1)} g/100g) — repeated insulin spikes stress beta-cells.` });
-      damage.push({ part: "teeth", severity: "high", reason: `High sugar feeds oral bacteria → enamel erosion & cavities.` });
-      damage.push({ part: "liver", severity: "medium", reason: `Excess fructose is converted to liver fat (NAFLD risk).` });
+      damage.push({ part: "pancreas", severity: "high", trigger: trig, reason: `Very high sugar — repeated insulin spikes stress beta-cells.` });
+      damage.push({ part: "teeth", severity: "high", trigger: trig, reason: `High sugar feeds oral bacteria → enamel erosion & cavities.` });
+      damage.push({ part: "liver", severity: "medium", trigger: trig, reason: `Excess fructose is converted to liver fat (NAFLD risk).` });
     } else if (s >= 11.25) {
-      damage.push({ part: "pancreas", severity: "medium", reason: `Elevated sugar (${s.toFixed(1)} g/100g) drives insulin response.` });
-      damage.push({ part: "teeth", severity: "medium", reason: `Moderate sugar — limit frequency to protect enamel.` });
+      damage.push({ part: "pancreas", severity: "medium", trigger: trig, reason: `Elevated sugar drives insulin response.` });
+      damage.push({ part: "teeth", severity: "medium", trigger: trig, reason: `Moderate sugar — limit frequency to protect enamel.` });
     } else if (s >= 5) {
-      damage.push({ part: "teeth", severity: "low", reason: `Some sugar present — rinse after eating.` });
+      damage.push({ part: "teeth", severity: "low", trigger: trig, reason: `Some sugar present — rinse after eating.` });
     }
   }
 
   if (nutri.saturatedFat_100g !== undefined) {
     const sf = nutri.saturatedFat_100g;
+    const trig = `Saturated fat (${sf.toFixed(1)} g/100g)`;
     if (sf >= 5) {
-      damage.push({ part: "heart", severity: "high", reason: `High saturated fat (${sf.toFixed(1)} g/100g) raises LDL cholesterol & cardiovascular risk.` });
-      damage.push({ part: "liver", severity: "medium", reason: `Saturated fat overload contributes to fatty-liver disease.` });
+      damage.push({ part: "heart", severity: "high", trigger: trig, reason: `High saturated fat raises LDL cholesterol & cardiovascular risk.` });
+      damage.push({ part: "liver", severity: "medium", trigger: trig, reason: `Saturated fat overload contributes to fatty-liver disease.` });
     } else if (sf >= 1.5) {
-      damage.push({ part: "heart", severity: "medium", reason: `Moderate saturated fat (${sf.toFixed(1)} g/100g) — keep within daily limit.` });
+      damage.push({ part: "heart", severity: "medium", trigger: trig, reason: `Moderate saturated fat — keep within daily limit.` });
     }
   }
 
   if (nutri.salt_100g !== undefined) {
     const salt = nutri.salt_100g;
+    const trig = `Salt / Sodium (${salt.toFixed(2)} g/100g)`;
     if (salt >= 1.5) {
-      damage.push({ part: "heart", severity: "high", reason: `High salt (${salt.toFixed(2)} g/100g) raises blood pressure.` });
-      damage.push({ part: "kidneys", severity: "high", reason: `Excess sodium increases kidney filtration load.` });
+      damage.push({ part: "heart", severity: "high", trigger: trig, reason: `High salt raises blood pressure.` });
+      damage.push({ part: "kidneys", severity: "high", trigger: trig, reason: `Excess sodium increases kidney filtration load.` });
     } else if (salt >= 0.3) {
-      damage.push({ part: "kidneys", severity: "medium", reason: `Moderate sodium (${salt.toFixed(2)} g/100g) — watch daily intake.` });
+      damage.push({ part: "kidneys", severity: "medium", trigger: trig, reason: `Moderate sodium — watch daily intake.` });
     }
   }
 
   if (has(ing, "trans fat", "hydrogenated", "vanaspati", "partially hydrogenated")) {
-    damage.push({ part: "heart", severity: "high", reason: `Trans-fats / hydrogenated oils sharply raise LDL and cardiovascular risk.` });
-    damage.push({ part: "liver", severity: "medium", reason: `Trans-fats promote hepatic inflammation.` });
+    const trig = "Trans-fats / hydrogenated oils";
+    damage.push({ part: "heart", severity: "high", trigger: trig, reason: `Sharply raise LDL and cardiovascular risk.` });
+    damage.push({ part: "liver", severity: "medium", trigger: trig, reason: `Promote hepatic inflammation.` });
   }
 
   if (has(ing, "msg", "monosodium glutamate", "e621", "flavour enhancer (635)", "disodium inosinate", "disodium guanylate")) {
-    damage.push({ part: "brain", severity: "low", reason: `MSG/flavour enhancers can trigger headaches & cravings in sensitive people.` });
+    damage.push({ part: "brain", severity: "low", trigger: "MSG / flavour enhancers (E621/E635)", reason: `Can trigger headaches & cravings in sensitive people.` });
   }
 
   if (has(ing, "aspartame", "acesulfame", "sucralose", "saccharin", "e951", "e950", "e955")) {
-    damage.push({ part: "intestines", severity: "medium", reason: `Artificial sweeteners can disrupt gut microbiome balance.` });
+    damage.push({ part: "intestines", severity: "medium", trigger: "Artificial sweeteners (aspartame/sucralose/E950–E955)", reason: `Can disrupt gut microbiome balance.` });
   }
 
   if (has(ing, "caffeine", "coffee extract", "guarana", "energy drink")) {
-    damage.push({ part: "heart", severity: "low", reason: `Caffeine can raise heart rate & blood pressure; avoid excess.` });
+    damage.push({ part: "heart", severity: "low", trigger: "Caffeine / stimulants", reason: `Can raise heart rate & blood pressure; avoid excess.` });
   }
 
   if (has(ing, "alcohol", "ethanol")) {
-    damage.push({ part: "liver", severity: "high", reason: `Alcohol is metabolised by the liver — chronic use causes hepatotoxicity.` });
-    damage.push({ part: "brain", severity: "medium", reason: `Alcohol impairs cognition and neural development.` });
+    damage.push({ part: "liver", severity: "high", trigger: "Alcohol / ethanol", reason: `Metabolised by the liver — chronic use causes hepatotoxicity.` });
+    damage.push({ part: "brain", severity: "medium", trigger: "Alcohol / ethanol", reason: `Impairs cognition and neural development.` });
   }
 
   if (has(ing, "tartrazine", "e102", "sunset yellow", "e110", "carmoisine", "e122", "ponceau")) {
-    damage.push({ part: "brain", severity: "low", reason: `Synthetic azo colours linked to hyperactivity in sensitive children.` });
+    damage.push({ part: "brain", severity: "low", trigger: "Synthetic azo colours (E102/E110/E122)", reason: `Linked to hyperactivity in sensitive children.` });
   }
 
   if (has(ing, "sodium nitrite", "e250", "sodium nitrate", "e251", "processed meat", "bacon", "sausage", "ham", "salami")) {
-    damage.push({ part: "intestines", severity: "high", reason: `Processed-meat nitrites classified Group 1 carcinogen for colorectal cancer (IARC).` });
+    damage.push({ part: "intestines", severity: "high", trigger: "Nitrites / processed meat (E250/E251)", reason: `IARC Group 1 carcinogen for colorectal cancer.` });
   }
 
   if (nutri.energyKcal_100g !== undefined && nutri.energyKcal_100g >= 450) {
-    damage.push({ part: "stomach", severity: "low", reason: `Very calorie-dense (${nutri.energyKcal_100g.toFixed(0)} kcal/100g) — easy to overeat.` });
+    damage.push({ part: "stomach", severity: "low", trigger: `Energy density (${nutri.energyKcal_100g.toFixed(0)} kcal/100g)`, reason: `Very calorie-dense — easy to overeat.` });
   }
 
   // ── BENEFIT RULES ──
   if (nutri.fiber_100g !== undefined) {
     const f = nutri.fiber_100g;
+    const trig = `Dietary fibre (${f.toFixed(1)} g/100g)`;
     if (f >= 6) {
-      benefit.push({ part: "intestines", severity: "high", reason: `Very high fibre (${f.toFixed(1)} g/100g) — feeds beneficial gut microbes & regular bowel movement.` });
-      benefit.push({ part: "heart", severity: "medium", reason: `High fibre lowers LDL cholesterol over time.` });
+      benefit.push({ part: "intestines", severity: "high", trigger: trig, reason: `Feeds beneficial gut microbes & regular bowel movement.` });
+      benefit.push({ part: "heart", severity: "medium", trigger: trig, reason: `High fibre lowers LDL cholesterol over time.` });
     } else if (f >= 3) {
-      benefit.push({ part: "intestines", severity: "medium", reason: `Good fibre content (${f.toFixed(1)} g/100g) supports gut health.` });
+      benefit.push({ part: "intestines", severity: "medium", trigger: trig, reason: `Good fibre content supports gut health.` });
     }
   }
 
   if (nutri.proteins_100g !== undefined) {
     const p = nutri.proteins_100g;
+    const trig = `Protein (${p.toFixed(1)} g/100g)`;
     if (p >= 12) {
-      benefit.push({ part: "bones", severity: "medium", reason: `High protein (${p.toFixed(1)} g/100g) supports muscle & bone maintenance.` });
+      benefit.push({ part: "bones", severity: "medium", trigger: trig, reason: `Supports muscle & bone maintenance.` });
     } else if (p >= 6) {
-      benefit.push({ part: "bones", severity: "low", reason: `Useful protein content (${p.toFixed(1)} g/100g) for tissue repair.` });
+      benefit.push({ part: "bones", severity: "low", trigger: trig, reason: `Useful content for tissue repair.` });
     }
   }
 
   if (nutri.calcium_100g !== undefined && nutri.calcium_100g >= 0.12) {
-    benefit.push({ part: "bones", severity: "high", reason: `Rich calcium source — supports bone density & teeth.` });
-    benefit.push({ part: "teeth", severity: "medium", reason: `Calcium remineralises tooth enamel.` });
+    const trig = "Calcium";
+    benefit.push({ part: "bones", severity: "high", trigger: trig, reason: `Rich source — supports bone density.` });
+    benefit.push({ part: "teeth", severity: "medium", trigger: trig, reason: `Remineralises tooth enamel.` });
   }
 
   if (nutri.iron_100g !== undefined && nutri.iron_100g >= 0.0024) {
-    benefit.push({ part: "heart", severity: "low", reason: `Iron supports haemoglobin → better oxygen delivery.` });
+    benefit.push({ part: "heart", severity: "low", trigger: "Iron", reason: `Supports haemoglobin → better oxygen delivery.` });
   }
 
   if (nutri.vitaminC_100g !== undefined && nutri.vitaminC_100g >= 0.012) {
-    benefit.push({ part: "skin", severity: "medium", reason: `Vitamin C supports collagen synthesis for skin elasticity.` });
+    benefit.push({ part: "skin", severity: "medium", trigger: "Vitamin C", reason: `Supports collagen synthesis for skin elasticity.` });
   }
 
   if (nutri.vitaminD_100g !== undefined && nutri.vitaminD_100g > 0) {
-    benefit.push({ part: "bones", severity: "medium", reason: `Vitamin D aids calcium absorption for stronger bones.` });
+    benefit.push({ part: "bones", severity: "medium", trigger: "Vitamin D", reason: `Aids calcium absorption for stronger bones.` });
   }
 
   if (has(ing, "omega-3", "dha", "epa", "flax seed", "flaxseed", "chia", "walnut", "salmon", "sardine", "mackerel")) {
-    benefit.push({ part: "brain", severity: "high", reason: `Omega-3 (DHA/EPA) supports cognition & neural membranes.` });
-    benefit.push({ part: "heart", severity: "medium", reason: `Omega-3 fatty acids lower triglycerides.` });
+    const trig = "Omega-3 (DHA / EPA)";
+    benefit.push({ part: "brain", severity: "high", trigger: trig, reason: `Supports cognition & neural membranes.` });
+    benefit.push({ part: "heart", severity: "medium", trigger: trig, reason: `Lowers triglycerides.` });
   }
 
   if (has(ing, "probiotic", "live culture", "lactobacillus", "bifidobacterium", "curd", "yogurt", "yoghurt", "kefir")) {
-    benefit.push({ part: "intestines", severity: "high", reason: `Live cultures support a balanced gut microbiome.` });
+    benefit.push({ part: "intestines", severity: "high", trigger: "Probiotics / live cultures", reason: `Support a balanced gut microbiome.` });
   }
 
   if (has(ing, "turmeric", "curcumin", "ginger", "green tea", "polyphenol")) {
-    benefit.push({ part: "liver", severity: "low", reason: `Polyphenols (turmeric/ginger/green tea) provide antioxidant support.` });
+    benefit.push({ part: "liver", severity: "low", trigger: "Polyphenols (turmeric / ginger / green tea)", reason: `Provide antioxidant support.` });
   }
 
   if (has(ing, "almond", "walnut", "cashew", "pistachio", "hazelnut", "peanut")) {
-    benefit.push({ part: "heart", severity: "medium", reason: `Nuts provide unsaturated fats & magnesium — heart-protective.` });
+    benefit.push({ part: "heart", severity: "medium", trigger: "Nuts (unsaturated fats + magnesium)", reason: `Heart-protective.` });
   }
 
   if (has(ing, "oat", "whole wheat", "whole grain", "ragi", "millet", "jowar", "bajra", "quinoa", "brown rice", "barley")) {
-    benefit.push({ part: "heart", severity: "medium", reason: `Whole grains improve cholesterol & cardiovascular health.` });
-    benefit.push({ part: "intestines", severity: "medium", reason: `Whole grains add insoluble fibre for digestive regularity.` });
+    const trig = "Whole grains";
+    benefit.push({ part: "heart", severity: "medium", trigger: trig, reason: `Improve cholesterol & cardiovascular health.` });
+    benefit.push({ part: "intestines", severity: "medium", trigger: trig, reason: `Add insoluble fibre for digestive regularity.` });
   }
 
   // Dedupe (keep highest severity per organ per side).
