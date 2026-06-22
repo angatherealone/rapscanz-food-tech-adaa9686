@@ -348,7 +348,7 @@ export function BodyDamageMap({
             return (
               <li
                 key={i}
-                onClick={() => setActive(i)}
+                onClick={() => openDetail(i)}
                 className={`cursor-pointer rounded-lg border p-3 text-sm transition-all ${
                   isActive
                     ? "border-primary bg-muted ring-2 ring-primary/30"
