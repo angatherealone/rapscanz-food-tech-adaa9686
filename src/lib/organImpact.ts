@@ -7,6 +7,8 @@ export type OrganImpact = {
   part: string;
   severity: "low" | "medium" | "high";
   reason: string;
+  /** The specific chemical / nutrient / ingredient that caused this impact. */
+  trigger: string;
 };
 
 export type Nutriments = {
