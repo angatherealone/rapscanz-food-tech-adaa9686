@@ -106,6 +106,16 @@ export function computeOrganImpact(
     damage.push({ part: "liver", severity: "medium", trigger: trig, reason: `Promote hepatic inflammation.` });
   }
 
+  if (has(ing, "palm oil", "palm kernel", "palmolein", "palm fat", "palm stearin", "rbd palm", "huile de palme")) {
+    const trig = "Palm oil";
+    damage.push({ part: "heart", severity: "high", trigger: trig, reason: `~50% saturated (palmitic acid) — raises LDL cholesterol and cardiovascular risk.` });
+    damage.push({ part: "liver", severity: "medium", trigger: trig, reason: `Refined palm oil contains glycidyl esters (3-MCPD) linked to liver stress.` });
+  }
+
+  if (has(ing, "coconut oil", "copra oil")) {
+    damage.push({ part: "heart", severity: "medium", trigger: "Coconut oil", reason: `~90% saturated fat — raises LDL cholesterol when used frequently.` });
+  }
+
   if (has(ing, "msg", "monosodium glutamate", "e621", "flavour enhancer (635)", "disodium inosinate", "disodium guanylate")) {
     damage.push({ part: "brain", severity: "low", trigger: "MSG / flavour enhancers (E621/E635)", reason: `Can trigger headaches & cravings in sensitive people.` });
   }
