@@ -57,8 +57,8 @@ export type ScanResult = {
     temporaryEffects: string[];
     organDamage: string[];
   };
-  bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
-  bodyBenefit?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
+  bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string }[];
+  bodyBenefit?: { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string }[];
   dietaryType?: "veg" | "non-veg" | "vegan" | "unknown";
   dietaryReason?: string;
   aiRegistryFallback?: boolean;
@@ -220,6 +220,14 @@ type BarcodeLookup = {
   nutriments?: any;
   labels?: string;
 };
+
+async function applyRuleBasedBodyImpact(result: ScanResult, lookup: BarcodeLookup) {
+  const { extractNutriments, computeOrganImpact } = await import("@/lib/organImpact");
+  const nutri = extractNutriments({ nutriments: lookup.nutriments ?? {} });
+  const { bodyDamage, bodyBenefit } = computeOrganImpact(nutri, lookup.ingredients || "");
+  result.bodyDamage = bodyDamage;
+  result.bodyBenefit = bodyBenefit;
+}
 
 
 // GS1 country prefix → country (official GS1 prefix list, complete coverage)
@@ -742,6 +750,10 @@ export const analyzeScan = createServerFn({ method: "POST" })
         .maybeSingle();
       if (cached && (cached as any).result) {
         const cachedResult = (cached as any).result as ScanResult;
+        const lookup = await lookupBarcode(data.barcode);
+        if (lookup) {
+          await applyRuleBasedBodyImpact(cachedResult, lookup);
+        }
         const { data: inserted } = await supabase.from("scans").insert({
           user_id: userId,
           product_name: cachedResult.productName,
@@ -820,14 +832,8 @@ export const analyzeScan = createServerFn({ method: "POST" })
         if (lookup.parentCompany) result.parentCompany = lookup.parentCompany;
         if (lookup.category) result.category = lookup.category;
 
-        // Rule-based organ impact from OFF nutriments + ingredients.
-        if (lookup.nutriments) {
-          const { extractNutriments, computeOrganImpact } = await import("@/lib/organImpact");
-          const nutri = extractNutriments({ nutriments: lookup.nutriments });
-          const { bodyDamage, bodyBenefit } = computeOrganImpact(nutri, lookup.ingredients || "");
-          if (bodyDamage.length) result.bodyDamage = bodyDamage;
-          if (bodyBenefit.length) result.bodyBenefit = bodyBenefit;
-        }
+        // Rule-based organ impact from registry ingredients + OFF nutriments.
+        await applyRuleBasedBodyImpact(result, lookup);
       }
     }
 
@@ -868,7 +874,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
           summary: result.summary,
           result: result as any,
           updated_at: new Date().toISOString(),
-        }, { onConflict: "barcode", ignoreDuplicates: true });
+        }, { onConflict: "barcode", ignoreDuplicates: false });
       if (cacheErr) console.error("barcode_cache upsert error", cacheErr);
     }
 
