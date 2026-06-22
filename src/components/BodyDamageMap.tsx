@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { OrganDetailDialog } from "@/components/OrganDetail";
+
 
 export type BodyDamage = {
   part: string;
@@ -76,13 +78,15 @@ const ORGANS: Record<string, OrganDef> = {
     anchor: { x: 136, y: 112 },
     callout: { x: 24, y: 112 },
   },
-  // Heart: anatomically on the subject's LEFT → viewer's RIGHT of midline.
+  // Heart: anatomically — broader at top (atria + great vessels), apex angled to
+  // subject's LEFT (viewer's right). NOT a symmetric cartoon heart.
   heart: {
     label: "Heart",
-    path: "M150 152 Q138 138 128 148 Q120 156 130 170 Q140 184 150 192 Q160 184 170 170 Q180 156 172 148 Q162 138 150 152 Z",
-    anchor: { x: 150, y: 168 },
-    callout: { x: 232, y: 160 },
+    path: "M134 142 Q120 138 114 152 Q110 168 120 184 Q132 198 150 206 L156 198 Q170 188 176 174 Q180 158 172 148 Q162 140 152 144 Q142 138 134 142 Z M150 142 Q148 134 156 130 M134 142 Q130 134 124 132",
+    anchor: { x: 146, y: 168 },
+    callout: { x: 242, y: 160 },
   },
+
   lungs: {
     label: "Lungs",
     // Two lobes flanking the heart, larger on the right lobe (subject's right = viewer's left).
@@ -168,6 +172,7 @@ export function BodyDamageMap({
     .map((it) => ({ ...it, key: normalizePart(it.part) }))
     .filter((it) => ORGANS[it.key]);
   const [active, setActive] = useState<number | null>(mapped.length ? 0 : null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const palette = SEVERITY_COLOR[variant];
   const stroke = BODY_STROKE[variant];
@@ -181,14 +186,20 @@ export function BodyDamageMap({
     affectedColors.set(it.key, palette[it.severity] ?? palette.medium);
   });
 
+  const openDetail = (idx: number) => {
+    setActive(idx);
+    setDetailOpen(true);
+  };
+
   return (
     <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-      <div className="relative mx-auto w-full max-w-[340px]">
+      <div className="relative mx-auto w-full max-w-[360px]">
         <svg
-          viewBox="0 0 260 600"
+          viewBox="-20 0 320 600"
           className="h-auto w-full"
           style={{ filter: GLOW_SHADOW[variant] }}
         >
+
           {/* Body silhouette — anatomically proportioned humanoid */}
           <g
             fill="rgba(125, 211, 252, 0.06)"
@@ -240,8 +251,9 @@ export function BodyDamageMap({
                 key={key}
                 onClick={() => {
                   const idx = mapped.findIndex((m) => m.key === key);
-                  if (idx >= 0) setActive(idx);
+                  if (idx >= 0) openDetail(idx);
                 }}
+
                 style={{ cursor: isAffected ? "pointer" : "default" }}
               >
                 <path
@@ -300,12 +312,25 @@ export function BodyDamageMap({
                   fontWeight="700"
                   style={{ filter: `drop-shadow(0 0 4px ${palette[activeItem.severity]})` }}
                 >
-                  {activeOrgan.label}
+                  {activeOrgan.label.includes(" / ") ? (
+                    <>
+                      <tspan x="0" dy="0">{activeOrgan.label.split(" / ")[0]}</tspan>
+                      <tspan x="0" dy="12">/ {activeOrgan.label.split(" / ")[1]}</tspan>
+                    </>
+                  ) : (
+                    activeOrgan.label
+                  )}
                 </text>
-                <text y="10" fill="#cbd5e1" fontSize="9" fontWeight="500">
+                <text
+                  y={activeOrgan.label.includes(" / ") ? 22 : 10}
+                  fill="#cbd5e1"
+                  fontSize="9"
+                  fontWeight="500"
+                >
                   {activeItem.severity.toUpperCase()} {sideLabel}
                 </text>
               </g>
+
             </g>
           )}
         </svg>
@@ -323,7 +348,7 @@ export function BodyDamageMap({
             return (
               <li
                 key={i}
-                onClick={() => setActive(i)}
+                onClick={() => openDetail(i)}
                 className={`cursor-pointer rounded-lg border p-3 text-sm transition-all ${
                   isActive
                     ? "border-primary bg-muted ring-2 ring-primary/30"
@@ -356,6 +381,19 @@ export function BodyDamageMap({
           })}
         </ul>
       </div>
+
+      {activeItem && activeOrgan && (
+        <OrganDetailDialog
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          organKey={activeItem.key}
+          organLabel={activeOrgan.label}
+          item={activeItem}
+          variant={variant}
+          color={palette[activeItem.severity] ?? palette.medium}
+        />
+      )}
     </div>
   );
 }
+
