@@ -75,7 +75,7 @@ export function ScanFeedback({
     <>
     <Card className="p-5">
       <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
-        <MessageSquare className="h-5 w-5 text-primary" /> Rate this product
+        <MessageSquare className="h-5 w-5 text-primary" /> Rate our website
         {existing && (
           <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-success">
             <CheckCircle2 className="h-4 w-4" /> Saved

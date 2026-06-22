@@ -82,9 +82,28 @@ const ORGANS: Record<string, OrganDef> = {
   // subject's LEFT (viewer's right). NOT a symmetric cartoon heart.
   heart: {
     label: "Heart",
-    path: "M134 142 Q120 138 114 152 Q110 168 120 184 Q132 198 150 206 L156 198 Q170 188 176 174 Q180 158 172 148 Q162 140 152 144 Q142 138 134 142 Z M150 142 Q148 134 156 130 M134 142 Q130 134 124 132",
-    anchor: { x: 146, y: 168 },
-    callout: { x: 242, y: 160 },
+    // Anatomically correct: aortic arch on top, superior vena cava + pulmonary
+    // trunk as great vessels, left atrium on subject's left (viewer's right),
+    // right atrium bulge on subject's right, ventricles forming pear-shape with
+    // apex angled down-left (toward subject's left = viewer's right side of org).
+    path: [
+      // Aortic arch
+      "M138 128 Q140 118 150 116 Q162 116 164 128 L164 146",
+      // Superior vena cava
+      "M128 128 Q126 138 130 148",
+      // Pulmonary trunk
+      "M148 128 Q150 138 146 148",
+      // Heart body — pear-shaped, apex angled subject-left (viewer right)
+      "M118 146 Q108 156 110 178 Q116 200 138 212 Q160 218 172 208 Q184 192 180 168 Q176 150 162 144 Q148 140 138 146 Q128 142 118 146 Z",
+      // Coronary artery (LAD) descending toward apex
+      "M142 150 Q140 170 148 192 Q154 204 158 210",
+      // Circumflex branch
+      "M144 154 Q130 162 122 178",
+      // Right coronary
+      "M152 148 Q166 156 170 178",
+    ].join(" "),
+    anchor: { x: 146, y: 178 },
+    callout: { x: 232, y: 160 },
   },
 
   lungs: {
@@ -192,10 +211,10 @@ export function BodyDamageMap({
   };
 
   return (
-    <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-      <div className="relative mx-auto w-full max-w-[360px]">
+    <div className="grid gap-5 md:grid-cols-[minmax(0,1.15fr)_1fr]">
+      <div className="relative mx-auto w-full max-w-[520px]">
         <svg
-          viewBox="-20 0 320 600"
+          viewBox="-10 4 290 600"
           className="h-auto w-full"
           style={{ filter: GLOW_SHADOW[variant] }}
         >
