@@ -57,8 +57,8 @@ export type ScanResult = {
     temporaryEffects: string[];
     organDamage: string[];
   };
-  bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
-  bodyBenefit?: { part: string; severity: "low" | "medium" | "high"; reason: string }[];
+  bodyDamage?: { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string }[];
+  bodyBenefit?: { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string }[];
   dietaryType?: "veg" | "non-veg" | "vegan" | "unknown";
   dietaryReason?: string;
   aiRegistryFallback?: boolean;
@@ -220,6 +220,14 @@ type BarcodeLookup = {
   nutriments?: any;
   labels?: string;
 };
+
+async function applyRuleBasedBodyImpact(result: ScanResult, lookup: BarcodeLookup) {
+  const { extractNutriments, computeOrganImpact } = await import("@/lib/organImpact");
+  const nutri = extractNutriments({ nutriments: lookup.nutriments ?? {} });
+  const { bodyDamage, bodyBenefit } = computeOrganImpact(nutri, lookup.ingredients || "");
+  result.bodyDamage = bodyDamage;
+  result.bodyBenefit = bodyBenefit;
+}
 
 
 // GS1 country prefix → country (official GS1 prefix list, complete coverage)
