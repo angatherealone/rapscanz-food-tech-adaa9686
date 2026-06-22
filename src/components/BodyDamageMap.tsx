@@ -381,6 +381,19 @@ export function BodyDamageMap({
           })}
         </ul>
       </div>
+
+      {activeItem && activeOrgan && (
+        <OrganDetailDialog
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          organKey={activeItem.key}
+          organLabel={activeOrgan.label}
+          item={activeItem}
+          variant={variant}
+          color={palette[activeItem.severity] ?? palette.medium}
+        />
+      )}
     </div>
   );
 }
+
