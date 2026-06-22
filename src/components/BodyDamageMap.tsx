@@ -172,6 +172,7 @@ export function BodyDamageMap({
     .map((it) => ({ ...it, key: normalizePart(it.part) }))
     .filter((it) => ORGANS[it.key]);
   const [active, setActive] = useState<number | null>(mapped.length ? 0 : null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const palette = SEVERITY_COLOR[variant];
   const stroke = BODY_STROKE[variant];
@@ -185,14 +186,20 @@ export function BodyDamageMap({
     affectedColors.set(it.key, palette[it.severity] ?? palette.medium);
   });
 
+  const openDetail = (idx: number) => {
+    setActive(idx);
+    setDetailOpen(true);
+  };
+
   return (
     <div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-      <div className="relative mx-auto w-full max-w-[340px]">
+      <div className="relative mx-auto w-full max-w-[360px]">
         <svg
-          viewBox="0 0 260 600"
+          viewBox="-20 0 320 600"
           className="h-auto w-full"
           style={{ filter: GLOW_SHADOW[variant] }}
         >
+
           {/* Body silhouette — anatomically proportioned humanoid */}
           <g
             fill="rgba(125, 211, 252, 0.06)"
