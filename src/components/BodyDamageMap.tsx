@@ -4,6 +4,8 @@ export type BodyDamage = {
   part: string;
   severity: "low" | "medium" | "high";
   reason: string;
+  /** The specific chemical / nutrient / ingredient that triggered this impact. */
+  trigger?: string;
 };
 
 export type BodyMapVariant = "damage" | "benefit";
