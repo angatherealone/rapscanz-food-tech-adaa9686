@@ -251,8 +251,9 @@ export function BodyDamageMap({
                 key={key}
                 onClick={() => {
                   const idx = mapped.findIndex((m) => m.key === key);
-                  if (idx >= 0) setActive(idx);
+                  if (idx >= 0) openDetail(idx);
                 }}
+
                 style={{ cursor: isAffected ? "pointer" : "default" }}
               >
                 <path
