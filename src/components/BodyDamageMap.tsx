@@ -78,13 +78,15 @@ const ORGANS: Record<string, OrganDef> = {
     anchor: { x: 136, y: 112 },
     callout: { x: 24, y: 112 },
   },
-  // Heart: anatomically on the subject's LEFT → viewer's RIGHT of midline.
+  // Heart: anatomically — broader at top (atria + great vessels), apex angled to
+  // subject's LEFT (viewer's right). NOT a symmetric cartoon heart.
   heart: {
     label: "Heart",
-    path: "M150 152 Q138 138 128 148 Q120 156 130 170 Q140 184 150 192 Q160 184 170 170 Q180 156 172 148 Q162 138 150 152 Z",
-    anchor: { x: 150, y: 168 },
-    callout: { x: 232, y: 160 },
+    path: "M134 142 Q120 138 114 152 Q110 168 120 184 Q132 198 150 206 L156 198 Q170 188 176 174 Q180 158 172 148 Q162 140 152 144 Q142 138 134 142 Z M150 142 Q148 134 156 130 M134 142 Q130 134 124 132",
+    anchor: { x: 146, y: 168 },
+    callout: { x: 242, y: 160 },
   },
+
   lungs: {
     label: "Lungs",
     // Two lobes flanking the heart, larger on the right lobe (subject's right = viewer's left).
