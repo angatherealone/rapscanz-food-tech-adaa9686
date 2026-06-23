@@ -123,7 +123,7 @@ function Landing() {
           <div className="mb-10 max-w-2xl">
             <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Honest pricing.</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Start with <strong className="text-foreground">30 free scans</strong>. Upgrade when you need more.
+              Start with <strong className="text-foreground">10 free scans</strong>. Upgrade when you need more — or grab 2 free trial scans of any higher tier from the buttons below.
             </p>
             <p className="mt-3 text-sm">
               <Link to="/guides/healthy-snacks" className="font-medium text-primary hover:underline">
