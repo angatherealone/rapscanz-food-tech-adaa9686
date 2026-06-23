@@ -173,6 +173,7 @@ function ScanPage() {
       setResult(data.result);
       setScanId(data.scanId);
       setScanPlan((data as any).plan ?? "free");
+      setUseTrialTier(null);
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["scans"] });
 
