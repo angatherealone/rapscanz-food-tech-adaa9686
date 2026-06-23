@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucide-react";
 import { LogoIcon } from "@/components/Logo";
 import { ScanChamber } from "@/components/ScanChamber";
+import { TrialButtons } from "@/components/TrialButtons";
 
 const HOME_URL = "https://healthy-food-scan.lovable.app/";
 const HOME_TITLE = "RAPscanz — Know what's really in your food";
 const HOME_DESC =
-  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then Pro ₹200/mo or Pro+ ₹500/mo.";
+  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 10 free scans, then Pro ₹200/mo or Pro+ ₹500/mo.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
