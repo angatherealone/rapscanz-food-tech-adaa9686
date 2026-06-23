@@ -227,7 +227,9 @@ function ScanPage() {
         </div>
         <div className={`chip ${planLabel !== "Free" ? "bg-success text-success-foreground" : ""}`}>
           <Sparkles className="h-3 w-3" />
-          {isUnlimited ? `${planLabel} · Unlimited scans` : `${planLabel} · ${remaining} of ${scanLimit} scans left`}
+          {isUnlimited
+            ? `${planLabel} · Unlimited scans`
+            : `${planLabel} · ${remaining} of ${scanLimit} scans left${trialTotal > 0 ? ` · ${trialTotal} trial` : ""}`}
         </div>
       </div>
 
