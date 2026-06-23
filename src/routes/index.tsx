@@ -139,13 +139,16 @@ function Landing() {
                 <span className="font-display text-4xl font-bold">₹0</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["30 scans total", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
+                {["10 scans total", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Start free
               </Link>
+              <TrialButtons tier="pro" />
+              <TrialButtons tier="pro_plus" />
+              <TrialButtons tier="pro_max" />
             </div>
 
             <div className="rounded-3xl border border-border bg-card p-6">
@@ -155,13 +158,15 @@ function Landing() {
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["60 scans per month", "Estimated % of each chemical", "Everything in Free"].map((f) => (
+                {["20 scans per month", "Estimated % of each chemical", "Everything in Free"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Go Pro
               </Link>
+              <TrialButtons tier="pro_plus" />
+              <TrialButtons tier="pro_max" />
             </div>
 
             <div className="rounded-3xl border border-border bg-card p-6">
@@ -171,13 +176,14 @@ function Landing() {
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["120 scans per month", "% of each chemical", "What each chemical can cause", "Everything in Pro"].map((f) => (
+                {["30 scans per month", "% of each chemical", "What each chemical can cause", "Everything in Pro"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Go Pro+
               </Link>
+              <TrialButtons tier="pro_max" />
             </div>
 
             <div className="relative rounded-3xl border-2 border-primary bg-card p-6 shadow-[8px_8px_0_0_var(--primary)]">
@@ -191,7 +197,7 @@ function Landing() {
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "240 scans per month",
+                  "40 scans per month",
                   "3D body-damage visualisation",
                   "See which organs the product harms",
                   "Everything in Pro+",
