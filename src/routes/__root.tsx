@@ -78,6 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/d9a22f6a-491d-40f2-8899-0c69164b1b91" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      { src: "https://www.googletagmanager.com/gtag/js?id=G-D473TK8ZXG", async: true },
+      {
+        children:
+          "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-D473TK8ZXG');",
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
