@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const FREE_LIMIT = 30;
+const FREE_LIMIT = 10;
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -16,11 +16,14 @@ const UNLIMITED_LIMIT = 999_999;
 
 function planLimit(plan: string | null | undefined): number {
   if (plan === "unlimited") return UNLIMITED_LIMIT;
-  if (plan === "pro_max") return 240;
-  if (plan === "pro_plus") return 120;
-  if (plan === "pro") return 60;
+  if (plan === "pro_max") return 40;
+  if (plan === "pro_plus") return 30;
+  if (plan === "pro") return 20;
   return FREE_LIMIT;
 }
+
+const TRIAL_CAP_PER_TIER = 2;
+type TrialTier = "pro" | "pro_plus" | "pro_max";
 
 const ScanInput = z.object({
   scanType: z.enum(["ingredients", "barcode"]),
