@@ -72,7 +72,7 @@ function Landing() {
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
             <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
               <div className="max-w-2xl">
-                <span className="chip"><Sparkles className="h-3 w-3" /> 30 free scans · Pro from ₹200/mo</span>
+                <span className="chip"><Sparkles className="h-3 w-3" /> 10 free scans · Pro from ₹200/mo</span>
                 <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
                   Know what's <span className="bg-accent px-2 py-0.5">actually</span> in your food.
                 </h1>
