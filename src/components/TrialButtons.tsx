@@ -13,6 +13,18 @@ const TIER_LABEL: Record<Tier, string> = {
   pro_max: "Pro Max",
 };
 
+const TIER_UNLOCKS: Record<Tier, string[]> = {
+  pro: ["Estimated % per additive", "Body-impact map"],
+  pro_plus: ["Safe consumption guide (WHO/FDA limits)", "% per additive", "Body-impact map"],
+  pro_max: [
+    "Body-impact map (organ-by-organ)",
+    "Over-consumption risk profile",
+    "Veg / Non-veg / Vegan classification",
+    "Safe consumption guide",
+    "% + chemical formula + scientific name per additive",
+  ],
+};
+
 const TIER_RANK: Record<string, number> = {
   free: 0,
   pro: 1,
