@@ -83,6 +83,7 @@ function ScanPage() {
   const [scanId, setScanId] = useState<string | null>(null);
   const [scanPlan, setScanPlan] = useState<string>("free");
   const [logged, setLogged] = useState(false);
+  const [useTrialTier, setUseTrialTier] = useState<"pro" | "pro_plus" | "pro_max" | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
