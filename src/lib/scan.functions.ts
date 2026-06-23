@@ -30,6 +30,7 @@ const ScanInput = z.object({
   text: z.string().max(10_000).optional(),
   barcode: z.string().regex(/^[A-Za-z0-9\-]{1,32}$/).optional(),
   imageDataUrl: z.string().max(7_500_000).optional(),
+  useTrialTier: z.enum(["pro", "pro_plus", "pro_max"]).optional(),
 });
 
 export type ScanResult = {
