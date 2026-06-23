@@ -237,9 +237,9 @@ function ScanPage() {
             <div>
               <div className="font-display text-lg font-semibold">You've used all your scans</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 60)</strong>,{" "}
-                <strong className="text-foreground">Pro+ (₹500/mo · 120)</strong> or{" "}
-                <strong className="text-foreground">Pro Max (₹1200/mo · 240 + 3D body-damage map)</strong> to keep scanning.
+                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 20)</strong>,{" "}
+                <strong className="text-foreground">Pro+ (₹500/mo · 30)</strong> or{" "}
+                <strong className="text-foreground">Pro Max (₹1200/mo · 40 + 3D body-damage map)</strong> to keep scanning. You can also grab 2 free trial scans of each higher tier from the pricing page.
                 Payments will be enabled soon — we'll let you know.
               </p>
             </div>
