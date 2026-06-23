@@ -208,11 +208,13 @@ function ScanPage() {
     reader.readAsDataURL(file);
   }
 
-  const scanLimit = (profile as any)?.scanLimit ?? 30;
+  const scanLimit = (profile as any)?.scanLimit ?? 10;
   const remaining = profile?.remaining ?? scanLimit;
   const planLabel = (profile as any)?.planLabel ?? "Free";
   const isUnlimited = (profile as any)?.isUnlimited === true || planLabel === "Unlimited";
-  const outOfScans = !isUnlimited && remaining <= 0;
+  const trialRemaining = (profile as any)?.trialRemaining ?? {};
+  const trialTotal = (trialRemaining.pro ?? 0) + (trialRemaining.pro_plus ?? 0) + (trialRemaining.pro_max ?? 0);
+  const outOfScans = !isUnlimited && remaining <= 0 && trialTotal <= 0;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
