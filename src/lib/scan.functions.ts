@@ -122,8 +122,9 @@ export const claimTrialScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ tier: z.enum(["pro", "pro_plus", "pro_max"]) }).parse(d))
   .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { data: row, error } = await supabase.rpc("claim_trial_scan" as any, { _uid: userId, _tier: data.tier });
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin.rpc("claim_trial_scan" as any, { _uid: userId, _tier: data.tier });
     if (error) {
       const msg = error.message || "";
       if (msg.includes("trial_limit_reached")) throw new Error("You've already claimed both free trial scans for this tier.");
