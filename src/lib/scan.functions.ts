@@ -76,14 +76,14 @@ export const getProfile = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("profiles")
-      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at")
+      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining")
       .eq("id", userId)
       .maybeSingle();
     if (error) {
       console.error("getProfile error", error);
       throw new Error("Unable to load your profile. Please try again.");
     }
-    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null };
+    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null, trial_claimed: { pro: 0, pro_plus: 0, pro_max: 0 }, trial_remaining: { pro: 0, pro_plus: 0, pro_max: 0 } };
 
     const { data: roleRows } = await supabase
       .from("user_roles" as any)
@@ -101,6 +101,8 @@ export const getProfile = createServerFn({ method: "GET" })
         : (profile.plan ?? "free");
     }
     const limit = planLimit(effectivePlan);
+    const trialClaimed = (profile as any).trial_claimed ?? { pro: 0, pro_plus: 0, pro_max: 0 };
+    const trialRemaining = (profile as any).trial_remaining ?? { pro: 0, pro_plus: 0, pro_max: 0 };
     return {
       ...profile,
       plan: effectivePlan,
@@ -110,7 +112,27 @@ export const getProfile = createServerFn({ method: "GET" })
       remaining: isUnlimited ? UNLIMITED_LIMIT : Math.max(0, limit - (profile.scan_count ?? 0)),
       roles,
       isUnlimited,
+      trialClaimed,
+      trialRemaining,
+      trialCap: TRIAL_CAP_PER_TIER,
     };
+  });
+
+export const claimTrialScan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ tier: z.enum(["pro", "pro_plus", "pro_max"]) }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase.rpc("claim_trial_scan" as any, { _uid: userId, _tier: data.tier });
+    if (error) {
+      const msg = error.message || "";
+      if (msg.includes("trial_limit_reached")) throw new Error("You've already claimed both free trial scans for this tier.");
+      if (msg.includes("tier_not_above_plan")) throw new Error("You already have this tier or higher.");
+      console.error("claimTrialScan", error);
+      throw new Error("Couldn't claim trial scan. Please try again.");
+    }
+    const result = Array.isArray(row) ? row[0] : row;
+    return { tier: data.tier, claimed: result?.claimed ?? 0, remaining: result?.remaining ?? 0 };
   });
 
 export const listScans = createServerFn({ method: "GET" })
