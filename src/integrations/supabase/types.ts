@@ -270,23 +270,14 @@ export type Database = {
           remaining: number
         }[]
       }
-      consume_scan_quota:
-        | {
-            Args: { _uid: string }
-            Returns: {
-              new_count: number
-              plan: string
-              scan_limit: number
-            }[]
-          }
-        | {
-            Args: { _prefer_tier?: string; _uid: string }
-            Returns: {
-              new_count: number
-              plan: string
-              scan_limit: number
-            }[]
-          }
+      consume_scan_quota: {
+        Args: { _prefer_tier?: string; _uid: string }
+        Returns: {
+          new_count: number
+          plan: string
+          scan_limit: number
+        }[]
+      }
       get_leaderboard: {
         Args: never
         Returns: {
