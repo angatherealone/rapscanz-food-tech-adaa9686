@@ -141,13 +141,14 @@ function ScanPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       setLogged(false);
+      const trialArg = useTrialTier ? { useTrialTier } : {};
       if (tab === "ingredients") {
         if (!text.trim()) throw new Error("Paste the ingredient list first.");
-        return analyzeFn({ data: { scanType: "ingredients", text } });
+        return analyzeFn({ data: { scanType: "ingredients", text, ...trialArg } });
       }
       if (tab === "image") {
         if (!imageDataUrl) throw new Error("Upload a photo of the label first.");
-        return analyzeFn({ data: { scanType: "ingredients", imageDataUrl } });
+        return analyzeFn({ data: { scanType: "ingredients", imageDataUrl, ...trialArg } });
       }
       const code = barcode.trim();
       if (!code) throw new Error("Enter a barcode number.");
@@ -156,7 +157,7 @@ function ScanPage() {
         handleLocalBarcode(code);
         return null as any;
       }
-      return analyzeFn({ data: { scanType: "barcode", barcode: code } });
+      return analyzeFn({ data: { scanType: "barcode", barcode: code, ...trialArg } });
     },
     onSuccess: (data) => {
       if (!data) return; // local barcode (direct-tab) path
