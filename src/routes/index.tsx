@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine, ShieldAlert, Sparkles, Barcode, FileText, Check } from "lucide-react";
 import { LogoIcon } from "@/components/Logo";
 import { ScanChamber } from "@/components/ScanChamber";
+import { TrialButtons } from "@/components/TrialButtons";
 
 const HOME_URL = "https://healthy-food-scan.lovable.app/";
 const HOME_TITLE = "RAPscanz — Know what's really in your food";
 const HOME_DESC =
-  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 30 free scans, then Pro ₹200/mo or Pro+ ₹500/mo.";
+  "Scan ingredients or barcodes. Get instant advantages, disadvantages, and chemical cautions. 10 free scans, then Pro ₹200/mo or Pro+ ₹500/mo.";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -71,7 +72,7 @@ function Landing() {
           <div className="relative mx-auto max-w-6xl px-6 py-20 md:py-28">
             <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
               <div className="max-w-2xl">
-                <span className="chip"><Sparkles className="h-3 w-3" /> 30 free scans · Pro from ₹200/mo</span>
+                <span className="chip"><Sparkles className="h-3 w-3" /> 10 free scans · Pro from ₹200/mo</span>
                 <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
                   Know what's <span className="bg-accent px-2 py-0.5">actually</span> in your food.
                 </h1>
@@ -122,7 +123,7 @@ function Landing() {
           <div className="mb-10 max-w-2xl">
             <h2 className="text-4xl font-bold tracking-tight md:text-5xl">Honest pricing.</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Start with <strong className="text-foreground">30 free scans</strong>. Upgrade when you need more.
+              Start with <strong className="text-foreground">10 free scans</strong>. Upgrade when you need more — or grab 2 free trial scans of any higher tier from the buttons below.
             </p>
             <p className="mt-3 text-sm">
               <Link to="/guides/healthy-snacks" className="font-medium text-primary hover:underline">
@@ -138,13 +139,16 @@ function Landing() {
                 <span className="font-display text-4xl font-bold">₹0</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["30 scans total", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
+                {["10 scans total", "Ingredient & barcode analysis", "Chemical caution alerts", "Scan history"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Start free
               </Link>
+              <TrialButtons tier="pro" />
+              <TrialButtons tier="pro_plus" />
+              <TrialButtons tier="pro_max" />
             </div>
 
             <div className="rounded-3xl border border-border bg-card p-6">
@@ -154,13 +158,15 @@ function Landing() {
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["60 scans per month", "Estimated % of each chemical", "Everything in Free"].map((f) => (
+                {["20 scans per month", "Estimated % of each chemical", "Everything in Free"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Go Pro
               </Link>
+              <TrialButtons tier="pro_plus" />
+              <TrialButtons tier="pro_max" />
             </div>
 
             <div className="rounded-3xl border border-border bg-card p-6">
@@ -170,13 +176,14 @@ function Landing() {
                 <span className="text-muted-foreground">/mo</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm">
-                {["120 scans per month", "% of each chemical", "What each chemical can cause", "Everything in Pro"].map((f) => (
+                {["30 scans per month", "% of each chemical", "What each chemical can cause", "Everything in Pro"].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-accent" /> {f}</li>
                 ))}
               </ul>
               <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-3 font-semibold hover:bg-muted">
                 Go Pro+
               </Link>
+              <TrialButtons tier="pro_max" />
             </div>
 
             <div className="relative rounded-3xl border-2 border-primary bg-card p-6 shadow-[8px_8px_0_0_var(--primary)]">
@@ -190,7 +197,7 @@ function Landing() {
               </div>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "240 scans per month",
+                  "40 scans per month",
                   "3D body-damage visualisation",
                   "See which organs the product harms",
                   "Everything in Pro+",

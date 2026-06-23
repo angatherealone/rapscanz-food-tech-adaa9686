@@ -208,11 +208,13 @@ function ScanPage() {
     reader.readAsDataURL(file);
   }
 
-  const scanLimit = (profile as any)?.scanLimit ?? 30;
+  const scanLimit = (profile as any)?.scanLimit ?? 10;
   const remaining = profile?.remaining ?? scanLimit;
   const planLabel = (profile as any)?.planLabel ?? "Free";
   const isUnlimited = (profile as any)?.isUnlimited === true || planLabel === "Unlimited";
-  const outOfScans = !isUnlimited && remaining <= 0;
+  const trialRemaining = (profile as any)?.trialRemaining ?? {};
+  const trialTotal = (trialRemaining.pro ?? 0) + (trialRemaining.pro_plus ?? 0) + (trialRemaining.pro_max ?? 0);
+  const outOfScans = !isUnlimited && remaining <= 0 && trialTotal <= 0;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -225,7 +227,9 @@ function ScanPage() {
         </div>
         <div className={`chip ${planLabel !== "Free" ? "bg-success text-success-foreground" : ""}`}>
           <Sparkles className="h-3 w-3" />
-          {isUnlimited ? `${planLabel} · Unlimited scans` : `${planLabel} · ${remaining} of ${scanLimit} scans left`}
+          {isUnlimited
+            ? `${planLabel} · Unlimited scans`
+            : `${planLabel} · ${remaining} of ${scanLimit} scans left${trialTotal > 0 ? ` · ${trialTotal} trial` : ""}`}
         </div>
       </div>
 
@@ -237,9 +241,9 @@ function ScanPage() {
             <div>
               <div className="font-display text-lg font-semibold">You've used all your scans</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 60)</strong>,{" "}
-                <strong className="text-foreground">Pro+ (₹500/mo · 120)</strong> or{" "}
-                <strong className="text-foreground">Pro Max (₹1200/mo · 240 + 3D body-damage map)</strong> to keep scanning.
+                Upgrade to <strong className="text-foreground">Pro (₹200/mo · 20)</strong>,{" "}
+                <strong className="text-foreground">Pro+ (₹500/mo · 30)</strong> or{" "}
+                <strong className="text-foreground">Pro Max (₹1200/mo · 40 + 3D body-damage map)</strong> to keep scanning. You can also grab 2 free trial scans of each higher tier from the pricing page.
                 Payments will be enabled soon — we'll let you know.
               </p>
             </div>
