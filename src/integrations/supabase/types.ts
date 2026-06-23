@@ -100,6 +100,8 @@ export type Database = {
           plan_expires_at: string | null
           scan_count: number
           subscription_expires_at: string | null
+          trial_claimed: Json
+          trial_remaining: Json
           username: string | null
           weight_kg: number | null
         }
@@ -117,6 +119,8 @@ export type Database = {
           plan_expires_at?: string | null
           scan_count?: number
           subscription_expires_at?: string | null
+          trial_claimed?: Json
+          trial_remaining?: Json
           username?: string | null
           weight_kg?: number | null
         }
@@ -134,6 +138,8 @@ export type Database = {
           plan_expires_at?: string | null
           scan_count?: number
           subscription_expires_at?: string | null
+          trial_claimed?: Json
+          trial_remaining?: Json
           username?: string | null
           weight_kg?: number | null
         }
@@ -257,6 +263,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_trial_scan: {
+        Args: { _tier: string; _uid: string }
+        Returns: {
+          claimed: number
+          remaining: number
+        }[]
+      }
       consume_scan_quota: {
         Args: { _uid: string }
         Returns: {
