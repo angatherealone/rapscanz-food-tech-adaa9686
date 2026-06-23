@@ -83,6 +83,7 @@ function ScanPage() {
   const [scanId, setScanId] = useState<string | null>(null);
   const [scanPlan, setScanPlan] = useState<string>("free");
   const [logged, setLogged] = useState(false);
+  const [useTrialTier, setUseTrialTier] = useState<"pro" | "pro_plus" | "pro_max" | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -140,13 +141,14 @@ function ScanPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       setLogged(false);
+      const trialArg = useTrialTier ? { useTrialTier } : {};
       if (tab === "ingredients") {
         if (!text.trim()) throw new Error("Paste the ingredient list first.");
-        return analyzeFn({ data: { scanType: "ingredients", text } });
+        return analyzeFn({ data: { scanType: "ingredients", text, ...trialArg } });
       }
       if (tab === "image") {
         if (!imageDataUrl) throw new Error("Upload a photo of the label first.");
-        return analyzeFn({ data: { scanType: "ingredients", imageDataUrl } });
+        return analyzeFn({ data: { scanType: "ingredients", imageDataUrl, ...trialArg } });
       }
       const code = barcode.trim();
       if (!code) throw new Error("Enter a barcode number.");
@@ -155,7 +157,7 @@ function ScanPage() {
         handleLocalBarcode(code);
         return null as any;
       }
-      return analyzeFn({ data: { scanType: "barcode", barcode: code } });
+      return analyzeFn({ data: { scanType: "barcode", barcode: code, ...trialArg } });
     },
     onSuccess: (data) => {
       if (!data) return; // local barcode (direct-tab) path
@@ -171,6 +173,7 @@ function ScanPage() {
       setResult(data.result);
       setScanId(data.scanId);
       setScanPlan((data as any).plan ?? "free");
+      setUseTrialTier(null);
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["scans"] });
 
@@ -330,6 +333,70 @@ function ScanPage() {
 
         </Tabs>
 
+        {trialTotal > 0 && (() => {
+          const TIER_META: Record<"pro" | "pro_plus" | "pro_max", { label: string; unlocks: string[] }> = {
+            pro: { label: "Pro", unlocks: ["Estimated % per additive", "Body-impact map"] },
+            pro_plus: { label: "Pro+", unlocks: ["Safe consumption guide (WHO/FDA limits)", "% per additive", "Body-impact map"] },
+            pro_max: { label: "Pro Max", unlocks: ["Body-impact map (organ-by-organ)", "Over-consumption risk profile", "Veg / Non-veg / Vegan tag", "Safe consumption guide", "% + chemical formula + scientific name per additive"] },
+          };
+          const tiers = (["pro", "pro_plus", "pro_max"] as const).filter((t) => (trialRemaining[t] ?? 0) > 0);
+          if (!tiers.length) return null;
+          return (
+            <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-primary">
+                <Sparkles className="h-3.5 w-3.5" /> Trial scans available
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pick one to spend on <em>this</em> scan and unlock that tier's full breakdown.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {tiers.map((t) => {
+                  const left = trialRemaining[t] ?? 0;
+                  const active = useTrialTier === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setUseTrialTier(active ? null : t)}
+                      className={
+                        active
+                          ? "rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                          : "rounded-full border border-primary/40 bg-background px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                      }
+                    >
+                      {active ? "✓ " : ""}Use {TIER_META[t].label} trial · {left} left
+                    </button>
+                  );
+                })}
+                {useTrialTier && (
+                  <button
+                    type="button"
+                    onClick={() => setUseTrialTier(null)}
+                    className="rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {useTrialTier && (
+                <div className="mt-3 rounded-md bg-background/60 p-3 text-xs">
+                  <div className="font-semibold text-foreground">
+                    You'll see on this scan ({TIER_META[useTrialTier].label}):
+                  </div>
+                  <ul className="mt-1.5 space-y-1">
+                    {TIER_META[useTrialTier].unlocks.map((u) => (
+                      <li key={u} className="flex gap-2 text-muted-foreground">
+                        <span className="text-success">✓</span>
+                        <span>{u}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         <Button
           className="mt-5 w-full"
           size="lg"
@@ -338,8 +405,11 @@ function ScanPage() {
         >
           {mutation.isPending
             ? (tab === "barcode" ? "Looking up barcode & consulting AI registry…" : "Analyzing…")
-            : (tab === "barcode" && isLocalBarcode(barcode) ? "Look up local item" : "Scan & analyze")}
+            : useTrialTier
+              ? `Scan as ${useTrialTier === "pro" ? "Pro" : useTrialTier === "pro_plus" ? "Pro+" : "Pro Max"} trial`
+              : (tab === "barcode" && isLocalBarcode(barcode) ? "Look up local item" : "Scan & analyze")}
         </Button>
+
 
         </div>
       </Card>

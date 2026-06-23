@@ -13,6 +13,18 @@ const TIER_LABEL: Record<Tier, string> = {
   pro_max: "Pro Max",
 };
 
+const TIER_UNLOCKS: Record<Tier, string[]> = {
+  pro: ["Estimated % per additive", "Body-impact map"],
+  pro_plus: ["Safe consumption guide (WHO/FDA limits)", "% per additive", "Body-impact map"],
+  pro_max: [
+    "Body-impact map (organ-by-organ)",
+    "Over-consumption risk profile",
+    "Veg / Non-veg / Vegan classification",
+    "Safe consumption guide",
+    "% + chemical formula + scientific name per additive",
+  ],
+};
+
 const TIER_RANK: Record<string, number> = {
   free: 0,
   pro: 1,
@@ -111,6 +123,24 @@ export function TrialButtons({ tier }: { tier: Tier }) {
             </button>
           );
         })}
+      </div>
+      <div className="rounded-md border border-dashed border-primary/30 bg-background/40 px-2.5 py-2">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-primary">
+          What you unlock per trial scan
+        </div>
+        <ul className="mt-1 space-y-0.5">
+          {TIER_UNLOCKS[tier].map((u) => (
+            <li key={u} className="flex gap-1.5 text-[11px] text-muted-foreground">
+              <span className="text-success">✓</span>
+              <span>{u}</span>
+            </li>
+          ))}
+        </ul>
+        {remaining > 0 ? (
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            Spend it from the <strong className="text-foreground">Scan</strong> page — pick "Use {TIER_LABEL[tier]} trial" above the scan button.
+          </p>
+        ) : null}
       </div>
     </div>
   );
