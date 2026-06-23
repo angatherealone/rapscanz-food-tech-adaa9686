@@ -694,7 +694,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: quota, error: quotaErr } = await supabaseAdmin
-      .rpc("consume_scan_quota", { _uid: context.userId })
+      .rpc("consume_scan_quota", { _uid: context.userId, _prefer_tier: data.useTrialTier ?? null } as any)
       .single();
 
     if (quotaErr) {
