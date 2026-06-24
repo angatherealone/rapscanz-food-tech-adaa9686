@@ -14,9 +14,9 @@ export type BodyMapVariant = "damage" | "benefit";
 
 const SEVERITY_COLOR: Record<BodyMapVariant, Record<string, string>> = {
   damage: {
-    low: "#fbbf24",
-    medium: "#fb923c",
-    high: "#ef4444",
+    low: "#fbbf24",     // neon amber
+    medium: "#fb7185",  // hot pink-red
+    high: "#ef4444",    // sharp neon red
   },
   benefit: {
     low: "#86efac",
@@ -25,14 +25,17 @@ const SEVERITY_COLOR: Record<BodyMapVariant, Record<string, string>> = {
   },
 };
 
+// Soft ambient neon teal for the inactive/idle state of every organ.
+const INACTIVE_NEON = "#22d3ee"; // cyan-400
+
 const BODY_STROKE: Record<BodyMapVariant, string> = {
-  damage: "#7dd3fc",
+  damage: "#67e8f9",
   benefit: "#86efac",
 };
 
 const GLOW_SHADOW: Record<BodyMapVariant, string> = {
-  damage: "drop-shadow(0 0 18px rgba(239,68,68,0.25))",
-  benefit: "drop-shadow(0 0 18px rgba(34,197,94,0.3))",
+  damage: "drop-shadow(0 0 22px rgba(34,211,238,0.18))",
+  benefit: "drop-shadow(0 0 22px rgba(34,197,94,0.28))",
 };
 
 /**
