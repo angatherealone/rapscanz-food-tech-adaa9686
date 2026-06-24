@@ -195,6 +195,7 @@ export function BodyDamageMap({
     .filter((it) => ORGANS[it.key]);
   const [active, setActive] = useState<number | null>(mapped.length ? 0 : null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
   const palette = SEVERITY_COLOR[variant];
   const stroke = BODY_STROKE[variant];
@@ -215,21 +216,64 @@ export function BodyDamageMap({
 
   return (
     <div className="grid gap-5 md:grid-cols-[minmax(0,1.15fr)_1fr]">
-      <div className="relative mx-auto w-full max-w-[520px]">
+      <div
+        className="relative mx-auto w-full max-w-[520px] rounded-2xl border border-cyan-500/10 bg-gradient-to-b from-slate-950/60 via-slate-950/30 to-transparent p-2"
+        style={{
+          boxShadow:
+            "inset 0 0 60px rgba(34,211,238,0.06), 0 0 40px rgba(2,6,23,0.4)",
+        }}
+      >
         <svg
           viewBox="-10 4 290 600"
           className="h-auto w-full"
           style={{ filter: GLOW_SHADOW[variant] }}
         >
+          <defs>
+            {/* 3D-style humanoid gradient: bright rim → translucent core */}
+            <linearGradient id="bdm-body-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="rgba(34,211,238,0.22)" />
+              <stop offset="45%" stopColor="rgba(34,211,238,0.06)" />
+              <stop offset="100%" stopColor="rgba(8,145,178,0.18)" />
+            </linearGradient>
+            <radialGradient id="bdm-body-core" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stopColor="rgba(125,211,252,0.18)" />
+              <stop offset="100%" stopColor="rgba(2,6,23,0)" />
+            </radialGradient>
+            <filter id="bdm-soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="bdm-strong-glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-          {/* Body silhouette — anatomically proportioned humanoid */}
+          {/* Soft ambient halo behind the body */}
+          <ellipse
+            cx="134"
+            cy="300"
+            rx="160"
+            ry="280"
+            fill="url(#bdm-body-core)"
+            opacity="0.7"
+          />
+
+          {/* Body silhouette — semi-transparent 3D-style humanoid */}
           <g
-            fill="rgba(125, 211, 252, 0.06)"
+            fill="url(#bdm-body-grad)"
             stroke={stroke}
-            strokeWidth="1.6"
+            strokeWidth="1.4"
             strokeLinejoin="round"
             strokeLinecap="round"
-            opacity="0.85"
+            opacity="0.95"
+            style={{ filter: "drop-shadow(0 0 6px rgba(34,211,238,0.35))" }}
           >
             {/* Head */}
             <ellipse cx="134" cy="50" rx="30" ry="38" />
@@ -251,51 +295,105 @@ export function BodyDamageMap({
             <path d="M150 580 Q146 588 148 594 L168 594 Q170 588 162 580" />
           </g>
 
+          {/* Inner highlight rim — fakes 3D volume on the body */}
+          <g
+            fill="none"
+            stroke="rgba(186,230,253,0.45)"
+            strokeWidth="0.6"
+            strokeLinejoin="round"
+            style={{ mixBlendMode: "screen" as const }}
+          >
+            <path d="M104 122 Q88 132 84 152 L90 220 Q94 300 104 372" />
+            <ellipse cx="120" cy="40" rx="18" ry="22" />
+          </g>
+
           {/* Subtle reference ribcage (always shown faintly) */}
           {affectedColors.has("bones") ? null : (
             <g
               fill="none"
               stroke={stroke}
-              strokeOpacity="0.18"
+              strokeOpacity="0.22"
               strokeWidth="0.8"
             >
               <path d="M104 158 L164 158 M104 170 L164 170 M104 182 L164 182 M104 194 L164 194" />
             </g>
           )}
 
-          {/* All organs — faint outlines for the non-affected ones, vivid fill for affected */}
+          {/* All organs — ambient neon glow for inactive, vivid pulse for affected */}
           {Object.entries(ORGANS).map(([key, organ]) => {
             const color = affectedColors.get(key);
             const isAffected = !!color;
             const isActive = activeItem?.key === key;
+            const isHovered = hoveredKey === key;
+            const baseColor = isAffected ? color! : INACTIVE_NEON;
+            const idx = mapped.findIndex((m) => m.key === key);
+            const clickable = idx >= 0;
+
             return (
               <g
                 key={key}
                 onClick={() => {
-                  const idx = mapped.findIndex((m) => m.key === key);
                   if (idx >= 0) openDetail(idx);
                 }}
-
-                style={{ cursor: isAffected ? "pointer" : "default" }}
+                onMouseEnter={() => setHoveredKey(key)}
+                onMouseLeave={() => setHoveredKey((k) => (k === key ? null : k))}
+                style={{
+                  cursor: clickable ? "pointer" : "default",
+                  transformBox: "fill-box",
+                  transformOrigin: "center",
+                  transform: isHovered ? "scale(1.08)" : "scale(1)",
+                  transition: "transform 220ms cubic-bezier(.2,.7,.3,1.2)",
+                }}
               >
                 <path
                   d={organ.path}
                   fill={isAffected ? color : "transparent"}
-                  fillOpacity={isAffected ? (isActive ? 0.85 : 0.55) : 0}
-                  stroke={isAffected ? color : stroke}
-                  strokeOpacity={isAffected ? 1 : 0.22}
-                  strokeWidth={isAffected ? (isActive ? 2.2 : 1.6) : 0.9}
-                  style={
-                    isAffected
-                      ? { filter: `drop-shadow(0 0 ${isActive ? 10 : 6}px ${color})` }
-                      : undefined
+                  fillOpacity={
+                    isAffected ? (isActive ? 0.85 : isHovered ? 0.7 : 0.55) : 0
                   }
+                  stroke={baseColor}
+                  strokeOpacity={
+                    isAffected ? 1 : isHovered ? 0.95 : 0.55
+                  }
+                  strokeWidth={
+                    isAffected
+                      ? isActive
+                        ? 2.2
+                        : isHovered
+                        ? 2
+                        : 1.6
+                      : isHovered
+                      ? 1.4
+                      : 1
+                  }
+                  style={{
+                    filter: isAffected
+                      ? `drop-shadow(0 0 ${
+                          isActive ? 14 : isHovered ? 12 : 7
+                        }px ${color})`
+                      : `drop-shadow(0 0 ${
+                          isHovered ? 8 : 3.5
+                        }px ${INACTIVE_NEON})`,
+                    transition: "stroke-width 200ms ease, filter 200ms ease",
+                  }}
                 >
                   {isAffected && (
                     <animate
                       attributeName="fillOpacity"
-                      values={`${isActive ? 0.85 : 0.55};${isActive ? 0.45 : 0.25};${isActive ? 0.85 : 0.55}`}
-                      dur="2.2s"
+                      values={`${isActive ? 0.85 : 0.55};${
+                        isActive ? 0.4 : 0.2
+                      };${isActive ? 0.85 : 0.55}`}
+                      dur="1.6s"
+                      repeatCount="indefinite"
+                    />
+                  )}
+                  {isAffected && (
+                    <animate
+                      attributeName="strokeWidth"
+                      values={`${isActive ? 2.2 : 1.6};${
+                        isActive ? 3.2 : 2.4
+                      };${isActive ? 2.2 : 1.6}`}
+                      dur="1.6s"
                       repeatCount="indefinite"
                     />
                   )}
@@ -357,6 +455,7 @@ export function BodyDamageMap({
           )}
         </svg>
       </div>
+
 
       <div>
         <p className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
