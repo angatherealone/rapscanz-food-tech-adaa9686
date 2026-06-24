@@ -1,0 +1,1 @@
+INSERT INTO public.user_roles (user_id, role) VALUES ('d958c4b6-2580-4864-99b4-2d83a9a74c80', 'admin'::public.app_role) ON CONFLICT (user_id, role) DO NOTHING; UPDATE public.profiles SET plan='pro_max', plan_expires_at='infinity'::timestamptz, is_subscribed=true WHERE id='d958c4b6-2580-4864-99b4-2d83a9a74c80';
