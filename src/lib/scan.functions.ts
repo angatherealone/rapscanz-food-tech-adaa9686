@@ -123,14 +123,14 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining")
+    .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining, free_unlimited")
     .eq("id", userId)
     .maybeSingle();
   if (error) {
     console.error("getProfile error", error);
     return { ...GUEST_PROFILE };
   }
-  const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null, trial_claimed: { pro: 0, pro_plus: 0, pro_max: 0 }, trial_remaining: { pro: 0, pro_plus: 0, pro_max: 0 } };
+  const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null, trial_claimed: { pro: 0, pro_plus: 0, pro_max: 0 }, trial_remaining: { pro: 0, pro_plus: 0, pro_max: 0 }, free_unlimited: false };
 
   const { data: roleRows } = await supabase
     .from("user_roles" as any)
@@ -138,6 +138,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
     .eq("user_id", userId);
   const roles = (roleRows ?? []).map((r: any) => r.role as string);
   const isUnlimited = roles.some((r) => r === "admin" || r === "founder" || r === "collaborator");
+  const freeUnlimited = (profile as any).free_unlimited === true;
 
   let effectivePlan: string;
   if (isUnlimited) {
@@ -147,7 +148,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
       ? "free"
       : (profile.plan ?? "free");
   }
-  const limit = planLimit(effectivePlan);
+  const limit = freeUnlimited && !isUnlimited ? UNLIMITED_LIMIT : planLimit(effectivePlan);
   const trialClaimed = (profile as any).trial_claimed ?? { pro: 0, pro_plus: 0, pro_max: 0 };
   const trialRemaining = (profile as any).trial_remaining ?? { pro: 0, pro_plus: 0, pro_max: 0 };
   return {
@@ -156,9 +157,10 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
     planLabel: PLAN_LABELS[effectivePlan] ?? "Free",
     scanLimit: limit,
     freeLimit: FREE_LIMIT,
-    remaining: isUnlimited ? UNLIMITED_LIMIT : Math.max(0, limit - (profile.scan_count ?? 0)),
+    remaining: isUnlimited || freeUnlimited ? UNLIMITED_LIMIT : Math.max(0, limit - (profile.scan_count ?? 0)),
     roles,
     isUnlimited,
+    freeUnlimited,
     trialClaimed,
     trialRemaining,
     trialCap: TRIAL_CAP_PER_TIER,
@@ -732,6 +734,30 @@ export const analyzeScan = createServerFn({ method: "POST" })
       const sanitized = data.barcode.replace(/\s+/g, "");
       data.barcode = sanitized;
       if (!isValidBarcodeChecksum(sanitized)) {
+        // In dev/preview, don't crash on test/fake barcodes — return a mock
+        // successful scan so the UI still renders for designers.
+        if (process.env.NODE_ENV !== "production") {
+          const mock: ScanResult = {
+            productName: `Preview Product ${sanitized || "TEST"}`,
+            brand: "Preview Brand",
+            category: "Test / Preview",
+            rating: "okay",
+            healthScore: 65,
+            caloriesKcal: 180,
+            summary: "Mock scan result returned because the entered barcode failed checksum validation. This bypass is only active in preview/development.",
+            advantages: ["Preview mode only"],
+            disadvantages: ["Not a real product"],
+            cautions: [],
+          };
+          return {
+            result: mock,
+            scanId: null,
+            remaining: 9,
+            scanLimit: 10,
+            plan: "free",
+            planLabel: "Free",
+          };
+        }
         throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
       }
     } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {

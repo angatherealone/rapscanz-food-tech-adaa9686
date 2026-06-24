@@ -91,6 +91,7 @@ export type Database = {
           allergies: string | null
           created_at: string
           email: string | null
+          free_unlimited: boolean
           gender: string | null
           height_cm: number | null
           id: string
@@ -110,6 +111,7 @@ export type Database = {
           allergies?: string | null
           created_at?: string
           email?: string | null
+          free_unlimited?: boolean
           gender?: string | null
           height_cm?: number | null
           id: string
@@ -129,6 +131,7 @@ export type Database = {
           allergies?: string | null
           created_at?: string
           email?: string | null
+          free_unlimited?: boolean
           gender?: string | null
           height_cm?: number | null
           id?: string
