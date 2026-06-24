@@ -732,6 +732,30 @@ export const analyzeScan = createServerFn({ method: "POST" })
       const sanitized = data.barcode.replace(/\s+/g, "");
       data.barcode = sanitized;
       if (!isValidBarcodeChecksum(sanitized)) {
+        // In dev/preview, don't crash on test/fake barcodes — return a mock
+        // successful scan so the UI still renders for designers.
+        if (process.env.NODE_ENV !== "production") {
+          const mock: ScanResult = {
+            productName: `Preview Product ${sanitized || "TEST"}`,
+            brand: "Preview Brand",
+            category: "Test / Preview",
+            rating: "okay",
+            healthScore: 65,
+            caloriesKcal: 180,
+            summary: "Mock scan result returned because the entered barcode failed checksum validation. This bypass is only active in preview/development.",
+            advantages: ["Preview mode only"],
+            disadvantages: ["Not a real product"],
+            cautions: [],
+          };
+          return {
+            result: mock,
+            scanId: null,
+            remaining: 9,
+            scanLimit: 10,
+            plan: "free",
+            planLabel: "Free",
+          };
+        }
         throw new Error("Invalid or fake barcode. Real product barcodes are 8, 12, 13, or 14 digits with a valid check digit (EAN/UPC). Please re-enter or rescan.");
       }
     } else if (!data.imageDataUrl && !(data.text && data.text.trim())) {
