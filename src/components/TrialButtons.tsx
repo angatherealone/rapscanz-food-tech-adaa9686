@@ -70,14 +70,14 @@ export function TrialButtons({ tier }: { tier: Tier }) {
     );
   }
 
-  // Not signed in — invite sign-in so they can claim.
-  if (isError || !profile) {
+  // Guest fallback or load failure → invite sign-in.
+  if (isError || !profile || (profile as any).isGuest) {
     return (
       <Link
         to="/auth"
-        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-primary/50 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/5"
+        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-green-600 bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-green-700"
       >
-        <Gift className="h-3.5 w-3.5" /> Sign in to claim 2 free {TIER_LABEL[tier]} scans
+        <Gift className="h-3.5 w-3.5" /> Sign in to access {TIER_LABEL[tier]} (2 free)
       </Link>
     );
   }
