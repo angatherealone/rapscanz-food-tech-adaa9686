@@ -71,53 +71,100 @@ export type ScanResult = {
 
 
 
-export const getProfile = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining")
-      .eq("id", userId)
-      .maybeSingle();
-    if (error) {
-      console.error("getProfile error", error);
-      throw new Error("Unable to load your profile. Please try again.");
-    }
-    const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null, trial_claimed: { pro: 0, pro_plus: 0, pro_max: 0 }, trial_remaining: { pro: 0, pro_plus: 0, pro_max: 0 } };
+const GUEST_PROFILE = {
+  scan_count: 0,
+  is_subscribed: false,
+  subscription_expires_at: null as string | null,
+  email: null as string | null,
+  weight_kg: null as number | null,
+  height_cm: null as number | null,
+  illnesses: null as string | null,
+  allergies: null as string | null,
+  gender: null as string | null,
+  plan: "free",
+  planLabel: "Free",
+  plan_expires_at: null as string | null,
+  scanLimit: FREE_LIMIT,
+  freeLimit: FREE_LIMIT,
+  remaining: FREE_LIMIT,
+  roles: [] as string[],
+  isUnlimited: false,
+  trialClaimed: { pro: 0, pro_plus: 0, pro_max: 0 },
+  trialRemaining: { pro: 0, pro_plus: 0, pro_max: 0 },
+  trialCap: TRIAL_CAP_PER_TIER,
+  isGuest: true,
+};
 
-    const { data: roleRows } = await supabase
-      .from("user_roles" as any)
-      .select("role")
-      .eq("user_id", userId);
-    const roles = (roleRows ?? []).map((r: any) => r.role as string);
-    const isUnlimited = roles.some((r) => r === "admin" || r === "founder" || r === "collaborator");
+export const getProfile = createServerFn({ method: "GET" }).handler(async () => {
+  // Soft auth: signed-out callers (including SSR / preview without a session)
+  // get a safe default "free" profile instead of a thrown error, so the
+  // landing page never crashes the whole tree.
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const request = getRequest();
+  const authHeader = request?.headers?.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { ...GUEST_PROFILE };
+  }
 
-    let effectivePlan: string;
-    if (isUnlimited) {
-      effectivePlan = "unlimited";
-    } else {
-      effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus" || profile.plan === "pro_max") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
-        ? "free"
-        : (profile.plan ?? "free");
-    }
-    const limit = planLimit(effectivePlan);
-    const trialClaimed = (profile as any).trial_claimed ?? { pro: 0, pro_plus: 0, pro_max: 0 };
-    const trialRemaining = (profile as any).trial_remaining ?? { pro: 0, pro_plus: 0, pro_max: 0 };
-    return {
-      ...profile,
-      plan: effectivePlan,
-      planLabel: PLAN_LABELS[effectivePlan] ?? "Free",
-      scanLimit: limit,
-      freeLimit: FREE_LIMIT,
-      remaining: isUnlimited ? UNLIMITED_LIMIT : Math.max(0, limit - (profile.scan_count ?? 0)),
-      roles,
-      isUnlimited,
-      trialClaimed,
-      trialRemaining,
-      trialCap: TRIAL_CAP_PER_TIER,
-    };
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return { ...GUEST_PROFILE };
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const token = authHeader.replace("Bearer ", "");
+  const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
+
+  const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
+  const userId = claimsData?.claims?.sub;
+  if (claimsErr || !userId) return { ...GUEST_PROFILE };
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) {
+    console.error("getProfile error", error);
+    return { ...GUEST_PROFILE };
+  }
+  const profile = data ?? { scan_count: 0, is_subscribed: false, subscription_expires_at: null, email: null, weight_kg: null, height_cm: null, illnesses: null, allergies: null, gender: null, plan: "free", plan_expires_at: null, trial_claimed: { pro: 0, pro_plus: 0, pro_max: 0 }, trial_remaining: { pro: 0, pro_plus: 0, pro_max: 0 } };
+
+  const { data: roleRows } = await supabase
+    .from("user_roles" as any)
+    .select("role")
+    .eq("user_id", userId);
+  const roles = (roleRows ?? []).map((r: any) => r.role as string);
+  const isUnlimited = roles.some((r) => r === "admin" || r === "founder" || r === "collaborator");
+
+  let effectivePlan: string;
+  if (isUnlimited) {
+    effectivePlan = "unlimited";
+  } else {
+    effectivePlan = (profile.plan === "pro" || profile.plan === "pro_plus" || profile.plan === "pro_max") && profile.plan_expires_at && new Date(profile.plan_expires_at) < new Date()
+      ? "free"
+      : (profile.plan ?? "free");
+  }
+  const limit = planLimit(effectivePlan);
+  const trialClaimed = (profile as any).trial_claimed ?? { pro: 0, pro_plus: 0, pro_max: 0 };
+  const trialRemaining = (profile as any).trial_remaining ?? { pro: 0, pro_plus: 0, pro_max: 0 };
+  return {
+    ...profile,
+    plan: effectivePlan,
+    planLabel: PLAN_LABELS[effectivePlan] ?? "Free",
+    scanLimit: limit,
+    freeLimit: FREE_LIMIT,
+    remaining: isUnlimited ? UNLIMITED_LIMIT : Math.max(0, limit - (profile.scan_count ?? 0)),
+    roles,
+    isUnlimited,
+    trialClaimed,
+    trialRemaining,
+    trialCap: TRIAL_CAP_PER_TIER,
+    isGuest: false,
+  };
+});
 
 export const claimTrialScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
