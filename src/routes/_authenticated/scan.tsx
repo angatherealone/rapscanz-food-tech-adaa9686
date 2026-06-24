@@ -67,6 +67,25 @@ const SEVERITY_BADGE: Record<string, string> = {
   high: "bg-danger text-danger-foreground",
 };
 
+// ─── Tier reveal gating (free users get strictly 2 reveals per tier, ever) ───
+type TierKey = "pro" | "pro_plus" | "pro_max";
+const TIER_LABEL_MAP: Record<TierKey, string> = { pro: "Pro", pro_plus: "Pro+", pro_max: "Pro Max" };
+const TIER_RANK_MAP: Record<string, number> = { free: 0, pro: 1, pro_plus: 2, pro_max: 3, unlimited: 99 };
+const REVEAL_STORAGE_KEY = "rapscanz.tierReveals.v1";
+
+function loadReveals(): Record<TierKey, number> {
+  if (typeof window === "undefined") return { pro: 0, pro_plus: 0, pro_max: 0 };
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(REVEAL_STORAGE_KEY) || "{}");
+    return { pro: 0, pro_plus: 0, pro_max: 0, ...raw };
+  } catch {
+    return { pro: 0, pro_plus: 0, pro_max: 0 };
+  }
+}
+function saveReveals(r: Record<TierKey, number>) {
+  try { window.localStorage.setItem(REVEAL_STORAGE_KEY, JSON.stringify(r)); } catch {}
+}
+
 function ScanPage() {
   const qc = useQueryClient();
   const profileFn = useServerFn(getProfile);
@@ -94,6 +113,60 @@ function ScanPage() {
   const [localForm, setLocalForm] = useState<{ name: string; price: string; weight: string }>({ name: "", price: "", weight: "" });
 
   useEffect(() => { setLocalDb(loadLocalDb()); }, []);
+
+  // Tier reveal state — lifetime counters persisted, session reveals reset per new scan.
+  const [reveals, setReveals] = useState<Record<TierKey, number>>({ pro: 0, pro_plus: 0, pro_max: 0 });
+  const [sessionRevealed, setSessionRevealed] = useState<Record<TierKey, boolean>>({ pro: false, pro_plus: false, pro_max: false });
+  useEffect(() => { setReveals(loadReveals()); }, []);
+  useEffect(() => { setSessionRevealed({ pro: false, pro_plus: false, pro_max: false }); }, [scanId]);
+
+  function tierUnlocked(t: TierKey): boolean {
+    return (TIER_RANK_MAP[scanPlan] ?? 0) >= TIER_RANK_MAP[t] || sessionRevealed[t];
+  }
+  function revealTier(t: TierKey) {
+    if (reveals[t] >= 2) return;
+    const next = { ...reveals, [t]: reveals[t] + 1 };
+    setReveals(next);
+    saveReveals(next);
+    setSessionRevealed((s) => ({ ...s, [t]: true }));
+  }
+
+  function TierLockCard({ tier, blurb }: { tier: TierKey; blurb: string }) {
+    const used = reveals[tier];
+    const locked = used >= 2;
+    return (
+      <Card className="border-2 border-dashed border-green-600/40 bg-green-600/5 p-5">
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
+          <Lock className="h-3.5 w-3.5" /> {TIER_LABEL_MAP[tier]} data locked
+        </div>
+        <p className="mb-3 text-sm text-muted-foreground">{blurb}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={locked}
+            onClick={() => revealTier(tier)}
+            className={
+              locked
+                ? "inline-flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+                : "inline-flex items-center gap-2 rounded-md border border-green-600 bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-700"
+            }
+          >
+            {locked ? "Upgrade Required" : `Access ${TIER_LABEL_MAP[tier]}`}
+            {!locked && (
+              <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px]">
+                {2 - used} / 2 left
+              </span>
+            )}
+          </button>
+          {locked && (
+            <Link to="/profile" className="text-xs font-semibold text-primary hover:underline">
+              Upgrade plan →
+            </Link>
+          )}
+        </div>
+      </Card>
+    );
+  }
 
   function handleLocalBarcode(code: string) {
     const db = loadLocalDb();
