@@ -67,6 +67,25 @@ const SEVERITY_BADGE: Record<string, string> = {
   high: "bg-danger text-danger-foreground",
 };
 
+// ─── Tier reveal gating (free users get strictly 2 reveals per tier, ever) ───
+type TierKey = "pro" | "pro_plus" | "pro_max";
+const TIER_LABEL_MAP: Record<TierKey, string> = { pro: "Pro", pro_plus: "Pro+", pro_max: "Pro Max" };
+const TIER_RANK_MAP: Record<string, number> = { free: 0, pro: 1, pro_plus: 2, pro_max: 3, unlimited: 99 };
+const REVEAL_STORAGE_KEY = "rapscanz.tierReveals.v1";
+
+function loadReveals(): Record<TierKey, number> {
+  if (typeof window === "undefined") return { pro: 0, pro_plus: 0, pro_max: 0 };
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(REVEAL_STORAGE_KEY) || "{}");
+    return { pro: 0, pro_plus: 0, pro_max: 0, ...raw };
+  } catch {
+    return { pro: 0, pro_plus: 0, pro_max: 0 };
+  }
+}
+function saveReveals(r: Record<TierKey, number>) {
+  try { window.localStorage.setItem(REVEAL_STORAGE_KEY, JSON.stringify(r)); } catch {}
+}
+
 function ScanPage() {
   const qc = useQueryClient();
   const profileFn = useServerFn(getProfile);
@@ -94,6 +113,60 @@ function ScanPage() {
   const [localForm, setLocalForm] = useState<{ name: string; price: string; weight: string }>({ name: "", price: "", weight: "" });
 
   useEffect(() => { setLocalDb(loadLocalDb()); }, []);
+
+  // Tier reveal state — lifetime counters persisted, session reveals reset per new scan.
+  const [reveals, setReveals] = useState<Record<TierKey, number>>({ pro: 0, pro_plus: 0, pro_max: 0 });
+  const [sessionRevealed, setSessionRevealed] = useState<Record<TierKey, boolean>>({ pro: false, pro_plus: false, pro_max: false });
+  useEffect(() => { setReveals(loadReveals()); }, []);
+  useEffect(() => { setSessionRevealed({ pro: false, pro_plus: false, pro_max: false }); }, [scanId]);
+
+  function tierUnlocked(t: TierKey): boolean {
+    return (TIER_RANK_MAP[scanPlan] ?? 0) >= TIER_RANK_MAP[t] || sessionRevealed[t];
+  }
+  function revealTier(t: TierKey) {
+    if (reveals[t] >= 2) return;
+    const next = { ...reveals, [t]: reveals[t] + 1 };
+    setReveals(next);
+    saveReveals(next);
+    setSessionRevealed((s) => ({ ...s, [t]: true }));
+  }
+
+  function TierLockCard({ tier, blurb }: { tier: TierKey; blurb: string }) {
+    const used = reveals[tier];
+    const locked = used >= 2;
+    return (
+      <Card className="border-2 border-dashed border-green-600/40 bg-green-600/5 p-5">
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
+          <Lock className="h-3.5 w-3.5" /> {TIER_LABEL_MAP[tier]} data locked
+        </div>
+        <p className="mb-3 text-sm text-muted-foreground">{blurb}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={locked}
+            onClick={() => revealTier(tier)}
+            className={
+              locked
+                ? "inline-flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+                : "inline-flex items-center gap-2 rounded-md border border-green-600 bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-700"
+            }
+          >
+            {locked ? "Upgrade Required" : `Access ${TIER_LABEL_MAP[tier]}`}
+            {!locked && (
+              <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px]">
+                {2 - used} / 2 left
+              </span>
+            )}
+          </button>
+          {locked && (
+            <Link to="/profile" className="text-xs font-semibold text-primary hover:underline">
+              Upgrade plan →
+            </Link>
+          )}
+        </div>
+      </Card>
+    );
+  }
 
   function handleLocalBarcode(code: string) {
     const db = loadLocalDb();
@@ -479,8 +552,8 @@ function ScanPage() {
       </Dialog>
 
       {result && (
-
         <div className="mt-8 space-y-5">
+          {/* ── Free Base: rating, product info, calories, advantages, disadvantages ── */}
           <Card className="overflow-hidden p-0">
             <div className={`px-6 py-4 ${RATING_STYLES[result.rating]?.bg ?? "bg-muted"}`}>
               <div className="flex items-start justify-between gap-4">
@@ -497,26 +570,12 @@ function ScanPage() {
                       {result.category && <span className="ml-2 opacity-75">· {result.category}</span>}
                     </div>
                   )}
-                  {result.dietaryType && result.dietaryType !== "unknown" && (scanPlan === "pro_max" || scanPlan === "unlimited") && (() => {
-                    const dt = result.dietaryType;
-                    const styles =
-                      dt === "vegan"   ? { dot: "bg-emerald-500", ring: "ring-emerald-500/60", label: "VEGAN" } :
-                      dt === "veg"     ? { dot: "bg-green-500",   ring: "ring-green-500/60",   label: "VEG" } :
-                                         { dot: "bg-red-600",     ring: "ring-red-600/60",     label: "NON-VEG" };
-                    return (
-                      <div className={`mt-2 inline-flex items-center gap-2 rounded-md bg-background/90 px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-foreground ring-2 ${styles.ring}`}>
-                        <span className={`inline-block h-2.5 w-2.5 rounded-sm ${styles.dot}`} aria-hidden />
-                        {styles.label}
-                      </div>
-                    );
-                  })()}
                   {result.aiRegistryFallback && (
                     <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-background/25 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ring-background/40">
                       <Sparkles className="h-3 w-3" />
                       Identified via AI Registry Lookup
                     </div>
                   )}
-
                 </div>
                 <HealthScore score={result.healthScore} />
               </div>
@@ -548,59 +607,6 @@ function ScanPage() {
             </div>
           </Card>
 
-          {result.dietaryType && (() => {
-            const isProMax = scanPlan === "pro_max" || scanPlan === "unlimited";
-            if (!isProMax) {
-              return (
-                <Card className="overflow-hidden border-2 border-dashed border-primary/40 p-0">
-                  <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 text-xs font-bold uppercase tracking-wider">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" /> Dietary classification
-                    <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
-                  </div>
-                  <div className="flex items-center gap-4 p-5">
-                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-lg border-2 border-primary/40 bg-background">
-                      <Lock className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-display text-lg font-semibold">Veg · Non-Veg · Vegan</div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Unlock dietary classification (with the specific ingredient reason) for every product you scan.
-                      </p>
-                    </div>
-                    <Link to="/profile">
-                      <Button size="sm">Upgrade</Button>
-                    </Link>
-                  </div>
-                </Card>
-              );
-            }
-            const dt = result.dietaryType;
-            const cfg =
-              dt === "vegan"   ? { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/40", label: "Vegan",     blurb: "Entirely plant-based — no dairy, no honey, no egg, no animal-derived additives." } :
-              dt === "veg"     ? { dot: "bg-green-500",   text: "text-green-600 dark:text-green-400",     border: "border-green-500/40",   label: "Vegetarian", blurb: "Plant-based with permitted dairy ingredients. Contains no meat, fish, egg, or animal-derived additives." } :
-              dt === "non-veg" ? { dot: "bg-red-600",     text: "text-red-600 dark:text-red-400",         border: "border-red-600/40",     label: "Non-Vegetarian", blurb: "Contains animal-derived ingredients (meat, fish, egg, gelatin, or similar)." } :
-                                 { dot: "bg-muted-foreground", text: "text-muted-foreground", border: "border-border", label: "Unknown", blurb: "Couldn't determine the dietary classification with confidence." };
-            return (
-              <Card className={`overflow-hidden border-2 ${cfg.border} p-0`}>
-                <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 text-xs font-bold uppercase tracking-wider">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" /> Dietary classification
-                  <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
-                </div>
-                <div className="flex items-center gap-4 p-5">
-                  <div className={`grid h-14 w-14 shrink-0 place-items-center rounded-lg border-2 ${cfg.border} bg-background`}>
-                    <span className={`h-6 w-6 rounded-sm ${cfg.dot}`} aria-hidden />
-                  </div>
-                  <div className="min-w-0">
-                    <div className={`font-display text-2xl font-bold ${cfg.text}`}>{cfg.label}</div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {result.dietaryReason || cfg.blurb}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            );
-          })()}
-
           <div className="grid gap-5 md:grid-cols-2">
             <Card className="p-5">
               <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
@@ -624,149 +630,150 @@ function ScanPage() {
             </Card>
           </div>
 
-          {result.consumptionTip && (result.consumptionTip.safeDaily || result.consumptionTip.limit) && (
+          {/* ─── PRO TIER ─── Chemical & ingredient cautions with estimated % per additive */}
+          {tierUnlocked("pro") ? (
             <Card className="p-5">
-              <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
-                <Heart className="h-5 w-5 text-primary" /> Safe consumption guide
-                <span className="chip ml-auto bg-primary/15 text-primary">Pro+</span>
+              <div className="mb-4 flex items-center gap-2 font-display text-lg font-semibold">
+                <AlertTriangle className="h-5 w-5 text-warning" /> Chemical & ingredient cautions
+                <span className="chip ml-auto bg-primary/15 text-primary">Pro</span>
               </div>
-              <div className="space-y-2 text-sm">
-                {result.consumptionTip.safeDaily && (
-                  <div className="flex gap-2"><span className="font-semibold text-success">Safe / day:</span><span>{result.consumptionTip.safeDaily}</span></div>
-                )}
-                {result.consumptionTip.limit && (
-                  <div className="flex gap-2"><span className="font-semibold text-danger">Upper limit:</span><span>{result.consumptionTip.limit}</span></div>
-                )}
-                {result.consumptionTip.source && (
-                  <div className="text-xs text-muted-foreground">Source: {result.consumptionTip.source}</div>
-                )}
-              </div>
-            </Card>
-          )}
-
-          <Card className="p-5">
-            <div className="mb-4 flex items-center gap-2 font-display text-lg font-semibold">
-              <AlertTriangle className="h-5 w-5 text-warning" /> Chemical & ingredient cautions
-            </div>
-            {result.cautions.length ? (
-              <ul className="divide-y divide-border">
-                {result.cautions.map((c, i) => (
-                  <li key={i} className="flex flex-wrap items-start justify-between gap-3 py-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <span className="font-semibold">{c.ingredient}</span>
-                        {c.percentage && (
-                          <span className="rounded bg-warning/15 px-1.5 py-0.5 font-mono text-xs font-bold text-warning-foreground">
-                            {c.percentage}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-muted-foreground">{c.concern}</div>
-                      {(c.chemicalFormula || c.scientificName) && (
-                        <div className="mt-1 space-y-0.5 text-xs">
-                          {c.chemicalFormula && (
-                            <div className="font-mono text-primary">⚗ {c.chemicalFormula}</div>
-                          )}
-                          {c.scientificName && (
-                            <div className="italic text-muted-foreground">{c.scientificName}</div>
+              {result.cautions.length ? (
+                <ul className="divide-y divide-border">
+                  {result.cautions.map((c, i) => (
+                    <li key={i} className="flex flex-wrap items-start justify-between gap-3 py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <span className="font-semibold">{c.ingredient}</span>
+                          {c.percentage && (
+                            <span className="rounded bg-warning/15 px-1.5 py-0.5 font-mono text-xs font-bold text-warning-foreground">
+                              {c.percentage}
+                            </span>
                           )}
                         </div>
-                      )}
-                    </div>
-                    <span className={`chip ${SEVERITY_BADGE[c.severity] ?? ""}`}>{c.severity}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">No flagged chemicals. 🎉</p>
-            )}
-          </Card>
-
-          {result.riskProfile &&
-            (result.riskProfile.illnesses.length +
-              result.riskProfile.addictions.length +
-              result.riskProfile.chronicDamage.length +
-              result.riskProfile.temporaryEffects.length +
-              result.riskProfile.organDamage.length) > 0 && (
-            <Card className="p-5">
-              <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                <AlertTriangle className="h-5 w-5 text-danger" /> What over-consumption can cause
-                <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
-              </div>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Honest, science-based picture of what happens when this product is eaten well above the safe daily amount, regularly.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  { title: "Illnesses & conditions", items: result.riskProfile.illnesses, color: "text-danger", dot: "bg-danger" },
-                  { title: "Addiction patterns", items: result.riskProfile.addictions, color: "text-warning-foreground", dot: "bg-warning" },
-                  { title: "Chronic (long-term) damage", items: result.riskProfile.chronicDamage, color: "text-danger", dot: "bg-danger" },
-                  { title: "Temporary effects", items: result.riskProfile.temporaryEffects, color: "text-accent-foreground", dot: "bg-accent" },
-                  { title: "Organ-specific damage", items: result.riskProfile.organDamage, color: "text-danger", dot: "bg-danger" },
-                ].filter((b) => b.items.length > 0).map((b, i) => (
-                  <div key={i} className="rounded-lg border border-border bg-muted/30 p-3">
-                    <div className={`mb-2 text-xs font-bold uppercase tracking-wider ${b.color}`}>{b.title}</div>
-                    <ul className="space-y-1.5 text-sm">
-                      {b.items.map((it, j) => (
-                        <li key={j} className="flex gap-2">
-                          <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${b.dot}`} />
-                          <span>{it}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+                        <div className="text-sm text-muted-foreground">{c.concern}</div>
+                        {/* Chemical formula + scientific name = Pro Max only */}
+                        {tierUnlocked("pro_max") && (c.chemicalFormula || c.scientificName) && (
+                          <div className="mt-1 space-y-0.5 text-xs">
+                            {c.chemicalFormula && (
+                              <div className="font-mono text-primary">⚗ {c.chemicalFormula}</div>
+                            )}
+                            {c.scientificName && (
+                              <div className="italic text-muted-foreground">{c.scientificName}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <span className={`chip ${SEVERITY_BADGE[c.severity] ?? ""}`}>{c.severity}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">No flagged chemicals. 🎉</p>
+              )}
             </Card>
+          ) : (
+            <TierLockCard tier="pro" blurb="Unlock chemical & ingredient cautions with estimated % per additive." />
           )}
 
-          {(() => {
-            const isProMax = scanPlan === "pro_max" || scanPlan === "unlimited";
-            const damageItems = result.bodyDamage ?? [];
-            const benefitItems = result.bodyBenefit ?? [];
-            const hasDamage = damageItems.length > 0;
-            const hasBenefit = benefitItems.length > 0;
-            // Body-impact map is shown on EVERY scan — even when neither array
-            // has organs flagged we still render the silhouettes so the user
-            // gets the same visual feedback for every product they scan.
+          {/* ─── PRO+ TIER ─── Safe consumption guide (WHO/FDA limits) — NEVER reveals Pro Max */}
+          {tierUnlocked("pro_plus") ? (
+            result.consumptionTip && (result.consumptionTip.safeDaily || result.consumptionTip.limit) ? (
+              <Card className="p-5">
+                <div className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
+                  <Heart className="h-5 w-5 text-primary" /> Safe consumption guide
+                  <span className="chip ml-auto bg-primary/15 text-primary">Pro+</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {result.consumptionTip.safeDaily && (
+                    <div className="flex gap-2"><span className="font-semibold text-success">Safe / day:</span><span>{result.consumptionTip.safeDaily}</span></div>
+                  )}
+                  {result.consumptionTip.limit && (
+                    <div className="flex gap-2"><span className="font-semibold text-danger">Upper limit:</span><span>{result.consumptionTip.limit}</span></div>
+                  )}
+                  {result.consumptionTip.source && (
+                    <div className="text-xs text-muted-foreground">Source: {result.consumptionTip.source}</div>
+                  )}
+                </div>
+              </Card>
+            ) : (
+              <Card className="p-5 text-sm text-muted-foreground">
+                <span className="chip mr-2 bg-primary/15 text-primary">Pro+</span>
+                No specific safe-consumption guideline applies to this product.
+              </Card>
+            )
+          ) : (
+            <TierLockCard tier="pro_plus" blurb="Unlock the WHO/FDA safe-consumption guide (safe per day + upper limit) for this product." />
+          )}
 
-            // Locked teaser for non-Pro Max users — always present on every scan.
-            if (!isProMax) {
-              return (
-                <Card className="overflow-hidden p-5">
+          {/* ─── PRO MAX TIER ─── Dietary classification + over-consumption risk + body-impact map */}
+          {tierUnlocked("pro_max") ? (
+            <>
+              {result.dietaryType && (() => {
+                const dt = result.dietaryType;
+                const cfg =
+                  dt === "vegan"   ? { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/40", label: "Vegan",     blurb: "Entirely plant-based — no dairy, no honey, no egg, no animal-derived additives." } :
+                  dt === "veg"     ? { dot: "bg-green-500",   text: "text-green-600 dark:text-green-400",     border: "border-green-500/40",   label: "Vegetarian", blurb: "Plant-based with permitted dairy ingredients. Contains no meat, fish, egg, or animal-derived additives." } :
+                  dt === "non-veg" ? { dot: "bg-red-600",     text: "text-red-600 dark:text-red-400",         border: "border-red-600/40",     label: "Non-Vegetarian", blurb: "Contains animal-derived ingredients (meat, fish, egg, gelatin, or similar)." } :
+                                     { dot: "bg-muted-foreground", text: "text-muted-foreground", border: "border-border", label: "Unknown", blurb: "Couldn't determine the dietary classification with confidence." };
+                return (
+                  <Card className={`overflow-hidden border-2 ${cfg.border} p-0`}>
+                    <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 text-xs font-bold uppercase tracking-wider">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" /> Dietary classification
+                      <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
+                    </div>
+                    <div className="flex items-center gap-4 p-5">
+                      <div className={`grid h-14 w-14 shrink-0 place-items-center rounded-lg border-2 ${cfg.border} bg-background`}>
+                        <span className={`h-6 w-6 rounded-sm ${cfg.dot}`} aria-hidden />
+                      </div>
+                      <div className="min-w-0">
+                        <div className={`font-display text-2xl font-bold ${cfg.text}`}>{cfg.label}</div>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {result.dietaryReason || cfg.blurb}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })()}
+
+              {result.riskProfile &&
+                (result.riskProfile.illnesses.length +
+                  result.riskProfile.addictions.length +
+                  result.riskProfile.chronicDamage.length +
+                  result.riskProfile.temporaryEffects.length +
+                  result.riskProfile.organDamage.length) > 0 && (
+                <Card className="p-5">
                   <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                    <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
+                    <AlertTriangle className="h-5 w-5 text-danger" /> What over-consumption can cause
                     <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
                   </div>
                   <p className="mb-4 text-sm text-muted-foreground">
-                    See exactly which organs are harmed and which ones benefit from this product, with severity per organ.
+                    Honest, science-based picture of what happens when this product is eaten well above the safe daily amount, regularly.
                   </p>
-                  <div className="relative overflow-hidden rounded-xl border border-border bg-black/40">
-                    <img
-                      src={bodyTeaserImg}
-                      alt="Locked body-impact map preview"
-                      loading="lazy"
-                      width={768}
-                      height={1024}
-                      className="h-auto w-full opacity-70"
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-background/30 via-background/60 to-background/85 p-6 text-center">
-                      <Lock className="h-10 w-10 text-primary" />
-                      <div className="font-display text-lg font-semibold">Pro Max feature</div>
-                      <p className="max-w-sm text-sm text-muted-foreground">
-                        Unlock the interactive organ-by-organ breakdown for every product you scan.
-                      </p>
-                      <Link to="/profile">
-                        <Button size="sm" className="mt-1">Upgrade to Pro Max</Button>
-                      </Link>
-                    </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      { title: "Illnesses & conditions", items: result.riskProfile.illnesses, color: "text-danger", dot: "bg-danger" },
+                      { title: "Addiction patterns", items: result.riskProfile.addictions, color: "text-warning-foreground", dot: "bg-warning" },
+                      { title: "Chronic (long-term) damage", items: result.riskProfile.chronicDamage, color: "text-danger", dot: "bg-danger" },
+                      { title: "Temporary effects", items: result.riskProfile.temporaryEffects, color: "text-accent-foreground", dot: "bg-accent" },
+                      { title: "Organ-specific damage", items: result.riskProfile.organDamage, color: "text-danger", dot: "bg-danger" },
+                    ].filter((b) => b.items.length > 0).map((b, i) => (
+                      <div key={i} className="rounded-lg border border-border bg-muted/30 p-3">
+                        <div className={`mb-2 text-xs font-bold uppercase tracking-wider ${b.color}`}>{b.title}</div>
+                        <ul className="space-y-1.5 text-sm">
+                          {b.items.map((it, j) => (
+                            <li key={j} className="flex gap-2">
+                              <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${b.dot}`} />
+                              <span>{it}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
                 </Card>
-              );
-            }
+              )}
 
-            // Pro Max: ALWAYS render both figures side-by-side, on every scan.
-            return (
               <Card className="p-5">
                 <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
                   <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
@@ -781,14 +788,12 @@ function ScanPage() {
                       <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
                       Harms — organs at risk
                     </div>
-                    {hasDamage ? (
-                      <BodyDamageMap items={damageItems} variant="damage" />
+                    {(result.bodyDamage ?? []).length ? (
+                      <BodyDamageMap items={result.bodyDamage ?? []} variant="damage" />
                     ) : (
                       <div>
                         <BodyDamageMap items={[]} variant="damage" />
-                        <p className="mt-3 text-center text-sm text-muted-foreground">
-                          No specific organ harm detected for this product.
-                        </p>
+                        <p className="mt-3 text-center text-sm text-muted-foreground">No specific organ harm detected for this product.</p>
                       </div>
                     )}
                   </div>
@@ -797,23 +802,21 @@ function ScanPage() {
                       <span className="inline-block h-2 w-2 rounded-full bg-success" />
                       Benefits — organs that gain
                     </div>
-                    {hasBenefit ? (
-                      <BodyDamageMap items={benefitItems} variant="benefit" />
+                    {(result.bodyBenefit ?? []).length ? (
+                      <BodyDamageMap items={result.bodyBenefit ?? []} variant="benefit" />
                     ) : (
                       <div>
                         <BodyDamageMap items={[]} variant="benefit" />
-                        <p className="mt-3 text-center text-sm text-muted-foreground">
-                          No specific organ benefit detected for this product.
-                        </p>
+                        <p className="mt-3 text-center text-sm text-muted-foreground">No specific organ benefit detected for this product.</p>
                       </div>
                     )}
                   </div>
                 </div>
               </Card>
-            );
-          })()}
-
-
+            </>
+          ) : (
+            <TierLockCard tier="pro_max" blurb="Unlock dietary classification (Veg / Non-Veg / Vegan), over-consumption risk profile, body-impact map, and chemical formulas." />
+          )}
 
           {scanId && (
             <ScanFeedback
@@ -830,7 +833,6 @@ function ScanPage() {
               }}
             />
           )}
-
         </div>
       )}
     </main>
