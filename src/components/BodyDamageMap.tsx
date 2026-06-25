@@ -14,9 +14,9 @@ export type BodyMapVariant = "damage" | "benefit";
 
 const SEVERITY_COLOR: Record<BodyMapVariant, Record<string, string>> = {
   damage: {
-    low: "#fb7185",   // rose-400
-    medium: "#ef4444", // red-500
-    high: "#f43f5e",  // rose-500 crimson
+    low: "#f87171",   // red-400
+    medium: "#ef4444", // red-500 — vibrant crimson
+    high: "#ef4444",  // red-500 — vibrant crimson pulse
   },
   benefit: {
     low: "#86efac",
