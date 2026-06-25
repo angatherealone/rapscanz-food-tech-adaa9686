@@ -107,26 +107,30 @@ function normalizePart(p: string): string {
 /*  Humanoid silhouette positioning                                   */
 /* ----------------------------------------------------------------- */
 
-/** Center (cx, cy) and render scale for each organ inside the 400x720 body viewBox. */
+/** Center (cx, cy) and render scale for each organ inside the 400x720 body viewBox.
+ *  Coordinates target the slim athletic silhouette (BODY_OUTLINE below) where the
+ *  torso spans roughly x∈[150,250] and the abdominal cavity sits around y∈[260,460]. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 70,  scale: 0.42 },
-  eyes:       { cx: 200, cy: 108, scale: 0.30 },
-  teeth:      { cx: 200, cy: 140, scale: 0.30 },
-  throat:     { cx: 200, cy: 180, scale: 0.30 },
-  lungs:      { cx: 200, cy: 250, scale: 0.62 },
-  heart:      { cx: 217, cy: 255, scale: 0.38 },
-  liver:      { cx: 170, cy: 320, scale: 0.46 },
-  stomach:    { cx: 225, cy: 320, scale: 0.40 },
-  pancreas:   { cx: 200, cy: 350, scale: 0.36 },
-  kidneys:    { cx: 200, cy: 380, scale: 0.50 },
-  intestines: { cx: 200, cy: 445, scale: 0.58 },
-  skin:       { cx: 305, cy: 400, scale: 0.34 },
-  bones:      { cx: 200, cy: 605, scale: 0.55 },
+  brain:      { cx: 200, cy: 62,  scale: 0.52 },
+  eyes:       { cx: 200, cy: 102, scale: 0.34 },
+  teeth:      { cx: 200, cy: 132, scale: 0.34 },
+  throat:     { cx: 200, cy: 172, scale: 0.34 },
+  lungs:      { cx: 200, cy: 248, scale: 0.86 }, // enlarged — fill upper chest
+  heart:      { cx: 188, cy: 256, scale: 0.50 }, // slightly left of center, overlapping lungs
+  liver:      { cx: 174, cy: 322, scale: 0.58 }, // right-side triangular block below right lung
+  stomach:    { cx: 226, cy: 322, scale: 0.50 }, // opposite the liver, left upper abdomen
+  pancreas:   { cx: 200, cy: 358, scale: 0.42 },
+  kidneys:    { cx: 200, cy: 392, scale: 0.62 }, // symmetrical, behind midsection
+  intestines: { cx: 200, cy: 452, scale: 0.78 }, // fills lower abdominal basin
+  skin:       { cx: 308, cy: 360, scale: 0.36 },
+  bones:      { cx: 200, cy: 600, scale: 0.62 },
 };
 
-/** Anatomical humanoid silhouette outline path (head + torso + arms + legs). */
+/** Clean medical-style athletic humanoid silhouette — slim torso, proportional
+ *  shoulders, hanging arms, parallel legs. Designed to look like a standard
+ *  upright anatomical reference model rather than a bulky figure. */
 const BODY_OUTLINE =
-  "M200 18 C 226 18 246 38 246 66 C 246 86 236 102 222 110 L 232 132 L 268 142 C 296 150 320 168 332 196 L 348 256 C 354 280 350 304 338 322 L 326 432 L 314 568 C 312 600 304 632 290 660 L 280 700 L 246 700 L 240 632 L 224 528 L 216 432 L 200 432 L 184 432 L 176 528 L 160 632 L 154 700 L 120 700 L 110 660 C 96 632 88 600 86 568 L 74 432 L 62 322 C 50 304 46 280 52 256 L 68 196 C 80 168 104 150 132 142 L 168 132 L 178 110 C 164 102 154 86 154 66 C 154 38 174 18 200 18 Z";
+  "M200 20 C 222 20 238 38 238 62 C 238 80 230 96 218 104 L 220 120 L 246 128 C 264 134 278 150 282 168 L 290 232 L 292 318 L 286 396 L 274 400 L 268 396 L 270 318 L 268 232 L 262 196 L 258 220 L 254 296 L 248 360 L 252 420 L 250 540 L 246 656 L 240 706 L 218 706 L 214 656 L 210 540 L 204 420 L 200 360 L 196 420 L 190 540 L 186 656 L 182 706 L 160 706 L 154 656 L 150 540 L 148 420 L 152 360 L 146 296 L 142 220 L 138 196 L 132 232 L 130 318 L 132 396 L 126 400 L 114 396 L 108 318 L 110 232 L 118 168 C 122 150 136 134 154 128 L 180 120 L 182 104 C 170 96 162 80 162 62 C 162 38 178 20 200 20 Z";
 
 
 
