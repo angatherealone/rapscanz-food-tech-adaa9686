@@ -11,7 +11,7 @@ import type { BodyDamage, BodyMapVariant } from "@/components/BodyDamageMap";
  */
 type OrganRenderer = (color: string) => ReactNode;
 
-const ORGAN_ART: Record<string, OrganRenderer> = {
+export const ORGAN_ART: Record<string, OrganRenderer> = {
   heart: (c) => (
     <g fill="none" strokeLinecap="round" strokeLinejoin="round">
       {/* Aorta arch */}
