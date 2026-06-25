@@ -389,27 +389,33 @@ export function BodyDamageMap({
         >
           <defs>
             <radialGradient id="bdm-body-glass" cx="50%" cy="40%" r="70%">
-              <stop offset="0%" stopColor="#0e7490" stopOpacity="0.28" />
-              <stop offset="55%" stopColor="#0c4a6e" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#020617" stopOpacity="0.85" />
+              <stop offset="0%" stopColor="#1e3a8a" stopOpacity="0.55" />
+              <stop offset="55%" stopColor="#0c1e54" stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#020617" stopOpacity="0.92" />
             </radialGradient>
             <linearGradient id="bdm-body-rim" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#0891b2" stopOpacity="0.35" />
+              <stop offset="0%" stopColor="#00f2fe" stopOpacity="1" />
+              <stop offset="100%" stopColor="#00b4d8" stopOpacity="0.6" />
             </linearGradient>
+            <filter id="bdm-body-aura" x="-20%" y="-10%" width="140%" height="120%">
+              <feGaussianBlur stdDeviation="3.5" />
+            </filter>
             <pattern id="bdm-body-grid" width="18" height="18" patternUnits="userSpaceOnUse">
-              <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.3" />
+              <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#00f2fe" strokeOpacity="0.18" strokeWidth="0.3" />
             </pattern>
           </defs>
 
-          {/* Glass body fill */}
+          {/* Outer neon turquoise aura (blurred outline) */}
+          <path d={BODY_OUTLINE} fill="none" stroke="#00f2fe" strokeWidth="3" opacity="0.55" filter="url(#bdm-body-aura)" />
+          {/* Deep blue glass body fill */}
           <path d={BODY_OUTLINE} fill="url(#bdm-body-glass)" />
           {/* Grid wash inside body (clipped) */}
           <clipPath id="bdm-body-clip"><path d={BODY_OUTLINE} /></clipPath>
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" clipPath="url(#bdm-body-clip)" opacity="0.6" />
-          {/* Inner rim highlight */}
-          <path d={BODY_OUTLINE} fill="none" stroke="url(#bdm-body-rim)" strokeWidth="1.4" opacity="0.85" />
-          <path d={BODY_OUTLINE} fill="none" stroke="#22d3ee" strokeWidth="0.4" opacity="0.4" />
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" clipPath="url(#bdm-body-clip)" opacity="0.55" />
+          {/* Crisp neon turquoise outer rim */}
+          <path d={BODY_OUTLINE} fill="none" stroke="#00f2fe" strokeWidth="1.6" opacity="0.95" />
+          {/* Soft inner rim highlight */}
+          <path d={BODY_OUTLINE} fill="none" stroke="url(#bdm-body-rim)" strokeWidth="0.6" opacity="0.7" />
 
           {/* Centerline scan accent */}
           <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="3 5" />
