@@ -14,9 +14,9 @@ export type BodyMapVariant = "damage" | "benefit";
 
 const SEVERITY_COLOR: Record<BodyMapVariant, Record<string, string>> = {
   damage: {
-    low: "#fbbf24",     // neon amber
-    medium: "#fb7185",  // hot pink-red
-    high: "#ef4444",    // sharp neon red
+    low: "#ef4444",
+    medium: "#ef4444",
+    high: "#ef4444",
   },
   benefit: {
     low: "#86efac",
@@ -165,6 +165,30 @@ const ORGANS: Record<string, OrganDef> = {
   },
 };
 
+const TISSUE_LAYERS: Record<string, string[]> = {
+  brain: ["Blood-Brain Barrier", "Cortical Gray Matter", "Myelin Sheath", "Synaptic Cleft"],
+  eyes: ["Corneal Epithelium", "Retinal Pigment Layer", "Vitreous Humor", "Optic Nerve Fibers"],
+  teeth: ["Enamel Prism Layer", "Dentin Tubules", "Gingival Mucosa", "Pulp Chamber"],
+  throat: ["Pharyngeal Mucosa", "Esophageal Lining", "Vocal Fold Epithelium"],
+  heart: ["Endothelial Intima", "Myocardial Muscle Fibers", "Coronary Artery Walls", "Pericardial Sac"],
+  lungs: ["Alveolar Membrane", "Bronchial Cilia", "Pulmonary Capillary Bed", "Pleural Lining"],
+  liver: ["Hepatic Sinusoids", "Kupffer Cell Layer", "Bile Canaliculi", "Hepatocyte Membrane"],
+  stomach: ["Gastric Mucosa", "Parietal Cell Layer", "Pyloric Sphincter Tissue"],
+  pancreas: ["Islet of Langerhans", "Acinar Cell Tissue", "Pancreatic Ductal Lining"],
+  kidneys: ["Glomerular Filtration Membrane", "Proximal Tubule Epithelium", "Renal Cortex", "Nephron Loop"],
+  intestines: ["Intestinal Villi", "Mucosal Brush Border", "Gut Microbiome Layer", "Submucosal Plexus"],
+  skin: ["Stratum Corneum", "Dermal Collagen Matrix", "Subcutaneous Fat Layer", "Sebaceous Glands"],
+  bones: ["Cortical Bone Matrix", "Trabecular Lattice", "Periosteum", "Bone Marrow Stroma"],
+};
+
+function splitTriggers(s?: string): string[] {
+  if (!s) return [];
+  return s
+    .split(/,| \+ |\band\b|&|\/|;/i)
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
 function normalizePart(p: string): string {
   const k = p.toLowerCase().trim();
   if (k.includes("brain") || k.includes("neuro") || k.includes("cogniti") || k.includes("memory")) return "brain";
@@ -193,7 +217,7 @@ export function BodyDamageMap({
   const mapped = items
     .map((it) => ({ ...it, key: normalizePart(it.part) }))
     .filter((it) => ORGANS[it.key]);
-  const [active, setActive] = useState<number | null>(mapped.length ? 0 : null);
+  const [active, setActive] = useState<number | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
@@ -457,50 +481,185 @@ export function BodyDamageMap({
       </div>
 
 
-      <div>
-        <p className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
-          Tap an organ · {mapped.length} {variant === "benefit" ? "benefiting" : "affected"} area{mapped.length === 1 ? "" : "s"}
-        </p>
-        <ul className="space-y-2">
-          {mapped.map((it, i) => {
-            const organ = ORGANS[it.key];
-            const color = palette[it.severity] ?? palette.medium;
-            const isActive = active === i;
-            return (
-              <li
-                key={i}
-                onClick={() => openDetail(i)}
-                className={`cursor-pointer rounded-lg border p-3 text-sm transition-all ${
-                  isActive
-                    ? "border-primary bg-muted ring-2 ring-primary/30"
-                    : "border-border bg-card hover:border-primary/50"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ background: color, boxShadow: `0 0 6px ${color}` }}
-                  />
-                  <span className="font-semibold">{organ.label}</span>
-                  <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {it.severity}
-                  </span>
-                </div>
-                {it.trigger && (
-                  <div className="mt-1.5">
-                    <span
-                      className="inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                      style={{ color, borderColor: color, background: `${color}14` }}
-                    >
-                      {variant === "benefit" ? "From " : "Caused by "}{it.trigger}
-                    </span>
+      <div className="relative overflow-hidden rounded-2xl border border-cyan-500/15 bg-gradient-to-b from-slate-950/80 via-slate-950/60 to-slate-950/30 p-4"
+        style={{ boxShadow: "inset 0 0 50px rgba(34,211,238,0.05), 0 0 30px rgba(2,6,23,0.5)" }}
+      >
+        {/* HUD header */}
+        <div className="mb-3 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-400/80">
+          <span className="flex items-center gap-2">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
+            BIO-SCAN · TELEMETRY
+          </span>
+          <span className="text-cyan-300/50">
+            {mapped.length.toString().padStart(2, "0")} {variant === "benefit" ? "BNFT" : "RISK"}
+          </span>
+        </div>
+
+        {!activeItem || !activeOrgan ? (
+          /* Empty state — sonar pulse */
+          <div className="flex min-h-[360px] flex-col items-center justify-center gap-6 py-10">
+            <div className="relative h-32 w-32">
+              <span className="absolute inset-0 rounded-full border border-cyan-400/40" />
+              <span className="absolute inset-0 animate-ping rounded-full border-2 border-cyan-400/60" style={{ animationDuration: "2.4s" }} />
+              <span className="absolute inset-3 animate-ping rounded-full border border-cyan-300/40" style={{ animationDuration: "3s", animationDelay: "0.4s" }} />
+              <span className="absolute inset-7 animate-ping rounded-full border border-cyan-200/30" style={{ animationDuration: "3.6s", animationDelay: "0.8s" }} />
+              <span className="absolute inset-[42%] rounded-full bg-cyan-400 shadow-[0_0_18px_#22d3ee]" />
+            </div>
+            <div className="text-center font-mono">
+              <p className="text-[11px] uppercase tracking-[0.35em] text-cyan-300/90">
+                Awaiting System Focus
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.25em] text-cyan-500/50">
+                Data Input · Select Organ Node
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Isolated organ micro-viewport with crosshair grid */}
+            {(() => {
+              const cx = activeOrgan.anchor.x;
+              const cy = activeOrgan.anchor.y;
+              const half = 46;
+              const color = palette[activeItem.severity] ?? palette.medium;
+              return (
+                <div className="relative overflow-hidden rounded-xl border border-cyan-500/20 bg-slate-950/80 p-3"
+                  style={{ boxShadow: `inset 0 0 30px ${color}22` }}
+                >
+                  <div className="mb-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-300/70">
+                    <span>NODE · {activeOrgan.label.replace(" / ", "·")}</span>
+                    <span style={{ color }}>{activeItem.severity.toUpperCase()}</span>
                   </div>
-                )}
-                <p className="mt-1 text-muted-foreground">{it.reason}</p>
-              </li>
-            );
-          })}
-        </ul>
+                  <svg viewBox={`${cx - half} ${cy - half} ${half * 2} ${half * 2}`} className="h-44 w-full">
+                    <defs>
+                      <pattern id="bdm-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(34,211,238,0.18)" strokeWidth="0.3" />
+                      </pattern>
+                    </defs>
+                    <rect x={cx - half} y={cy - half} width={half * 2} height={half * 2} fill="url(#bdm-grid)" />
+                    {/* Crosshair */}
+                    <line x1={cx - half} y1={cy} x2={cx + half} y2={cy} stroke="rgba(34,211,238,0.45)" strokeDasharray="2 3" strokeWidth="0.4" />
+                    <line x1={cx} y1={cy - half} x2={cx} y2={cy + half} stroke="rgba(34,211,238,0.45)" strokeDasharray="2 3" strokeWidth="0.4" />
+                    <circle cx={cx} cy={cy} r={28} fill="none" stroke="rgba(34,211,238,0.35)" strokeWidth="0.4" />
+                    <circle cx={cx} cy={cy} r={16} fill="none" stroke="rgba(34,211,238,0.5)" strokeWidth="0.4" />
+                    {/* Organ */}
+                    <path
+                      d={activeOrgan.path}
+                      fill={color}
+                      fillOpacity="0.55"
+                      stroke={color}
+                      strokeWidth="1.4"
+                      style={{ filter: `drop-shadow(0 0 10px ${color})` }}
+                    >
+                      <animate attributeName="fillOpacity" values="0.55;0.85;0.55" dur="1.8s" repeatCount="indefinite" />
+                    </path>
+                    {/* Corner brackets */}
+                    {[
+                      [cx - half + 2, cy - half + 2, 1, 1],
+                      [cx + half - 2, cy - half + 2, -1, 1],
+                      [cx - half + 2, cy + half - 2, 1, -1],
+                      [cx + half - 2, cy + half - 2, -1, -1],
+                    ].map(([x, y, dx, dy], i) => (
+                      <g key={i} stroke={color} strokeWidth="0.8" fill="none">
+                        <line x1={x} y1={y} x2={x + 8 * dx} y2={y} />
+                        <line x1={x} y1={y} x2={x} y2={y + 8 * dy} />
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+              );
+            })()}
+
+            {/* Track A — Cellular Pathway Disruption */}
+            <div>
+              <div className="mb-1.5 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-300/70">
+                <span className="text-cyan-400">▸</span> Track A · Cellular Pathway Disruption
+              </div>
+              <div
+                className="rounded-md border-l-2 bg-slate-950/70 p-3 text-xs leading-relaxed text-slate-200"
+                style={{ borderLeftColor: palette[activeItem.severity] ?? palette.medium }}
+              >
+                {activeItem.reason}
+              </div>
+            </div>
+
+            {/* Track B — Tissue Layer Compromise */}
+            <div>
+              <div className="mb-1.5 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-300/70">
+                <span className="text-cyan-400">▸</span> Track B · Tissue Layer Compromise
+              </div>
+              <ul className="space-y-1 rounded-md border border-cyan-500/10 bg-slate-950/50 p-3">
+                {(TISSUE_LAYERS[activeItem.key] ?? ["Surface Epithelium", "Connective Tissue"]).map((layer) => (
+                  <li key={layer} className="flex items-center gap-2 font-mono text-[11px] text-slate-300">
+                    <span className="inline-block h-1 w-3 bg-cyan-400/70 shadow-[0_0_4px_#22d3ee]" />
+                    {layer}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Track C — Molecular Trigger Compounds */}
+            <div>
+              <div className="mb-1.5 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-300/70">
+                <span className="flex items-center gap-2"><span className="text-cyan-400">▸</span> Track C · Molecular Trigger Compounds</span>
+                <span
+                  className="rounded-sm border px-1.5 py-0.5 font-bold tracking-[0.3em]"
+                  style={{
+                    color: palette[activeItem.severity] ?? palette.medium,
+                    borderColor: palette[activeItem.severity] ?? palette.medium,
+                    background: `${palette[activeItem.severity] ?? palette.medium}1a`,
+                  }}
+                >
+                  {activeItem.severity.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 rounded-md border border-cyan-500/10 bg-slate-950/50 p-3">
+                {(splitTriggers(activeItem.trigger).length
+                  ? splitTriggers(activeItem.trigger)
+                  : ["Unidentified compound"]
+                ).map((t) => {
+                  const c = palette[activeItem.severity] ?? palette.medium;
+                  return (
+                    <span
+                      key={t}
+                      className="rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider"
+                      style={{ color: c, borderColor: `${c}88`, background: `${c}14`, boxShadow: `0 0 8px ${c}33` }}
+                    >
+                      {t}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quick switcher */}
+            {mapped.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {mapped.map((it, i) => {
+                  const c = palette[it.severity] ?? palette.medium;
+                  const isActive = active === i;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setActive(i)}
+                      className={`rounded-md border px-2 py-1 font-mono text-[9px] uppercase tracking-wider transition-all ${
+                        isActive ? "scale-105" : "opacity-60 hover:opacity-100"
+                      }`}
+                      style={{
+                        color: c,
+                        borderColor: isActive ? c : `${c}55`,
+                        background: isActive ? `${c}22` : "transparent",
+                        boxShadow: isActive ? `0 0 10px ${c}55` : "none",
+                      }}
+                    >
+                      {ORGANS[it.key].label.split(" / ")[0]}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {activeItem && activeOrgan && (
