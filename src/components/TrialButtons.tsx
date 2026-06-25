@@ -108,7 +108,7 @@ export function TrialButtons({ tier }: { tier: Tier }) {
     >
       <span className="flex items-center gap-1.5">
         <Gift className="h-3.5 w-3.5" />
-        {locked ? `Try ${TIER_LABEL[tier]} — limit reached` : `Try ${TIER_LABEL[tier]} free`}
+        {locked ? `Access ${TIER_LABEL[tier]} — limit reached` : `Access ${TIER_LABEL[tier]}`}
       </span>
       <span className={locked ? "rounded-full bg-background/60 px-1.5 py-0.5 text-[10px]" : "rounded-full bg-white/25 px-1.5 py-0.5 text-[10px]"}>
         {unlimitedTrials ? "Unlimited trials left" : `${slotsLeft} / ${cap} left`}
