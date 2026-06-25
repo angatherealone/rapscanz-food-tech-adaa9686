@@ -91,49 +91,28 @@ export function TrialButtons({ tier }: { tier: Tier }) {
 
   const cap = (profile as any).trialCap ?? 2;
   const claimed = ((profile as any).trialClaimed ?? {})[tier] ?? 0;
-  const remaining = ((profile as any).trialRemaining ?? {})[tier] ?? 0;
+  const unlimitedTrials = (profile as any).unlimitedTrials === true;
   const slotsLeft = Math.max(0, cap - claimed);
-
-  const locked = slotsLeft === 0;
+  const locked = !unlimitedTrials && slotsLeft === 0;
 
   return (
-    <div className="mt-3 space-y-2">
-      <button
-        type="button"
-        disabled={locked || claim.isPending}
-        onClick={() => !locked && claim.mutate(tier)}
-        className={
-          locked
-            ? "flex w-full items-center justify-between rounded-md border border-border bg-muted px-3 py-2 text-xs font-semibold text-muted-foreground"
-            : "flex w-full items-center justify-between rounded-md border border-green-600 bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-green-700 disabled:opacity-60"
-        }
-      >
-        <span className="flex items-center gap-1.5">
-          <Gift className="h-3.5 w-3.5" />
-          {locked ? `Access ${TIER_LABEL[tier]} — upgrade to unlock` : `Access ${TIER_LABEL[tier]}`}
-        </span>
-        <span className={locked ? "rounded-full bg-background/60 px-1.5 py-0.5 text-[10px]" : "rounded-full bg-white/25 px-1.5 py-0.5 text-[10px]"}>
-          {locked ? "0 / 2 left" : `${slotsLeft} / ${cap} left`}
-        </span>
-      </button>
-      <div className="rounded-md border border-dashed border-green-600/40 bg-green-600/5 px-2.5 py-2">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
-          {TIER_LABEL[tier]} unlocks per access
-        </div>
-        <ul className="mt-1 space-y-0.5">
-          {TIER_UNLOCKS[tier].map((u) => (
-            <li key={u} className="flex gap-1.5 text-[11px] text-muted-foreground">
-              <span className="text-green-600">✓</span>
-              <span>{u}</span>
-            </li>
-          ))}
-        </ul>
-        {remaining > 0 ? (
-          <p className="mt-2 text-[10px] text-muted-foreground">
-            Spend it on the <strong className="text-foreground">Scan</strong> page — pick "Use {TIER_LABEL[tier]} trial" above the scan button.
-          </p>
-        ) : null}
-      </div>
-    </div>
+    <button
+      type="button"
+      disabled={locked || claim.isPending}
+      onClick={() => !locked && claim.mutate(tier)}
+      className={
+        locked
+          ? "mt-3 flex w-full items-center justify-between rounded-md border border-border bg-muted px-3 py-2 text-xs font-semibold text-muted-foreground"
+          : "mt-3 flex w-full items-center justify-between rounded-md border border-green-600 bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-green-700 disabled:opacity-60"
+      }
+    >
+      <span className="flex items-center gap-1.5">
+        <Gift className="h-3.5 w-3.5" />
+        {locked ? `Try ${TIER_LABEL[tier]} — limit reached` : `Try ${TIER_LABEL[tier]} free`}
+      </span>
+      <span className={locked ? "rounded-full bg-background/60 px-1.5 py-0.5 text-[10px]" : "rounded-full bg-white/25 px-1.5 py-0.5 text-[10px]"}>
+        {unlimitedTrials ? "Unlimited trials left" : `${slotsLeft} / ${cap} left`}
+      </span>
+    </button>
   );
 }

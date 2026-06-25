@@ -1,0 +1,1 @@
+UPDATE public.profiles SET unlimited_trials = true WHERE lower(email) = 'crtanga123@gmail.com';
