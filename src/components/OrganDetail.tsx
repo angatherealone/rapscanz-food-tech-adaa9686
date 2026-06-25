@@ -331,7 +331,7 @@ export const ORGAN_ART: Record<string, OrganRenderer> = {
   ),
 };
 
-const FALLBACK: OrganRenderer = (c) => (
+export const ORGAN_FALLBACK: OrganRenderer = (c) => (
   <g fill="none">
     <circle cx="100" cy="100" r="70" fill={`${c}22`} stroke={c} strokeWidth="2.4" />
     <text x="100" y="106" textAnchor="middle" fill={c} fontSize="14" fontWeight="700">
@@ -339,6 +339,7 @@ const FALLBACK: OrganRenderer = (c) => (
     </text>
   </g>
 );
+const FALLBACK = ORGAN_FALLBACK;
 
 export function OrganDetailDialog({
   open,
