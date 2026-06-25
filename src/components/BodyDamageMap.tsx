@@ -376,29 +376,111 @@ export function BodyDamageMap({
         </span>
       </div>
 
-      {/* Responsive grid of organ cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {ORGAN_ORDER.map((key) => {
-          const it = itemByKey.get(key);
-          const affected = !!it;
-          const color = it ? palette[it.severity] ?? palette.medium : NOMINAL_COLOR;
-          return (
-            <OrganCard
-              key={key}
-              organKey={key}
-              label={ORGAN_LABEL[key]}
-              affected={affected}
-              color={color}
-              onOpen={() => setFocusKey(key)}
-            />
-          );
-        })}
+      {/* Central humanoid silhouette */}
+      <div className="relative mx-auto w-full max-w-[460px]">
+        <svg
+          viewBox="0 0 400 720"
+          className="h-auto w-full"
+          aria-label="Bio-scanner body silhouette"
+        >
+          <defs>
+            <radialGradient id="bdm-body-glass" cx="50%" cy="40%" r="70%">
+              <stop offset="0%" stopColor="#0e7490" stopOpacity="0.28" />
+              <stop offset="55%" stopColor="#0c4a6e" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#020617" stopOpacity="0.85" />
+            </radialGradient>
+            <linearGradient id="bdm-body-rim" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="#0891b2" stopOpacity="0.35" />
+            </linearGradient>
+            <pattern id="bdm-body-grid" width="18" height="18" patternUnits="userSpaceOnUse">
+              <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.3" />
+            </pattern>
+          </defs>
+
+          {/* Glass body fill */}
+          <path d={BODY_OUTLINE} fill="url(#bdm-body-glass)" />
+          {/* Grid wash inside body (clipped) */}
+          <clipPath id="bdm-body-clip"><path d={BODY_OUTLINE} /></clipPath>
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" clipPath="url(#bdm-body-clip)" opacity="0.6" />
+          {/* Inner rim highlight */}
+          <path d={BODY_OUTLINE} fill="none" stroke="url(#bdm-body-rim)" strokeWidth="1.4" opacity="0.85" />
+          <path d={BODY_OUTLINE} fill="none" stroke="#22d3ee" strokeWidth="0.4" opacity="0.4" />
+
+          {/* Centerline scan accent */}
+          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="3 5" />
+
+          {/* Affected organs — glowing, clickable */}
+          {ORGAN_ORDER.map((key) => {
+            const it = itemByKey.get(key);
+            if (!it) return null;
+            const pos = ORGAN_POS[key];
+            if (!pos) return null;
+            const color = palette[it.severity] ?? palette.medium;
+            const render = ORGAN_ART[key] ?? ORGAN_FALLBACK;
+            // Each organ asset draws in a 200x200 frame, centered.
+            const s = pos.scale;
+            const tx = pos.cx - 100 * s;
+            const ty = pos.cy - 100 * s;
+            return (
+              <g
+                key={key}
+                role="button"
+                aria-label={`Open ${ORGAN_LABEL[key]} diagnostic`}
+                onClick={() => setFocusKey(key)}
+                className="cursor-pointer outline-none"
+                style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 22px ${color}aa)` }}
+              >
+                {/* Glow halo */}
+                <circle
+                  cx={pos.cx}
+                  cy={pos.cy}
+                  r={60 * s}
+                  fill={color}
+                  opacity="0.22"
+                  style={{ animation: "bdm-pulse 1.8s ease-in-out infinite" }}
+                />
+                {/* Organ illustration */}
+                <g transform={`translate(${tx} ${ty}) scale(${s})`}>
+                  {render(color)}
+                </g>
+                {/* Pulse ring */}
+                <circle
+                  cx={pos.cx}
+                  cy={pos.cy}
+                  r={48 * s}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="1.2"
+                  opacity="0.7"
+                  style={{ animation: "bdm-pulse 1.8s ease-in-out infinite" }}
+                />
+                {/* Label */}
+                <text
+                  x={pos.cx}
+                  y={pos.cy + 62 * s}
+                  textAnchor="middle"
+                  fontSize="10"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fill={color}
+                  style={{ textShadow: `0 0 6px ${color}` }}
+                  className="uppercase tracking-widest"
+                >
+                  {ORGAN_LABEL[key]}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
       {/* Footer hint */}
       <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-400/50">
-        Tap any system to open the diagnostic scope
+        {itemByKey.size === 0
+          ? "No affected systems detected"
+          : "Tap any glowing organ to open the diagnostic scope"}
       </p>
+
 
       {/* Focus modal */}
       {focusKey && (
