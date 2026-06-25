@@ -161,6 +161,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
     roles,
     isUnlimited,
     freeUnlimited,
+    unlimitedTrials: (profile as any).unlimited_trials === true,
     trialClaimed,
     trialRemaining,
     trialCap: TRIAL_CAP_PER_TIER,
