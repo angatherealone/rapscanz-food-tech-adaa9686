@@ -103,6 +103,7 @@ export type Database = {
           subscription_expires_at: string | null
           trial_claimed: Json
           trial_remaining: Json
+          unlimited_trials: boolean
           username: string | null
           weight_kg: number | null
         }
@@ -123,6 +124,7 @@ export type Database = {
           subscription_expires_at?: string | null
           trial_claimed?: Json
           trial_remaining?: Json
+          unlimited_trials?: boolean
           username?: string | null
           weight_kg?: number | null
         }
@@ -143,6 +145,7 @@ export type Database = {
           subscription_expires_at?: string | null
           trial_claimed?: Json
           trial_remaining?: Json
+          unlimited_trials?: boolean
           username?: string | null
           weight_kg?: number | null
         }
