@@ -217,7 +217,7 @@ export function BodyDamageMap({
   const mapped = items
     .map((it) => ({ ...it, key: normalizePart(it.part) }))
     .filter((it) => ORGANS[it.key]);
-  const [active, setActive] = useState<number | null>(mapped.length ? 0 : null);
+  const [active, setActive] = useState<number | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
