@@ -123,7 +123,7 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining, free_unlimited")
+    .select("scan_count, is_subscribed, subscription_expires_at, email, weight_kg, height_cm, illnesses, allergies, gender, plan, plan_expires_at, trial_claimed, trial_remaining, free_unlimited, unlimited_trials")
     .eq("id", userId)
     .maybeSingle();
   if (error) {
