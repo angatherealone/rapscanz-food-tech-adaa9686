@@ -507,10 +507,54 @@ async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
   } catch { return null; }
 }
 
+// openFDA lookup for medicines / OTC drugs. The NDC endpoint indexes US
+// pharmaceutical products and often includes the package UPC/EAN under
+// `openfda.upc`, so we can resolve drug barcodes that Open Food Facts and
+// UPCitemdb will not have.
+async function lookupOpenFda(barcode: string): Promise<BarcodeLookup | null> {
+  try {
+    // Build NDC variants from a 10/11/12/13-digit GTIN. US drug GTIN-12s
+    // commonly encode the 10-digit NDC as digits 2-11 (drop leading "3" and
+    // trailing check digit), or are stored verbatim under openfda.upc.
+    const variants = new Set<string>([barcode]);
+    if (/^\d{12}$/.test(barcode)) variants.add(barcode.slice(1, 11));
+    if (/^\d{13}$/.test(barcode) && barcode.startsWith("0")) variants.add(barcode.slice(2, 12));
+    const upcQuery = Array.from(variants).map(v => `openfda.upc:"${v}"`).join("+");
+    const ndcQuery = Array.from(variants).map(v => `product_ndc:"${v}"`).join("+");
+    const search = encodeURIComponent(`(${upcQuery})+(${ndcQuery})`);
+    const res = await fetch(`https://api.fda.gov/drug/ndc.json?search=${search}&limit=1`, {
+      headers: { "User-Agent": "RAPscanz/1.0" },
+    });
+    if (!res.ok) return null;
+    const json = await res.json() as any;
+    const item = json?.results?.[0];
+    if (!item) return null;
+    const name = item.brand_name || item.generic_name || `Drug ${barcode}`;
+    const activeList: string[] = Array.isArray(item.active_ingredients)
+      ? item.active_ingredients.map((a: any) => `${a.name}${a.strength ? ` ${a.strength}` : ""}`)
+      : [];
+    const inactive: string = Array.isArray(item.inactive_ingredient)
+      ? item.inactive_ingredient.join(", ")
+      : "";
+    const ingredients = [activeList.join(", "), inactive].filter(Boolean).join(" | ");
+    return {
+      name,
+      brand: item.labeler_name || undefined,
+      parentCompany: item.openfda?.manufacturer_name?.[0] || undefined,
+      category: item.product_type || item.pharm_class?.[0] || "Medicine",
+      ingredients,
+      source: "openFDA",
+      labels: item.dosage_form ? `Dosage form: ${item.dosage_form}` : "",
+    };
+  } catch { return null; }
+}
+
 async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
   const tryOne = async (code: string): Promise<BarcodeLookup | null> => {
     const off = await lookupOpenFoodFacts(code);
     if (off && off.ingredients) return off;
+    const fda = await lookupOpenFda(code);
+    if (fda) return fda;
     const upc = await lookupUpcItemDb(code);
     if (upc) return {
       ...upc,
@@ -521,13 +565,12 @@ async function lookupBarcode(barcode: string): Promise<BarcodeLookup | null> {
     return off;
   };
   let result = await tryOne(barcode);
-  // UPC-A (12 digits) is equivalent to EAN-13 with a leading "0".
-  // Retry the padded form if the first lookup came back empty / not found.
   if (!result && /^\d{12}$/.test(barcode)) {
     result = await tryOne("0" + barcode);
   }
   return result;
 }
+
 
 
 
