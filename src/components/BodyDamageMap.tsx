@@ -110,20 +110,22 @@ function normalizePart(p: string): string {
 /** Center (cx, cy) and render scale for each organ inside the 400x720 body viewBox.
  *  Coordinates target the slim athletic silhouette (BODY_OUTLINE below) where the
  *  torso spans roughly x∈[150,250] and the abdominal cavity sits around y∈[260,460]. */
+// Torso spans roughly y∈[140, 400] in the 400x720 viewBox; legs begin ~y=420.
+// All visceral organs are constrained inside the torso cavity (no organs in legs).
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 62,  scale: 0.52 },
-  eyes:       { cx: 200, cy: 102, scale: 0.34 },
-  teeth:      { cx: 200, cy: 132, scale: 0.34 },
-  throat:     { cx: 200, cy: 172, scale: 0.34 },
-  lungs:      { cx: 200, cy: 248, scale: 0.86 }, // enlarged — fill upper chest
-  heart:      { cx: 188, cy: 256, scale: 0.50 }, // slightly left of center, overlapping lungs
-  liver:      { cx: 174, cy: 322, scale: 0.58 }, // right-side triangular block below right lung
-  stomach:    { cx: 226, cy: 322, scale: 0.50 }, // opposite the liver, left upper abdomen
-  pancreas:   { cx: 200, cy: 358, scale: 0.42 },
-  kidneys:    { cx: 200, cy: 392, scale: 0.62 }, // symmetrical, behind midsection
-  intestines: { cx: 200, cy: 452, scale: 0.78 }, // fills lower abdominal basin
-  skin:       { cx: 308, cy: 360, scale: 0.36 },
-  bones:      { cx: 200, cy: 600, scale: 0.62 },
+  brain:      { cx: 200, cy: 64,  scale: 0.42 }, // cranium
+  eyes:       { cx: 200, cy: 92,  scale: 0.26 }, // mid-face
+  teeth:      { cx: 200, cy: 112, scale: 0.26 }, // jaw
+  throat:     { cx: 200, cy: 138, scale: 0.26 }, // neck
+  lungs:      { cx: 200, cy: 200, scale: 0.62 }, // upper chest, both sides
+  heart:      { cx: 188, cy: 212, scale: 0.36 }, // medial, slightly left, between lungs
+  liver:      { cx: 178, cy: 262, scale: 0.42 }, // right upper abdomen (viewer-left of patient = right side)
+  stomach:    { cx: 222, cy: 266, scale: 0.36 }, // left upper abdomen
+  pancreas:   { cx: 200, cy: 298, scale: 0.30 }, // central, behind stomach
+  kidneys:    { cx: 200, cy: 320, scale: 0.46 }, // symmetric, mid-back
+  intestines: { cx: 200, cy: 368, scale: 0.54 }, // lower abdominal basin (above pelvis)
+  skin:       { cx: 282, cy: 240, scale: 0.28 }, // shown on shoulder/arm area
+  bones:      { cx: 200, cy: 300, scale: 0.50 }, // spine column inside torso
 };
 
 /** Clean medical-style athletic humanoid silhouette — slim torso, proportional
