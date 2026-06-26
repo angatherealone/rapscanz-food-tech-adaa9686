@@ -486,6 +486,42 @@ async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | nul
 }
 
 
+
+// Text search against the Open Food Facts registry. Used for the
+// ingredient-typer and photo-OCR paths so they resolve to a real
+// registry product (e.g. "Naturo dark chocolate", "Amul ice cream bar")
+// instead of being analyzed as anonymous text.
+async function lookupOpenFoodFactsByText(query: string): Promise<BarcodeLookup | null> {
+  try {
+    const q = query.trim().slice(0, 200);
+    if (!q) return null;
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=1`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "RAPscanz/1.0 (https://rapscanz-food-tech.lovable.app)" },
+    });
+    if (!res.ok) return null;
+    const json = await res.json() as any;
+    const p = json?.products?.[0];
+    if (!p) return null;
+    const name = p.product_name || p.product_name_en || p.generic_name || "";
+    if (!name) return null;
+    const ingredients = p.ingredients_text || p.ingredients_text_en || "";
+    return {
+      name,
+      brand: (p.brands || "").split(",")[0]?.trim() || undefined,
+      parentCompany: p.brand_owner || undefined,
+      category: (p.categories || "").split(",").pop()?.trim() || undefined,
+      quantity: p.quantity || undefined,
+      ingredients,
+      source: "Open Food Facts (search)",
+      nutriments: p.nutriments ?? null,
+      labels: p.labels || "",
+    };
+  } catch { return null; }
+}
+
+
+
 async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
   try {
     const res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(barcode)}`, {
