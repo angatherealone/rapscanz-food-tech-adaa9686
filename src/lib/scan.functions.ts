@@ -486,6 +486,42 @@ async function lookupOpenFoodFacts(barcode: string): Promise<BarcodeLookup | nul
 }
 
 
+
+// Text search against the Open Food Facts registry. Used for the
+// ingredient-typer and photo-OCR paths so they resolve to a real
+// registry product (e.g. "Naturo dark chocolate", "Amul ice cream bar")
+// instead of being analyzed as anonymous text.
+async function lookupOpenFoodFactsByText(query: string): Promise<BarcodeLookup | null> {
+  try {
+    const q = query.trim().slice(0, 200);
+    if (!q) return null;
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=1`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "RAPscanz/1.0 (https://rapscanz-food-tech.lovable.app)" },
+    });
+    if (!res.ok) return null;
+    const json = await res.json() as any;
+    const p = json?.products?.[0];
+    if (!p) return null;
+    const name = p.product_name || p.product_name_en || p.generic_name || "";
+    if (!name) return null;
+    const ingredients = p.ingredients_text || p.ingredients_text_en || "";
+    return {
+      name,
+      brand: (p.brands || "").split(",")[0]?.trim() || undefined,
+      parentCompany: p.brand_owner || undefined,
+      category: (p.categories || "").split(",").pop()?.trim() || undefined,
+      quantity: p.quantity || undefined,
+      ingredients,
+      source: "Open Food Facts (search)",
+      nutriments: p.nutriments ?? null,
+      labels: p.labels || "",
+    };
+  } catch { return null; }
+}
+
+
+
 async function lookupUpcItemDb(barcode: string): Promise<BarcodeLookup | null> {
   try {
     const res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${encodeURIComponent(barcode)}`, {
@@ -948,14 +984,35 @@ export const analyzeScan = createServerFn({ method: "POST" })
       }
 
     } else if (data.imageDataUrl) {
-
+      // Try to enrich with a real OFF/GS1 product. The image already passed
+      // through the OCR-barcode promotion above; if we still got here the
+      // OCR couldn't read a barcode, but the user may have typed a hint
+      // into `data.text` (brand name, product title) — search the registry
+      // with that so brands like Naturo, Amul, Cadbury, Hershey's etc.
+      // resolve deterministically the same way a barcode would.
+      const hint = data.text?.trim();
+      const off = hint ? await lookupOpenFoodFactsByText(hint) : null;
+      const header = off
+        ? `Registry match — Product: ${off.name}${off.brand ? `\nBrand: ${off.brand}` : ""}${off.parentCompany ? `\nParent company: ${off.parentCompany}` : ""}${off.category ? `\nCategory: ${off.category}` : ""}${off.ingredients ? `\nRegistry ingredients: ${off.ingredients}` : ""}\nSource: ${off.source} (verified registry)\n\n`
+        : "";
+      if (off) knownProductName = off.name;
       userContent = [
-        { type: "text", text: `Read the ingredient list from this food label image and analyze the product.${healthContext}${planInstructions}` },
+        { type: "text", text: `${header}Read the ingredient list from this food label image and analyze the product. ${off ? "Use the registry-supplied product identity above — do NOT rename it." : ""}${healthContext}${planInstructions}` },
         { type: "image_url", image_url: { url: data.imageDataUrl } },
       ];
     } else {
-      userContent = `Ingredients: ${data.text!.trim()}\n\nAnalyze this product.${healthContext}${planInstructions}`;
+      // Ingredient-typer path: search the OFF registry by the typed text so
+      // a query like "naturo dark chocolate" resolves to the real GS1 entry
+      // before AI analysis runs.
+      const off = await lookupOpenFoodFactsByText(data.text!);
+      if (off) {
+        knownProductName = off.name;
+        userContent = `Registry match — Product: ${off.name}${off.brand ? `\nBrand: ${off.brand}` : ""}${off.parentCompany ? `\nParent company: ${off.parentCompany}` : ""}${off.category ? `\nCategory: ${off.category}` : ""}\nSource: ${off.source} (verified registry)\nRegistry ingredients: ${off.ingredients || "(none on file)"}\nUser-typed ingredients/notes: ${data.text!.trim()}\n\nAnalyze this product. DO NOT change productName, brand, parentCompany, or category — keep them exactly as given above (they come from the GS1/Open Food Facts registry).${healthContext}${planInstructions}`;
+      } else {
+        userContent = `Ingredients: ${data.text!.trim()}\n\nAnalyze this product.${healthContext}${planInstructions}`;
+      }
     }
+
 
     const messages = [
       { role: "system", content: SYSTEM_PROMPT },
