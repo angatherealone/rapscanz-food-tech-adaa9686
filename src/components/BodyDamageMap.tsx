@@ -484,13 +484,26 @@ export function BodyDamageMap({
           {/* Soft inner rim highlight */}
           <path d={BODY_OUTLINE} fill="none" stroke="url(#bdm-body-rim)" strokeWidth="0.6" opacity="0.7" />
 
+          {/* Subtle anatomical zones so organs visually sit in the correct cavities. */}
+          <path d={CHEST_CAVITY} fill="none" stroke="#67e8f9" strokeWidth="0.8" strokeOpacity="0.18" strokeDasharray="4 7" />
+          <path d={ABDOMEN_CAVITY} fill="none" stroke="#67e8f9" strokeWidth="0.8" strokeOpacity="0.14" strokeDasharray="4 7" />
+
           {/* Centerline scan accent */}
           <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="3 5" />
+
+          {/* Full-body overlays for systemic targets. */}
+          {(["skin", "bones"] as const).map((key) => {
+            const it = itemByKey.get(key);
+            if (!it) return null;
+            const color = palette[it.severity] ?? palette.medium;
+            return <g key={key}>{renderSystemOverlay({ system: key, color, onClick: () => setFocusKey(key) })}</g>;
+          })}
 
           {/* Affected organs — glowing, clickable */}
           {ORGAN_ORDER.map((key) => {
             const it = itemByKey.get(key);
             if (!it) return null;
+            if (key === "skin" || key === "bones") return null;
             const pos = ORGAN_POS[key];
             if (!pos) return null;
             const color = palette[it.severity] ?? palette.medium;
