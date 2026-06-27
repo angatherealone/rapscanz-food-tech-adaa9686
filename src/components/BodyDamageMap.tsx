@@ -108,31 +108,96 @@ function normalizePart(p: string): string {
 /* ----------------------------------------------------------------- */
 
 /** Center (cx, cy) and render scale for each organ inside the 400x720 body viewBox.
- *  Coordinates target the slim athletic silhouette (BODY_OUTLINE below) where the
- *  torso spans roughly x∈[150,250] and the abdominal cavity sits around y∈[260,460]. */
-// Torso spans roughly y∈[140, 400] in the 400x720 viewBox; legs begin ~y=420.
-// All visceral organs are constrained inside the torso cavity (no organs in legs).
+ *  Locked to a reference-style anatomical map: thoracic organs stay between the
+ *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
+ *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 64,  scale: 0.42 }, // cranium
-  eyes:       { cx: 200, cy: 92,  scale: 0.26 }, // mid-face
-  teeth:      { cx: 200, cy: 112, scale: 0.26 }, // jaw
-  throat:     { cx: 200, cy: 138, scale: 0.26 }, // neck
-  lungs:      { cx: 200, cy: 200, scale: 0.62 }, // upper chest, both sides
-  heart:      { cx: 188, cy: 212, scale: 0.36 }, // medial, slightly left, between lungs
-  liver:      { cx: 178, cy: 262, scale: 0.42 }, // right upper abdomen (viewer-left of patient = right side)
-  stomach:    { cx: 222, cy: 266, scale: 0.36 }, // left upper abdomen
-  pancreas:   { cx: 200, cy: 298, scale: 0.30 }, // central, behind stomach
-  kidneys:    { cx: 200, cy: 320, scale: 0.46 }, // symmetric, mid-back
-  intestines: { cx: 200, cy: 368, scale: 0.54 }, // lower abdominal basin (above pelvis)
-  skin:       { cx: 282, cy: 240, scale: 0.28 }, // shown on shoulder/arm area
-  bones:      { cx: 200, cy: 300, scale: 0.50 }, // spine column inside torso
+  brain:      { cx: 200, cy: 70,  scale: 0.36 }, // centered inside cranium
+  eyes:       { cx: 200, cy: 88,  scale: 0.16 }, // face/orbital band
+  teeth:      { cx: 200, cy: 108, scale: 0.16 }, // mouth/jaw
+  throat:     { cx: 200, cy: 135, scale: 0.18 }, // neck/trachea
+  lungs:      { cx: 200, cy: 220, scale: 0.50 }, // large paired lungs inside rib cage
+  heart:      { cx: 194, cy: 236, scale: 0.24 }, // slightly patient-left, between lungs
+  liver:      { cx: 166, cy: 305, scale: 0.36 }, // patient-right upper abdomen (viewer-left)
+  stomach:    { cx: 225, cy: 305, scale: 0.25 }, // patient-left upper abdomen
+  pancreas:   { cx: 205, cy: 334, scale: 0.24 }, // central transverse abdomen
+  kidneys:    { cx: 200, cy: 348, scale: 0.31 }, // paired mid-back below rib cage
+  intestines: { cx: 200, cy: 410, scale: 0.45 }, // lower abdomen / pelvic basin
+  skin:       { cx: 200, cy: 320, scale: 1 },
+  bones:      { cx: 200, cy: 320, scale: 1 },
 };
 
-/** Clean medical-style athletic humanoid silhouette — slim torso, proportional
- *  shoulders, hanging arms, parallel legs. Designed to look like a standard
- *  upright anatomical reference model rather than a bulky figure. */
+/** Clean medical anatomical silhouette based on the user's reference: upright
+ *  body, long arms, narrower waist, organs contained inside the chest/abdomen. */
 const BODY_OUTLINE =
-  "M200 20 C 222 20 238 38 238 62 C 238 80 230 96 218 104 L 220 120 L 246 128 C 264 134 278 150 282 168 L 290 232 L 292 318 L 286 396 L 274 400 L 268 396 L 270 318 L 268 232 L 262 196 L 258 220 L 254 296 L 248 360 L 252 420 L 250 540 L 246 656 L 240 706 L 218 706 L 214 656 L 210 540 L 204 420 L 200 360 L 196 420 L 190 540 L 186 656 L 182 706 L 160 706 L 154 656 L 150 540 L 148 420 L 152 360 L 146 296 L 142 220 L 138 196 L 132 232 L 130 318 L 132 396 L 126 400 L 114 396 L 108 318 L 110 232 L 118 168 C 122 150 136 134 154 128 L 180 120 L 182 104 C 170 96 162 80 162 62 C 162 38 178 20 200 20 Z";
+  "M200 24 C226 24 244 45 244 72 C244 91 235 107 221 117 L223 136 L266 158 C287 169 300 188 306 214 L330 334 L356 486 L380 508 C392 520 392 542 378 551 C362 562 345 550 348 532 L318 502 L289 390 L266 284 C260 335 255 414 257 466 C259 514 259 596 251 694 L224 694 C218 610 211 525 207 458 C204 418 202 382 200 350 C198 382 196 418 193 458 C189 525 182 610 176 694 L149 694 C141 596 141 514 143 466 C145 414 140 335 134 284 L111 390 L82 502 L52 532 C55 550 38 562 22 551 C8 542 8 520 20 508 L44 486 L70 334 L94 214 C100 188 113 169 134 158 L177 136 L179 117 C165 107 156 91 156 72 C156 45 174 24 200 24 Z";
+
+const CHEST_CAVITY = "M143 180 C154 150 179 138 200 140 C221 138 246 150 257 180 C266 205 262 259 248 288 C237 314 218 324 200 318 C182 324 163 314 152 288 C138 259 134 205 143 180 Z";
+const ABDOMEN_CAVITY = "M150 288 C163 318 181 329 200 326 C219 329 237 318 250 288 C259 325 256 395 244 443 C233 485 218 506 200 506 C182 506 167 485 156 443 C144 395 141 325 150 288 Z";
+
+function renderSystemOverlay({
+  system,
+  color,
+  onClick,
+}: {
+  system: "skin" | "bones";
+  color: string;
+  onClick: () => void;
+}) {
+  if (system === "skin") {
+    return (
+      <g
+        role="button"
+        aria-label="Open Skin diagnostic"
+        onClick={onClick}
+        className="cursor-pointer outline-none"
+        style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 26px ${color}aa)` }}
+      >
+        <path
+          d={BODY_OUTLINE}
+          fill={`${color}10`}
+          stroke={color}
+          strokeWidth="5"
+          opacity="0.9"
+          style={{ animation: "bdm-pulse 1.55s ease-in-out infinite" }}
+        />
+        <path d={BODY_OUTLINE} fill="none" stroke={color} strokeWidth="1.3" opacity="1" />
+      </g>
+    );
+  }
+
+  return (
+    <g
+      role="button"
+      aria-label="Open Bones diagnostic"
+      onClick={onClick}
+      className="cursor-pointer outline-none"
+      fill="none"
+      stroke={color}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 26px ${color}aa)` }}
+    >
+      <path d={BODY_OUTLINE} strokeWidth="2.4" opacity="0.32" style={{ animation: "bdm-pulse 1.55s ease-in-out infinite" }} />
+      {/* Skull, spine, rib cage, pelvis, arms, and legs — full skeleton outline, not a single bone. */}
+      <ellipse cx="200" cy="72" rx="31" ry="42" strokeWidth="2.2" fill={`${color}0d`} />
+      <path d="M200 116 L200 470" strokeWidth="2.4" />
+      {[168, 184, 200, 216, 232, 248, 264].map((y, i) => (
+        <path
+          key={y}
+          d={`M200 ${y} C ${174 - i * 2} ${y - 2} ${157 - i} ${y + 13} ${148 + i} ${y + 32} M200 ${y} C ${226 + i * 2} ${y - 2} ${243 + i} ${y + 13} ${252 - i} ${y + 32}`}
+          strokeWidth="1.5"
+          opacity="0.78"
+        />
+      ))}
+      <path d="M152 150 L104 246 L82 360 L48 504" strokeWidth="2" />
+      <path d="M248 150 L296 246 L318 360 L352 504" strokeWidth="2" />
+      <path d="M162 462 C178 485 222 485 238 462 M167 482 C184 498 216 498 233 482" strokeWidth="2" />
+      <path d="M184 490 L166 694 M216 490 L234 694" strokeWidth="2.2" />
+      <path d="M174 590 L153 694 M226 590 L247 694" strokeWidth="1.4" opacity="0.7" />
+    </g>
+  );
+}
 
 
 
