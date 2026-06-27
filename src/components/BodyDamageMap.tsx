@@ -199,6 +199,40 @@ function renderSystemOverlay({
   );
 }
 
+function renderSystemScope(system: "skin" | "bones", color: string) {
+  const transform = "translate(52 13) scale(0.24)";
+
+  if (system === "skin") {
+    return (
+      <g transform={transform}>
+        <path d={BODY_OUTLINE} fill={`${color}18`} stroke={color} strokeWidth="7" opacity="0.92" />
+        <path d={BODY_OUTLINE} fill="none" stroke={color} strokeWidth="2" opacity="1" />
+      </g>
+    );
+  }
+
+  return (
+    <g transform={transform} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round">
+      <path d={BODY_OUTLINE} strokeWidth="3" opacity="0.28" />
+      <ellipse cx="200" cy="72" rx="31" ry="42" strokeWidth="3" fill={`${color}0d`} />
+      <path d="M200 116 L200 470" strokeWidth="3" />
+      {[168, 184, 200, 216, 232, 248, 264].map((y, i) => (
+        <path
+          key={y}
+          d={`M200 ${y} C ${174 - i * 2} ${y - 2} ${157 - i} ${y + 13} ${148 + i} ${y + 32} M200 ${y} C ${226 + i * 2} ${y - 2} ${243 + i} ${y + 13} ${252 - i} ${y + 32}`}
+          strokeWidth="2"
+          opacity="0.82"
+        />
+      ))}
+      <path d="M152 150 L104 246 L82 360 L48 504" strokeWidth="2.6" />
+      <path d="M248 150 L296 246 L318 360 L352 504" strokeWidth="2.6" />
+      <path d="M162 462 C178 485 222 485 238 462 M167 482 C184 498 216 498 233 482" strokeWidth="2.6" />
+      <path d="M184 490 L166 694 M216 490 L234 694" strokeWidth="3" />
+      <path d="M174 590 L153 694 M226 590 L247 694" strokeWidth="2" opacity="0.72" />
+    </g>
+  );
+}
+
 
 
 /* ----------------------------------------------------------------- */
@@ -225,7 +259,9 @@ function FocusModal({
   const palette = SEVERITY_COLOR[variant];
   const color = item ? palette[item.severity] ?? palette.medium : NOMINAL_COLOR;
   const accent = affected ? color : NOMINAL_COLOR;
-  const render = ORGAN_ART[organKey] ?? ORGAN_FALLBACK;
+  const render = organKey === "skin" || organKey === "bones"
+    ? (c: string) => renderSystemScope(organKey, c)
+    : ORGAN_ART[organKey] ?? ORGAN_FALLBACK;
   const layers = TISSUE_LAYERS[organKey] ?? ["Surface Epithelium", "Connective Tissue"];
   const triggers = splitTriggers(item?.trigger);
 
