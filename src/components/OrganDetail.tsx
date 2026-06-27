@@ -315,18 +315,22 @@ export const ORGAN_ART: Record<string, OrganRenderer> = {
     </g>
   ),
   bones: (c) => (
-    <g fill="none" strokeLinejoin="round">
-      {/* Femur-like long bone */}
-      <path
-        d="M76 18 Q60 18 60 36 Q60 50 76 52 L76 150 Q60 152 60 168 Q60 184 80 184 Q100 184 100 168 Q100 152 88 150 L88 52 Q104 50 104 36 Q104 18 88 18 Q82 14 76 18 Z"
-        fill={`${c}1c`}
-        stroke={c}
-        strokeWidth="2.4"
-      />
-      {/* Trabecular detail at heads */}
-      <path d="M66 30 L96 30 M66 40 L96 40 M66 162 L96 162 M66 172 L96 172" stroke={c} strokeWidth="1" opacity="0.6" />
-      {/* Shaft marrow line */}
-      <path d="M82 60 L82 142" stroke={c} strokeWidth="1" opacity="0.55" strokeDasharray="3 3" />
+    <g fill="none" stroke={c} strokeLinecap="round" strokeLinejoin="round">
+      {/* Professional skeletal-system icon: skull, ribs, spine, pelvis, paired long bones. */}
+      <path d="M78 38 C78 18 90 10 104 10 C118 10 130 18 130 38 C130 58 120 72 104 72 C88 72 78 58 78 38 Z" fill={`${c}12`} strokeWidth="2.2" />
+      <path d="M96 42 L96 42 M112 42 L112 42 M96 58 Q104 62 112 58" strokeWidth="2" />
+      <path d="M104 73 L104 164" strokeWidth="2.4" />
+      {[84, 96, 108, 120, 132].map((y, i) => (
+        <path
+          key={y}
+          d={`M104 ${y} C ${86 - i} ${y - 4} ${74 + i} ${y + 8} ${70 + i} ${y + 22} M104 ${y} C ${122 + i} ${y - 4} ${134 - i} ${y + 8} ${138 - i} ${y + 22}`}
+          strokeWidth="1.5"
+          opacity="0.78"
+        />
+      ))}
+      <path d="M80 160 C94 176 114 176 128 160 M86 174 C98 184 110 184 122 174" strokeWidth="2" />
+      <path d="M92 178 L82 196 M116 178 L126 196" strokeWidth="2.2" />
+      <path d="M70 84 L50 128 M138 84 L158 128" strokeWidth="1.8" opacity="0.78" />
     </g>
   ),
 };
