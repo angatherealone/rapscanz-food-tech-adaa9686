@@ -336,7 +336,7 @@ function FocusModal({
             {/* Magnified organ */}
             <svg
               viewBox="0 0 200 200"
-              className="relative h-full w-full max-h-[420px] p-6"
+              className="relative h-full w-full max-h-[420px] p-8"
               style={{ filter: `drop-shadow(0 0 28px ${accent}aa)` }}
             >
               {render(accent)}
@@ -483,7 +483,7 @@ export function BodyDamageMap({
       </div>
 
       {/* Central humanoid silhouette */}
-      <div className="relative mx-auto w-full max-w-[460px]">
+      <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[400px]">
         <svg
           viewBox="0 0 400 720"
           className="h-auto w-full"
@@ -560,10 +560,10 @@ export function BodyDamageMap({
                 <circle
                   cx={pos.cx}
                   cy={pos.cy}
-                  r={60 * s}
+                  r={50 * s}
                   fill={color}
-                  opacity="0.22"
-                  style={{ animation: "bdm-pulse 1.8s ease-in-out infinite" }}
+                  opacity="0.18"
+                  style={{ animation: "bdm-pulse 1.6s ease-in-out infinite" }}
                 />
                 {/* Organ illustration */}
                 <g transform={`translate(${tx} ${ty}) scale(${s})`}>
@@ -573,19 +573,19 @@ export function BodyDamageMap({
                 <circle
                   cx={pos.cx}
                   cy={pos.cy}
-                  r={48 * s}
+                  r={40 * s}
                   fill="none"
                   stroke={color}
-                  strokeWidth="1.2"
-                  opacity="0.7"
-                  style={{ animation: "bdm-pulse 1.8s ease-in-out infinite" }}
+                  strokeWidth="0.9"
+                  opacity="0.58"
+                  style={{ animation: "bdm-pulse 1.6s ease-in-out infinite" }}
                 />
                 {/* Label */}
                 <text
                   x={pos.cx}
-                  y={pos.cy + 62 * s}
+                  y={pos.cy + 54 * s}
                   textAnchor="middle"
-                  fontSize="10"
+                  fontSize="8.5"
                   fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
                   fill={color}
                   style={{ textShadow: `0 0 6px ${color}` }}
