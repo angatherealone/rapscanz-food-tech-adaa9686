@@ -112,17 +112,17 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 70,  scale: 0.36 }, // centered inside cranium
-  eyes:       { cx: 200, cy: 88,  scale: 0.16 }, // face/orbital band
-  teeth:      { cx: 200, cy: 108, scale: 0.16 }, // mouth/jaw
-  throat:     { cx: 200, cy: 135, scale: 0.18 }, // neck/trachea
-  lungs:      { cx: 200, cy: 220, scale: 0.50 }, // large paired lungs inside rib cage
-  heart:      { cx: 194, cy: 236, scale: 0.24 }, // slightly patient-left, between lungs
-  liver:      { cx: 166, cy: 305, scale: 0.36 }, // patient-right upper abdomen (viewer-left)
-  stomach:    { cx: 225, cy: 305, scale: 0.25 }, // patient-left upper abdomen
-  pancreas:   { cx: 205, cy: 334, scale: 0.24 }, // central transverse abdomen
-  kidneys:    { cx: 200, cy: 348, scale: 0.31 }, // paired mid-back below rib cage
-  intestines: { cx: 200, cy: 410, scale: 0.45 }, // lower abdomen / pelvic basin
+  brain:      { cx: 200, cy: 76,  scale: 0.34 }, // centered inside cranium
+  eyes:       { cx: 200, cy: 91,  scale: 0.16 }, // face/orbital band
+  teeth:      { cx: 200, cy: 112, scale: 0.16 }, // mouth/jaw
+  throat:     { cx: 200, cy: 142, scale: 0.18 }, // neck/trachea
+  lungs:      { cx: 200, cy: 230, scale: 0.60 }, // large paired lungs inside rib cage
+  heart:      { cx: 194, cy: 254, scale: 0.31 }, // slightly patient-left, between lungs
+  liver:      { cx: 170, cy: 329, scale: 0.43 }, // patient-right upper abdomen (viewer-left)
+  stomach:    { cx: 226, cy: 333, scale: 0.32 }, // patient-left upper abdomen
+  pancreas:   { cx: 203, cy: 360, scale: 0.29 }, // central transverse abdomen
+  kidneys:    { cx: 200, cy: 372, scale: 0.38 }, // paired mid-back below rib cage
+  intestines: { cx: 200, cy: 438, scale: 0.54 }, // lower abdomen / pelvic basin
   skin:       { cx: 200, cy: 320, scale: 1 },
   bones:      { cx: 200, cy: 320, scale: 1 },
 };
@@ -130,10 +130,10 @@ const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
 /** Clean medical anatomical silhouette based on the user's reference: upright
  *  body, long arms, narrower waist, organs contained inside the chest/abdomen. */
 const BODY_OUTLINE =
-  "M200 24 C226 24 244 45 244 72 C244 91 235 107 221 117 L223 136 L266 158 C287 169 300 188 306 214 L330 334 L356 486 L380 508 C392 520 392 542 378 551 C362 562 345 550 348 532 L318 502 L289 390 L266 284 C260 335 255 414 257 466 C259 514 259 596 251 694 L224 694 C218 610 211 525 207 458 C204 418 202 382 200 350 C198 382 196 418 193 458 C189 525 182 610 176 694 L149 694 C141 596 141 514 143 466 C145 414 140 335 134 284 L111 390 L82 502 L52 532 C55 550 38 562 22 551 C8 542 8 520 20 508 L44 486 L70 334 L94 214 C100 188 113 169 134 158 L177 136 L179 117 C165 107 156 91 156 72 C156 45 174 24 200 24 Z";
+  "M200 34 C224 34 240 53 240 80 C240 99 232 113 219 122 L219 143 L256 153 C286 162 307 188 309 219 L309 279 C321 294 322 324 315 351 L302 410 L324 506 C344 516 346 544 329 555 C313 565 296 554 302 534 L278 508 L252 400 L244 300 C239 347 235 406 238 462 C240 512 239 602 230 694 L212 694 L203 462 C202 430 201 391 200 354 C199 391 198 430 197 462 L188 694 L170 694 C161 602 160 512 162 462 C165 406 161 347 156 300 L148 400 L122 508 L98 534 C104 554 87 565 71 555 C54 544 56 516 76 506 L98 410 L85 351 C78 324 79 294 91 279 L91 219 C93 188 114 162 144 153 L181 143 L181 122 C168 113 160 99 160 80 C160 53 176 34 200 34 Z";
 
-const CHEST_CAVITY = "M143 180 C154 150 179 138 200 140 C221 138 246 150 257 180 C266 205 262 259 248 288 C237 314 218 324 200 318 C182 324 163 314 152 288 C138 259 134 205 143 180 Z";
-const ABDOMEN_CAVITY = "M150 288 C163 318 181 329 200 326 C219 329 237 318 250 288 C259 325 256 395 244 443 C233 485 218 506 200 506 C182 506 167 485 156 443 C144 395 141 325 150 288 Z";
+const CHEST_CAVITY = "M137 184 C152 153 178 143 200 145 C222 143 248 153 263 184 C273 213 269 274 252 310 C238 337 217 345 200 340 C183 345 162 337 148 310 C131 274 127 213 137 184 Z";
+const ABDOMEN_CAVITY = "M151 306 C164 333 183 345 200 342 C217 345 236 333 249 306 C260 352 258 425 244 476 C232 516 216 535 200 535 C184 535 168 516 156 476 C142 425 140 352 151 306 Z";
 
 function renderSystemOverlay({
   system,
@@ -179,22 +179,21 @@ function renderSystemOverlay({
       style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 26px ${color}aa)` }}
     >
       <path d={BODY_OUTLINE} strokeWidth="2.4" opacity="0.32" style={{ animation: "bdm-pulse 1.55s ease-in-out infinite" }} />
-      {/* Skull, spine, rib cage, pelvis, arms, and legs — full skeleton outline, not a single bone. */}
-      <ellipse cx="200" cy="72" rx="31" ry="42" strokeWidth="2.2" fill={`${color}0d`} />
-      <path d="M200 116 L200 470" strokeWidth="2.4" />
-      {[168, 184, 200, 216, 232, 248, 264].map((y, i) => (
+      {/* Skull, spine, rib cage, pelvis, arms, and legs — full skeletal map, not a single bone. */}
+      <path d="M173 72 C173 48 186 38 200 38 C214 38 227 48 227 72 C227 99 216 116 200 116 C184 116 173 99 173 72 Z" strokeWidth="2.2" fill={`${color}0d`} />
+      <path d="M185 146 C193 152 207 152 215 146 M200 116 L200 486" strokeWidth="2.3" />
+      {[174, 192, 210, 228, 246, 264, 282].map((y, i) => (
         <path
           key={y}
-          d={`M200 ${y} C ${174 - i * 2} ${y - 2} ${157 - i} ${y + 13} ${148 + i} ${y + 32} M200 ${y} C ${226 + i * 2} ${y - 2} ${243 + i} ${y + 13} ${252 - i} ${y + 32}`}
-          strokeWidth="1.5"
-          opacity="0.78"
+          d={`M200 ${y} C ${174 - i * 1.6} ${y - 6} ${154 + i} ${y + 13} ${146 + i} ${y + 35} M200 ${y} C ${226 + i * 1.6} ${y - 6} ${246 - i} ${y + 13} ${254 - i} ${y + 35}`}
+          strokeWidth="1.35"
+          opacity="0.76"
         />
       ))}
-      <path d="M152 150 L104 246 L82 360 L48 504" strokeWidth="2" />
-      <path d="M248 150 L296 246 L318 360 L352 504" strokeWidth="2" />
-      <path d="M162 462 C178 485 222 485 238 462 M167 482 C184 498 216 498 233 482" strokeWidth="2" />
-      <path d="M184 490 L166 694 M216 490 L234 694" strokeWidth="2.2" />
-      <path d="M174 590 L153 694 M226 590 L247 694" strokeWidth="1.4" opacity="0.7" />
+      <path d="M152 156 L118 242 L99 352 L78 502 M248 156 L282 242 L301 352 L322 502" strokeWidth="2" opacity="0.88" />
+      <path d="M158 466 C177 490 223 490 242 466 M169 486 C184 501 216 501 231 486" strokeWidth="2" />
+      <path d="M184 494 L173 592 L168 694 M216 494 L227 592 L232 694" strokeWidth="2.2" />
+      <path d="M173 592 L153 694 M227 592 L247 694" strokeWidth="1.45" opacity="0.7" />
     </g>
   );
 }
