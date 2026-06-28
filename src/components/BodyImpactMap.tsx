@@ -10,16 +10,7 @@ export type BodyImpactItem = {
 type Variant = "damage" | "benefit";
 
 const HumanoidShape = () => (
-  <g>
-    <circle cx="200" cy="52" r="16" />
-    <line x1="200" y1="68" x2="200" y2="78" strokeWidth={3} />
-    <path d="M168,92 C185,84 215,84 232,92 L224,145 L176,145 Z" />
-    <path d="M176,145 L180,205 C190,208 210,208 220,205 L224,145 Z" />
-    <path d="M168,92 L150,145 L144,195" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M232,92 L250,145 L256,195" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M183,206 L181,290 L183,375" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M217,206 L219,290 L221,375" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
-  </g>
+  <path d="M200,42 C209,42 216,35 216,26 C216,17 209,10 200,10 C191,10 184,17 184,26 C184,35 191,42 200,42 Z M188,48 C166,51 154,62 142,80 C134,92 122,118 116,155 C112,175 116,180 122,180 C128,180 131,170 134,155 C140,128 152,100 164,88 L164,175 C164,215 158,255 154,295 L132,380 C128,396 136,405 145,405 C154,405 162,392 168,365 L186,280 L190,280 L190,440 C190,448 196,450 200,450 C204,450 210,448 210,440 L210,280 L214,280 L232,365 C238,392 246,405 255,405 C264,405 272,396 268,380 L246,295 C242,255 236,215 236,175 L236,88 C248,100 260,128 266,155 C269,170 272,180 278,180 C284,180 288,175 284,155 C278,118 266,92 258,80 C246,62 234,51 212,48 Z" />
 );
 
 const ORGAN_POS: Record<string, { x: number; y: number; r: number; label: string }> = {
