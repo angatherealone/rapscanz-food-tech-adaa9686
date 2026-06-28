@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "sonner";
 import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2, Lock } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
+import { BodyImpactMap } from "@/components/BodyImpactMap";
 
 import { ScanFeedback } from "@/components/ScanFeedback";
 import { MiniScannerLoader } from "@/components/MiniScannerLoader";
