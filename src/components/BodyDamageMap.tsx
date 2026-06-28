@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ORGAN_ART, ORGAN_FALLBACK } from "@/components/OrganDetail";
+import anatomyFigure from "@/assets/anatomy-figure.jpg";
+
 
 export type BodyDamage = {
   part: string;
