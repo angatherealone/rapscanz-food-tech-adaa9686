@@ -201,15 +201,14 @@ export function BodyImpactMap({
                       fill={isActive ? accentSoftActive : accentSoft}
                       stroke={accent}
                       strokeWidth={isActive ? 2 : 1}
-                      className="animate-pulse"
+                      className={it.severity === "high" && isHarm ? "animate-pulse" : ""}
                     />
-                    <circle cx={pos.x} cy={pos.y} r={3.5} fill={accent} />
                     <text
                       x={pos.x}
-                      y={pos.y + pos.r + 10}
+                      y={pos.y + 3}
                       textAnchor="middle"
                       fill={accent}
-                      className="font-mono text-[8px] font-bold tracking-wider"
+                      className="text-[7px] font-mono font-bold tracking-widest"
                     >
                       {pos.label}
                     </text>
@@ -220,58 +219,7 @@ export function BodyImpactMap({
           </div>
         </div>
       </div>
-
-      <div className="text-[9px] font-mono text-slate-500 mt-3 text-center uppercase tracking-widest">
-        {mapped.length ? footer : isHarm ? "No specific organ harm detected" : "No specific organ benefit detected"}
-      </div>
-
-      {active && (
-        <div
-          className={`mt-4 border ${isHarm ? "border-red-900/50" : "border-emerald-900/50"} bg-[#090f1c]/95 backdrop-blur-md rounded-xl p-4 shadow-2xl animate-in fade-in slide-in-from-bottom-3`}
-        >
-          <div
-            className={`flex justify-between items-start border-b ${isHarm ? "border-red-950" : "border-emerald-950"} pb-2 mb-3`}
-          >
-            <div>
-              <span
-                className={`text-[9px] font-mono font-bold tracking-widest px-2 py-0.5 rounded border ${
-                  isHarm
-                    ? "text-red-500 bg-red-950/80 border-red-900/40"
-                    : "text-emerald-400 bg-emerald-950/80 border-emerald-900/40"
-                }`}
-              >
-                {isHarm ? "CRITICAL IMPACT VECTOR REPORT" : "POSITIVE BENEFIT VECTOR REPORT"}
-              </span>
-              <h3 className="text-base font-bold text-white mt-1">
-                {ORGAN_POS[normalize(active.part)]?.label ?? active.part}
-              </h3>
-            </div>
-            <button onClick={() => setActive(null)} className="text-slate-500 hover:text-white text-xs font-mono">
-              ✕ CLOSE
-            </button>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Severity</div>
-              <div className="font-semibold capitalize" style={{ color: accent }}>
-                {active.severity}
-              </div>
-            </div>
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
-                {isHarm ? "Damage mechanism" : "Benefit mechanism"}
-              </div>
-              <div className="text-slate-200">{active.reason}</div>
-            </div>
-            {active.trigger && (
-              <div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Trigger</div>
-                <div className="text-slate-300">{active.trigger}</div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <div className="text-[9px] font-mono text-slate-500 mt-3 text-center uppercase tracking-widest">{footer}</div>
     </div>
   );
 }
