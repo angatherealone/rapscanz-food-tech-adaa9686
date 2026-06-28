@@ -138,6 +138,22 @@ export function BodyImpactMap({
                   <line x1={212} y1={270} x2={226} y2={370} />
                 </g>
               )}
+              <g fill="none" stroke={outlineStroke} opacity={0.85}>
+                <HumanoidShape />
+              </g>
+              {!isHarm && (
+                <circle
+                  cx={200}
+                  cy={26}
+                  r={22}
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth={0.75}
+                  strokeDasharray="4,3"
+                  className="animate-spin"
+                  style={{ animationDuration: "18s" }}
+                />
+              )}
               {mapped.map((it) => {
                 const pos = ORGAN_POS[it.key];
                 const isActive = active && normalize(active.part) === it.key;
