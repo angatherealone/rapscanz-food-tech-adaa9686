@@ -552,48 +552,69 @@ export function BodyDamageMap({
         </span>
       </div>
 
-      {/* Central humanoid silhouette */}
+      {/* Central humanoid silhouette — strict aspect ratio to prevent stretching */}
       <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[400px]">
         <svg
           viewBox="0 0 400 720"
+          preserveAspectRatio="xMidYMid meet"
           className="h-auto w-full"
           aria-label="Bio-scanner body silhouette"
         >
           <defs>
-            <pattern id="bdm-body-grid" width="18" height="18" patternUnits="userSpaceOnUse">
-              <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#00f2fe" strokeOpacity="0.18" strokeWidth="0.3" />
+            <pattern id={`bdm-body-grid-${variant}`} width="18" height="18" patternUnits="userSpaceOnUse">
+              <path d="M 18 0 L 0 0 0 18" fill="none" stroke={variant === "benefit" ? "#22c55e" : "#00f2fe"} strokeOpacity="0.14" strokeWidth="0.3" />
             </pattern>
-            <filter id="bdm-body-aura" x="-10%" y="-5%" width="120%" height="110%">
-              <feGaussianBlur stdDeviation="6" />
+            <filter id={`bdm-body-aura-${variant}`} x="-10%" y="-5%" width="120%" height="110%">
+              <feGaussianBlur stdDeviation="8" />
             </filter>
-            <linearGradient id="bdm-body-tint" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.18" />
-              <stop offset="100%" stopColor={variant === "benefit" ? "#22c55e" : "#0ea5e9"} stopOpacity="0.12" />
-            </linearGradient>
+            <filter id={`bdm-body-inner-${variant}`} x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2" />
+            </filter>
           </defs>
 
-          {/* Soft blue aura behind the figure */}
-          <rect x="60" y="20" width="280" height="690" rx="140" fill="#60a5fa" opacity="0.10" filter="url(#bdm-body-aura)" />
+          {/* Soft aura behind the figure */}
+          <rect
+            x="60" y="20" width="280" height="690" rx="140"
+            fill={variant === "benefit" ? "#22c55e" : "#60a5fa"}
+            opacity="0.10"
+            filter={`url(#bdm-body-aura-${variant})`}
+          />
 
-          {/* Slim translucent blue silhouette */}
-          <g style={{ filter: "drop-shadow(0 0 10px rgba(96,165,250,0.35))" }}>
+          {/* Athletic translucent silhouette */}
+          <g>
+            {/* Inner soft glow pass */}
             <path
               d={BODY_OUTLINE}
-              fill="rgba(96,165,250,0.10)"
-              stroke="#60a5fa"
-              strokeWidth="1.6"
+              fill="none"
+              stroke={variant === "benefit" ? "#22c55e" : "#60a5fa"}
+              strokeWidth="6"
               strokeLinejoin="round"
-              fillRule="evenodd"
+              opacity="0.22"
+              filter={`url(#bdm-body-inner-${variant})`}
+            />
+            {/* Crisp outer outline */}
+            <path
+              d={BODY_OUTLINE}
+              fill={variant === "benefit" ? "rgba(34,197,94,0.06)" : "rgba(96,165,250,0.08)"}
+              stroke={variant === "benefit" ? "#22c55e" : "#60a5fa"}
+              strokeWidth="1.4"
+              strokeLinejoin="round"
             />
           </g>
 
+          {/* Neural / muscular wireframe — benefit map only */}
+          {variant === "benefit" && renderNeuralWireframe("#22c55e")}
 
           {/* Diagnostic grid wash */}
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.25" />
-
+          <rect x="0" y="0" width="400" height="720" fill={`url(#bdm-body-grid-${variant})`} opacity="0.25" />
 
           {/* Centerline scan accent */}
-          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 5" />
+          <line
+            x1="200" y1="20" x2="200" y2="700"
+            stroke={variant === "benefit" ? "#22c55e" : "#22d3ee"}
+            strokeOpacity="0.15" strokeWidth="0.5" strokeDasharray="3 5"
+          />
+
 
 
           {/* Full-body overlays for systemic targets. */}
