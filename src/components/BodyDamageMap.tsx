@@ -114,32 +114,33 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 78,  scale: 0.28 },
-  eyes:       { cx: 200, cy: 90,  scale: 0.13 },
-  teeth:      { cx: 200, cy: 108, scale: 0.13 },
-  throat:     { cx: 200, cy: 132, scale: 0.14 },
-  lungs:      { cx: 200, cy: 232, scale: 0.46 },
-  heart:      { cx: 194, cy: 244, scale: 0.24 },
-  liver:      { cx: 180, cy: 320, scale: 0.36 },
-  stomach:    { cx: 220, cy: 320, scale: 0.26 },
-  pancreas:   { cx: 200, cy: 348, scale: 0.24 },
-  kidneys:    { cx: 200, cy: 372, scale: 0.32 },
-  intestines: { cx: 200, cy: 410, scale: 0.42 },
+  brain:      { cx: 200, cy: 76,  scale: 0.24 },
+  eyes:       { cx: 200, cy: 88,  scale: 0.11 },
+  teeth:      { cx: 200, cy: 104, scale: 0.11 },
+  throat:     { cx: 200, cy: 128, scale: 0.12 },
+  lungs:      { cx: 200, cy: 232, scale: 0.36 },
+  heart:      { cx: 194, cy: 244, scale: 0.20 },
+  liver:      { cx: 184, cy: 318, scale: 0.30 },
+  stomach:    { cx: 216, cy: 318, scale: 0.22 },
+  pancreas:   { cx: 200, cy: 346, scale: 0.20 },
+  kidneys:    { cx: 200, cy: 372, scale: 0.28 },
+  intestines: { cx: 200, cy: 410, scale: 0.36 },
   skin:       { cx: 200, cy: 360, scale: 1 },
   bones:      { cx: 200, cy: 360, scale: 1 },
 };
 
 
 
-/** Clean forward-facing male silhouette: head + body as two sub-paths in one
- *  fill region. Designed for viewBox 400x720, centered horizontally. Arms
- *  drop straight at the sides, legs and feet point forward. */
-const BODY_OUTLINE =
-  "M200 36 C223 36 242 55 242 78 C242 101 223 120 200 120 C177 120 158 101 158 78 C158 55 177 36 200 36 Z " +
-  "M186 122 L214 122 L220 144 C244 148 268 156 286 170 C302 182 312 198 316 218 L332 358 C333 372 326 382 314 382 C304 382 296 374 294 364 L286 240 L282 348 L278 408 C276 472 268 588 262 700 L226 700 L222 568 L216 432 L210 400 L200 392 L190 400 L184 432 L178 568 L174 700 L138 700 C132 588 124 472 122 408 L118 348 L114 240 L106 364 C104 374 96 382 86 382 C74 382 67 372 68 358 L84 218 C88 198 98 182 114 170 C132 156 156 148 180 144 L186 122 Z";
 
-const CHEST_CAVITY = "M148 188 C164 168 184 162 200 164 C216 162 236 168 252 188 C262 214 260 268 246 300 C234 322 218 330 200 326 C182 330 166 322 154 300 C140 268 138 214 148 188 Z";
-const ABDOMEN_CAVITY = "M156 296 C168 320 184 332 200 330 C216 332 232 320 244 296 C254 336 252 396 240 440 C230 472 216 488 200 488 C184 488 170 472 160 440 C148 396 146 336 156 296 Z";
+/** Slim forward-facing male silhouette (head + body sub-paths). Translucent
+ *  blue outline figure designed for viewBox 400x720, centered on x=200. */
+const BODY_OUTLINE =
+  "M200 38 C220 38 236 55 236 76 C236 98 220 116 200 116 C180 116 164 98 164 76 C164 55 180 38 200 38 Z " +
+  "M188 118 L212 118 L218 138 C236 142 254 150 268 162 C282 174 290 188 294 206 L304 348 C305 360 298 370 288 370 C280 370 274 362 272 354 L264 232 L260 340 L256 398 C254 460 250 580 244 700 L222 700 L218 568 L214 432 L208 400 L200 392 L192 400 L186 432 L182 568 L178 700 L156 700 C150 580 146 460 144 398 L140 340 L136 232 L128 354 C126 362 120 370 112 370 C102 370 95 360 96 348 L106 206 C110 188 118 174 132 162 C146 150 164 142 182 138 L188 118 Z";
+
+const CHEST_CAVITY = "M152 192 C166 174 184 168 200 170 C216 168 234 174 248 192 C258 216 256 266 244 296 C232 318 218 326 200 322 C182 326 168 318 156 296 C144 266 142 216 152 192 Z";
+const ABDOMEN_CAVITY = "M160 292 C172 314 186 326 200 324 C214 326 228 314 240 292 C250 330 248 388 238 430 C228 462 216 478 200 478 C184 478 172 462 162 430 C152 388 150 330 160 292 Z";
+
 
 
 function renderSystemOverlay({
@@ -509,20 +510,21 @@ export function BodyDamageMap({
             </linearGradient>
           </defs>
 
-          {/* Outer turquoise aura glow behind the figure */}
-          <rect x="40" y="20" width="320" height="680" rx="160" fill="#00f2fe" opacity="0.18" filter="url(#bdm-body-aura)" />
+          {/* Soft blue aura behind the figure */}
+          <rect x="60" y="20" width="280" height="690" rx="140" fill="#60a5fa" opacity="0.10" filter="url(#bdm-body-aura)" />
 
-          {/* Clean light-blue vector silhouette */}
-          <g style={{ filter: "drop-shadow(0 0 14px rgba(96,165,250,0.45))" }}>
+          {/* Slim translucent blue silhouette */}
+          <g style={{ filter: "drop-shadow(0 0 10px rgba(96,165,250,0.35))" }}>
             <path
               d={BODY_OUTLINE}
-              fill="#cfe4ff"
+              fill="rgba(96,165,250,0.10)"
               stroke="#60a5fa"
-              strokeWidth="2"
+              strokeWidth="1.6"
               strokeLinejoin="round"
               fillRule="evenodd"
             />
           </g>
+
 
           {/* Diagnostic grid wash */}
           <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.25" />
@@ -562,30 +564,27 @@ export function BodyDamageMap({
                 className="cursor-pointer outline-none"
                 style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 22px ${color}aa)` }}
               >
-                {/* Glow halo */}
-                <circle
-                  cx={pos.cx}
-                  cy={pos.cy}
-                  r={50 * s}
-                  fill={color}
-                  opacity="0.18"
-                  style={{ animation: "bdm-pulse 1.6s ease-in-out infinite" }}
-                />
-                {/* Organ illustration */}
+                {/* Subtle organ-shaped wash (no round blob) */}
+                <g transform={`translate(${tx} ${ty}) scale(${s})`} opacity="0.55">
+                  {render(color)}
+                </g>
+                {/* Crisp organ illustration on top */}
                 <g transform={`translate(${tx} ${ty}) scale(${s})`}>
                   {render(color)}
                 </g>
-                {/* Pulse ring */}
+                {/* Thin pulse outline echoing the organ shape */}
                 <circle
                   cx={pos.cx}
                   cy={pos.cy}
-                  r={40 * s}
+                  r={42 * s}
                   fill="none"
                   stroke={color}
-                  strokeWidth="0.9"
-                  opacity="0.58"
-                  style={{ animation: "bdm-pulse 1.6s ease-in-out infinite" }}
+                  strokeWidth="0.7"
+                  strokeDasharray="2 3"
+                  opacity="0.5"
+                  style={{ animation: "bdm-pulse 1.8s ease-in-out infinite" }}
                 />
+
                 {/* Label */}
                 <text
                   x={pos.cx}

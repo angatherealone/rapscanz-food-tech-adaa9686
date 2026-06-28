@@ -817,7 +817,7 @@ function ScanPage() {
                 <p className="mb-4 text-sm text-muted-foreground">
                   Exact anatomical view of which organs this product affects. Tap any glowing organ for details.
                 </p>
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid grid-cols-2 gap-3 sm:gap-6">
                   <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                     <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
                       <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
