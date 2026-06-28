@@ -493,41 +493,38 @@ export function BodyDamageMap({
           aria-label="Bio-scanner body silhouette"
         >
           <defs>
-            <radialGradient id="bdm-body-glass" cx="50%" cy="40%" r="70%">
-              <stop offset="0%" stopColor="#1e3a8a" stopOpacity="0.55" />
-              <stop offset="55%" stopColor="#0c1e54" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#020617" stopOpacity="0.92" />
-            </radialGradient>
-            <linearGradient id="bdm-body-rim" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#00f2fe" stopOpacity="1" />
-              <stop offset="100%" stopColor="#00b4d8" stopOpacity="0.6" />
-            </linearGradient>
-            <filter id="bdm-body-aura" x="-20%" y="-10%" width="140%" height="120%">
-              <feGaussianBlur stdDeviation="3.5" />
-            </filter>
             <pattern id="bdm-body-grid" width="18" height="18" patternUnits="userSpaceOnUse">
               <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#00f2fe" strokeOpacity="0.18" strokeWidth="0.3" />
             </pattern>
+            <filter id="bdm-body-aura" x="-10%" y="-5%" width="120%" height="110%">
+              <feGaussianBlur stdDeviation="6" />
+            </filter>
+            <linearGradient id="bdm-body-tint" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.18" />
+              <stop offset="100%" stopColor={variant === "benefit" ? "#22c55e" : "#0ea5e9"} stopOpacity="0.12" />
+            </linearGradient>
           </defs>
 
-          {/* Outer neon turquoise aura (blurred outline) */}
-          <path d={BODY_OUTLINE} fill="none" stroke="#00f2fe" strokeWidth="3" opacity="0.55" filter="url(#bdm-body-aura)" />
-          {/* Deep blue glass body fill */}
-          <path d={BODY_OUTLINE} fill="url(#bdm-body-glass)" />
-          {/* Grid wash inside body (clipped) */}
-          <clipPath id="bdm-body-clip"><path d={BODY_OUTLINE} /></clipPath>
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" clipPath="url(#bdm-body-clip)" opacity="0.55" />
-          {/* Crisp neon turquoise outer rim */}
-          <path d={BODY_OUTLINE} fill="none" stroke="#00f2fe" strokeWidth="1.6" opacity="0.95" />
-          {/* Soft inner rim highlight */}
-          <path d={BODY_OUTLINE} fill="none" stroke="url(#bdm-body-rim)" strokeWidth="0.6" opacity="0.7" />
+          {/* Outer turquoise aura glow behind the figure */}
+          <rect x="40" y="20" width="320" height="680" rx="160" fill="#00f2fe" opacity="0.18" filter="url(#bdm-body-aura)" />
 
-          {/* Subtle anatomical zones so organs visually sit in the correct cavities. */}
-          <path d={CHEST_CAVITY} fill="none" stroke="#67e8f9" strokeWidth="0.8" strokeOpacity="0.18" strokeDasharray="4 7" />
-          <path d={ABDOMEN_CAVITY} fill="none" stroke="#67e8f9" strokeWidth="0.8" strokeOpacity="0.14" strokeDasharray="4 7" />
+          {/* Realistic anatomical figure */}
+          <image
+            href={anatomyFigure}
+            x="0" y="0" width="400" height="720"
+            preserveAspectRatio="xMidYMid meet"
+            style={{ filter: "drop-shadow(0 0 18px rgba(0,242,254,0.45))" }}
+          />
+
+          {/* Subtle scanner tint over figure */}
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-tint)" style={{ mixBlendMode: "screen" }} />
+
+          {/* Diagnostic grid wash */}
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.35" />
 
           {/* Centerline scan accent */}
-          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="3 5" />
+          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 5" />
+
 
           {/* Full-body overlays for systemic targets. */}
           {(["skin", "bones"] as const).map((key) => {
