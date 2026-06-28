@@ -18,6 +18,7 @@ import { ScanFeedback } from "@/components/ScanFeedback";
 import { MiniScannerLoader } from "@/components/MiniScannerLoader";
 import bodyTeaserImg from "@/assets/body-map-teaser.jpg";
 import { Link } from "@tanstack/react-router";
+import { looksLikeGs1, parseGs1 } from "@/lib/gs1";
 
 
 // ---- Local / in-store barcode (GS1 Restricted Distribution Numbers) ----
