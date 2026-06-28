@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ORGAN_ART, ORGAN_FALLBACK } from "@/components/OrganDetail";
-import anatomySilhouette from "@/assets/anatomy-silhouette.png.asset.json";
+
 
 
 export type BodyDamage = {
@@ -114,29 +114,33 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 108, scale: 0.30 },
-  eyes:       { cx: 200, cy: 130, scale: 0.14 },
-  teeth:      { cx: 200, cy: 152, scale: 0.14 },
-  throat:     { cx: 200, cy: 178, scale: 0.16 },
-  lungs:      { cx: 200, cy: 258, scale: 0.52 },
-  heart:      { cx: 192, cy: 272, scale: 0.28 },
-  liver:      { cx: 174, cy: 332, scale: 0.40 },
-  stomach:    { cx: 224, cy: 332, scale: 0.30 },
-  pancreas:   { cx: 200, cy: 368, scale: 0.28 },
-  kidneys:    { cx: 200, cy: 388, scale: 0.36 },
-  intestines: { cx: 200, cy: 432, scale: 0.48 },
+  brain:      { cx: 200, cy: 78,  scale: 0.28 },
+  eyes:       { cx: 200, cy: 90,  scale: 0.13 },
+  teeth:      { cx: 200, cy: 108, scale: 0.13 },
+  throat:     { cx: 200, cy: 132, scale: 0.14 },
+  lungs:      { cx: 200, cy: 232, scale: 0.46 },
+  heart:      { cx: 194, cy: 244, scale: 0.24 },
+  liver:      { cx: 180, cy: 320, scale: 0.36 },
+  stomach:    { cx: 220, cy: 320, scale: 0.26 },
+  pancreas:   { cx: 200, cy: 348, scale: 0.24 },
+  kidneys:    { cx: 200, cy: 372, scale: 0.32 },
+  intestines: { cx: 200, cy: 410, scale: 0.42 },
   skin:       { cx: 200, cy: 360, scale: 1 },
   bones:      { cx: 200, cy: 360, scale: 1 },
 };
 
 
-/** Clean medical anatomical silhouette based on the user's reference: upright
- *  body, long arms, narrower waist, organs contained inside the chest/abdomen. */
-const BODY_OUTLINE =
-  "M200 34 C224 34 240 53 240 80 C240 99 232 113 219 122 L219 143 L256 153 C286 162 307 188 309 219 L309 279 C321 294 322 324 315 351 L302 410 L324 506 C344 516 346 544 329 555 C313 565 296 554 302 534 L278 508 L252 400 L244 300 C239 347 235 406 238 462 C240 512 239 602 230 694 L212 694 L203 462 C202 430 201 391 200 354 C199 391 198 430 197 462 L188 694 L170 694 C161 602 160 512 162 462 C165 406 161 347 156 300 L148 400 L122 508 L98 534 C104 554 87 565 71 555 C54 544 56 516 76 506 L98 410 L85 351 C78 324 79 294 91 279 L91 219 C93 188 114 162 144 153 L181 143 L181 122 C168 113 160 99 160 80 C160 53 176 34 200 34 Z";
 
-const CHEST_CAVITY = "M137 184 C152 153 178 143 200 145 C222 143 248 153 263 184 C273 213 269 274 252 310 C238 337 217 345 200 340 C183 345 162 337 148 310 C131 274 127 213 137 184 Z";
-const ABDOMEN_CAVITY = "M151 306 C164 333 183 345 200 342 C217 345 236 333 249 306 C260 352 258 425 244 476 C232 516 216 535 200 535 C184 535 168 516 156 476 C142 425 140 352 151 306 Z";
+/** Clean forward-facing male silhouette: head + body as two sub-paths in one
+ *  fill region. Designed for viewBox 400x720, centered horizontally. Arms
+ *  drop straight at the sides, legs and feet point forward. */
+const BODY_OUTLINE =
+  "M200 36 C223 36 242 55 242 78 C242 101 223 120 200 120 C177 120 158 101 158 78 C158 55 177 36 200 36 Z " +
+  "M186 122 L214 122 L220 144 C244 148 268 156 286 170 C302 182 312 198 316 218 L332 358 C333 372 326 382 314 382 C304 382 296 374 294 364 L286 240 L282 348 L278 408 C276 472 268 588 262 700 L226 700 L222 568 L216 432 L210 400 L200 392 L190 400 L184 432 L178 568 L174 700 L138 700 C132 588 124 472 122 408 L118 348 L114 240 L106 364 C104 374 96 382 86 382 C74 382 67 372 68 358 L84 218 C88 198 98 182 114 170 C132 156 156 148 180 144 L186 122 Z";
+
+const CHEST_CAVITY = "M148 188 C164 168 184 162 200 164 C216 162 236 168 252 188 C262 214 260 268 246 300 C234 322 218 330 200 326 C182 330 166 322 154 300 C140 268 138 214 148 188 Z";
+const ABDOMEN_CAVITY = "M156 296 C168 320 184 332 200 330 C216 332 232 320 244 296 C254 336 252 396 240 440 C230 472 216 488 200 488 C184 488 170 472 160 440 C148 396 146 336 156 296 Z";
+
 
 function renderSystemOverlay({
   system,
@@ -508,20 +512,21 @@ export function BodyDamageMap({
           {/* Outer turquoise aura glow behind the figure */}
           <rect x="40" y="20" width="320" height="680" rx="160" fill="#00f2fe" opacity="0.18" filter="url(#bdm-body-aura)" />
 
-          {/* Realistic anatomical figure */}
-          <image
-            href={anatomySilhouette.url}
-            x="0" y="0" width="400" height="720"
-            preserveAspectRatio="none"
-            style={{ filter: "drop-shadow(0 0 18px rgba(0,242,254,0.55)) drop-shadow(0 0 36px rgba(0,242,254,0.35))", mixBlendMode: "multiply" }}
-          />
-
-
-          {/* Subtle scanner tint over figure */}
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-tint)" style={{ mixBlendMode: "screen" }} />
+          {/* Clean light-blue vector silhouette */}
+          <g style={{ filter: "drop-shadow(0 0 14px rgba(96,165,250,0.45))" }}>
+            <path
+              d={BODY_OUTLINE}
+              fill="#cfe4ff"
+              stroke="#60a5fa"
+              strokeWidth="2"
+              strokeLinejoin="round"
+              fillRule="evenodd"
+            />
+          </g>
 
           {/* Diagnostic grid wash */}
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.35" />
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.25" />
+
 
           {/* Centerline scan accent */}
           <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 5" />
