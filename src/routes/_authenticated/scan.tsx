@@ -827,7 +827,7 @@ function ScanPage() {
                       <ul className="space-y-2 text-sm">
                         {(result.bodyDamage ?? []).map((it, i) => (
                           <li key={i} className="rounded-lg border border-destructive/20 bg-background/40 p-2">
-                            <div className="font-semibold capitalize">{it.organ}</div>
+                            <div className="font-semibold capitalize">{it.part}</div>
                             {it.reason && <div className="text-xs text-muted-foreground">{it.reason}</div>}
                           </li>
                         ))}
@@ -845,7 +845,7 @@ function ScanPage() {
                       <ul className="space-y-2 text-sm">
                         {(result.bodyBenefit ?? []).map((it, i) => (
                           <li key={i} className="rounded-lg border border-success/20 bg-background/40 p-2">
-                            <div className="font-semibold capitalize">{it.organ}</div>
+                            <div className="font-semibold capitalize">{it.part}</div>
                             {it.reason && <div className="text-xs text-muted-foreground">{it.reason}</div>}
                           </li>
                         ))}
