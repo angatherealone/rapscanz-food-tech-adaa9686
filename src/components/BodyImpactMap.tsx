@@ -202,60 +202,75 @@ export function BodyImpactMap({
       {/* POPUP CONTAINER MODULE MODULE */}
  {/* POPUP CONTAINER */}
 {active && (
+
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
     <div className="w-full max-w-4xl bg-[#090f1c] border border-slate-800 rounded-2xl p-6 shadow-2xl">
 
-      <div className="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-widest text-slate-400">
-            Anatomical System Analysis
-          </div>
-          <h2 className="text-2xl font-bold text-white capitalize">
-            {active.part}
-          </h2>
-        </div>
-
-        <button
-          onClick={() => setActive(null)}
-          className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
-        >
-          Close
-        </button>
+```
+  <div className="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
+    <div>
+      <div className="text-[10px] uppercase tracking-widest text-slate-400">
+        Anatomical System Analysis
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-
-        <div className="space-y-4">
-
-          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
-            <h3 className="text-sm font-semibold text-white mb-2">
-              Analysis
-            </h3>
-            <p className="text-slate-300 text-sm">
-              {active.reason}
-            </p>
-          </div>
-
-          {active.trigger && (
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
-              <h3 className="text-sm font-semibold text-white mb-2">
-                Trigger
-              </h3>
-              <p className="text-slate-300 text-sm">
-                {active.trigger}
-              </p>
-            </div>
-          )}
-
-        
-        <div className="space-y-4">
-
-            )}
-        </div>
-
-      </div>
+      <h2 className="text-2xl font-bold text-white capitalize">
+        {active.part}
+      </h2>
     </div>
+
+    <button
+      onClick={() => setActive(null)}
+      className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+    >
+      Close
+    </button>
+  </div>
+
+  <div className="grid md:grid-cols-2 gap-4">
+
+    <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+      <h3 className="text-sm font-semibold text-white mb-2">
+        Analysis
+      </h3>
+
+      <p className="text-slate-300 text-sm">
+        {active.reason}
+      </p>
+    </div>
+
+    <div className="space-y-4">
+
+      <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+        <h3 className="text-sm font-semibold text-white mb-2">
+          Severity
+        </h3>
+
+        <div className="text-slate-300">
+          {active.severity}
+        </div>
+      </div>
+
+      {active.trigger && (
+        <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+          <h3 className="text-sm font-semibold text-white mb-2">
+            Trigger
+          </h3>
+
+          <p className="text-slate-300 text-sm">
+            {active.trigger}
+          </p>
+        </div>
+      )}
+
+    </div>
+
+  </div>
+
+</div>
+```
+
   </div>
 )}
-  );
+
+);
 }
