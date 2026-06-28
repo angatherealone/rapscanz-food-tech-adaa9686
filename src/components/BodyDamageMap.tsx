@@ -1,7 +1,5 @@
 import { useState, useMemo } from "react";
 export type BodyImpactItem = { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string };
-type Variant = "damage" | "benefit";
-
 const HumanoidShape = () => (
   <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
     <circle cx="200" cy="55" r="16" />
@@ -22,7 +20,6 @@ const HumanoidShape = () => (
     />
   </g>
 );
-
 const ORGAN_POS: Record<string, { x: number; y: number; r: number; label: string }> = {
   brain: { x: 200, y: 26, r: 14, label: "BRAIN" },
   eyes: { x: 200, y: 24, r: 10, label: "EYES" },
@@ -46,7 +43,6 @@ const ORGAN_POS: Record<string, { x: number; y: number; r: number; label: string
   joints: { x: 200, y: 340, r: 12, label: "JOINTS" },
   nerves: { x: 200, y: 200, r: 24, label: "NERVES" },
 };
-
 const normalize = (p: string) => {
   const k = (p || "").toLowerCase().trim();
   if (k.includes("brain")) return "brain";
@@ -72,14 +68,13 @@ const normalize = (p: string) => {
   if (k.includes("nerve") || k.includes("neuro")) return "nerves";
   return k;
 };
-
 export function BodyImpactMap({
   items,
   variant,
   totalSlots = 13,
 }: {
   items: BodyImpactItem[];
-  variant: Variant;
+  variant: "damage" | "benefit";
   totalSlots?: number;
 }) {
   const [active, setActive] = useState<BodyImpactItem | null>(null);
@@ -96,7 +91,6 @@ export function BodyImpactMap({
   const titleColor = isHarm ? "text-red-400" : "text-emerald-400";
   const title = isHarm ? "Harms — organs at risk" : "Benefits — organs that gain";
   const footer = isHarm ? "TAP ANY GLOWING ORGAN FOR ANALYSIS REPORT" : "BIO-LOGGING STABLE // SYSTEM ONLINE";
-
   const mapped = useMemo(() => {
     const seen = new Set<string>();
     return items
@@ -107,7 +101,6 @@ export function BodyImpactMap({
         return !!ORGAN_POS[it.key];
       });
   }, [items]);
-
   return (
     <div
       className={`border ${containerBorder} rounded-xl p-4 shadow-2xl flex flex-col justify-between overflow-hidden`}
