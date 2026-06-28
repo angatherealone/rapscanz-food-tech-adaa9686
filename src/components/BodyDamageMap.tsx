@@ -1,4 +1,20 @@
 import { useState, useMemo } from "react";
+export type BodyImpactItem = {
+  part: string;
+  severity: "low" | "medium" | "high";
+
+  damageScore?: number;
+
+  reason: string;
+
+  trigger?: string;
+
+  causes?: string[];
+
+  effects?: string[];
+
+  recommendations?: string[];
+};
 export function BodyDamageMap({ items, variant, totalSlots = 13 }: { items: BodyImpactItem[]; variant: "damage" | "benefit"; totalSlots?: number }) {
 const HumanoidShape = () => (
   <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
