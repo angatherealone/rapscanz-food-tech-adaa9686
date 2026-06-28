@@ -201,7 +201,9 @@ export function BodyImpactMap({
 
       {/* POPUP CONTAINER MODULE MODULE */}
       {active && (
-        <div className="absolute inset-x-2 bottom-2 bg-[#090f1c]/95 border border-slate-800 backdrop-blur-md rounded-xl p-3 shadow-2xl z-20 animate-in fade-in slide-in-from-bottom-3">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-6">
+    <div className="w-full max-w-4xl bg-[#090f1c] border border-slate-800 rounded-2xl p-6 shadow-2xl">
+      slate-800 backdrop-blur-md rounded-xl p-3 shadow-2xl z-20 animate-in fade-in slide-in-from-bottom-3">
           <div className="flex justify-between items-start border-b border-slate-800 pb-1.5 mb-2">
             <div>
               <span className="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">
@@ -232,5 +234,9 @@ export function BodyImpactMap({
         </div>
       )}
     </div>
+      </div>   {/* original popup content wrapper */}
+</div>   {/* new modal card */}
+</div>   {/* fullscreen overlay */}
+)}
   );
 }
