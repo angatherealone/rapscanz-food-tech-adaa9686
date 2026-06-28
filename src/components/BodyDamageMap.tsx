@@ -114,20 +114,21 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 108, scale: 0.30 },
-  eyes:       { cx: 200, cy: 130, scale: 0.14 },
-  teeth:      { cx: 200, cy: 152, scale: 0.14 },
-  throat:     { cx: 200, cy: 178, scale: 0.16 },
-  lungs:      { cx: 200, cy: 258, scale: 0.52 },
-  heart:      { cx: 192, cy: 272, scale: 0.28 },
-  liver:      { cx: 174, cy: 332, scale: 0.40 },
-  stomach:    { cx: 224, cy: 332, scale: 0.30 },
-  pancreas:   { cx: 200, cy: 368, scale: 0.28 },
-  kidneys:    { cx: 200, cy: 388, scale: 0.36 },
-  intestines: { cx: 200, cy: 432, scale: 0.48 },
+  brain:      { cx: 200, cy: 78,  scale: 0.28 },
+  eyes:       { cx: 200, cy: 90,  scale: 0.13 },
+  teeth:      { cx: 200, cy: 108, scale: 0.13 },
+  throat:     { cx: 200, cy: 132, scale: 0.14 },
+  lungs:      { cx: 200, cy: 232, scale: 0.46 },
+  heart:      { cx: 194, cy: 244, scale: 0.24 },
+  liver:      { cx: 180, cy: 320, scale: 0.36 },
+  stomach:    { cx: 220, cy: 320, scale: 0.26 },
+  pancreas:   { cx: 200, cy: 348, scale: 0.24 },
+  kidneys:    { cx: 200, cy: 372, scale: 0.32 },
+  intestines: { cx: 200, cy: 410, scale: 0.42 },
   skin:       { cx: 200, cy: 360, scale: 1 },
   bones:      { cx: 200, cy: 360, scale: 1 },
 };
+
 
 
 /** Clean forward-facing male silhouette: head + body as two sub-paths in one
