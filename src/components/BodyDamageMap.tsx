@@ -564,30 +564,27 @@ export function BodyDamageMap({
                 className="cursor-pointer outline-none"
                 style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 22px ${color}aa)` }}
               >
-                {/* Glow halo */}
-                <circle
-                  cx={pos.cx}
-                  cy={pos.cy}
-                  r={50 * s}
-                  fill={color}
-                  opacity="0.18"
-                  style={{ animation: "bdm-pulse 1.6s ease-in-out infinite" }}
-                />
-                {/* Organ illustration */}
+                {/* Subtle organ-shaped wash (no round blob) */}
+                <g transform={`translate(${tx} ${ty}) scale(${s})`} opacity="0.55">
+                  {render(color)}
+                </g>
+                {/* Crisp organ illustration on top */}
                 <g transform={`translate(${tx} ${ty}) scale(${s})`}>
                   {render(color)}
                 </g>
-                {/* Pulse ring */}
+                {/* Thin pulse outline echoing the organ shape */}
                 <circle
                   cx={pos.cx}
                   cy={pos.cy}
-                  r={40 * s}
+                  r={42 * s}
                   fill="none"
                   stroke={color}
-                  strokeWidth="0.9"
-                  opacity="0.58"
-                  style={{ animation: "bdm-pulse 1.6s ease-in-out infinite" }}
+                  strokeWidth="0.7"
+                  strokeDasharray="2 3"
+                  opacity="0.5"
+                  style={{ animation: "bdm-pulse 1.8s ease-in-out infinite" }}
                 />
+
                 {/* Label */}
                 <text
                   x={pos.cx}
