@@ -200,43 +200,111 @@ export function BodyImpactMap({
       <div className="text-[9px] font-mono text-slate-500 mt-3 text-center uppercase tracking-widest">{footer}</div>
 
       {/* POPUP CONTAINER MODULE MODULE */}
-      {active && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-6">
+ {/* POPUP CONTAINER */}
+{active && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
     <div className="w-full max-w-4xl bg-[#090f1c] border border-slate-800 rounded-2xl p-6 shadow-2xl">
-      slate-800 backdrop-blur-md rounded-xl p-3 shadow-2xl z-20 animate-in fade-in slide-in-from-bottom-3">
-          <div className="flex justify-between items-start border-b border-slate-800 pb-1.5 mb-2">
-            <div>
-              <span className="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">
-                Anatomical System Diagnosis Report
-              </span>
-              <h3 className="text-sm font-bold text-white mt-0.5 capitalize">{active.part} Matrix</h3>
-            </div>
-            <button
-              onClick={() => setActive(null)}
-              className="text-slate-400 hover:text-white bg-slate-800/50 px-2 py-0.5 rounded text-[9px] font-mono transition-all"
-            >
-              [CLOSE]
-            </button>
+
+      <div className="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
+        <div>
+          <div className="text-[10px] uppercase tracking-widest text-slate-400">
+            Anatomical System Analysis
           </div>
-          <div className="space-y-2">
-            <p className="text-[11px] text-slate-300 leading-relaxed bg-[#050810] p-2 rounded border border-slate-900">
+          <h2 className="text-2xl font-bold text-white capitalize">
+            {active.part}
+          </h2>
+        </div>
+
+        <button
+          onClick={() => setActive(null)}
+          className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+        >
+          Close
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+
+        <div className="space-y-4">
+
+          <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+            <h3 className="text-sm font-semibold text-white mb-2">
+              Analysis
+            </h3>
+            <p className="text-slate-300 text-sm">
               {active.reason}
             </p>
-            {active.trigger && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-mono text-slate-400">VECTOR SOURCE:</span>
-                <span className="bg-slate-950 text-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-800">
-                  ◢ {active.trigger}
-                </span>
+          </div>
+
+          {active.trigger && (
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+              <h3 className="text-sm font-semibold text-white mb-2">
+                Trigger
+              </h3>
+              <p className="text-slate-300 text-sm">
+                {active.trigger}
+              </p>
+            </div>
+          )}
+
+          {active.damageScore && (
+            <div className="bg-red-950/30 border border-red-800 rounded-lg p-4">
+              <div className="text-red-400 text-xs uppercase mb-1">
+                Damage Rating
+              </div>
+              <div className="text-4xl font-bold text-white">
+                {active.damageScore}/10
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+
+          {active.causes && active.causes.length > 0 && (
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+              <h3 className="text-sm font-semibold text-white mb-2">
+                Causes
+              </h3>
+              <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
+                {active.causes.map((cause, index) => (
+                  <li key={index}>{cause}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {active.effects && active.effects.length > 0 && (
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
+              <h3 className="text-sm font-semibold text-white mb-2">
+                Effects
+              </h3>
+              <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
+                {active.effects.map((effect, index) => (
+                  <li key={index}>{effect}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {active.recommendations &&
+            active.recommendations.length > 0 && (
+              <div className="bg-emerald-950/30 border border-emerald-800 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-emerald-400 mb-2">
+                  Recommendations
+                </h3>
+                <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
+                  {active.recommendations.map((rec, index) => (
+                    <li key={index}>{rec}</li>
+                  ))}
+                </ul>
               </div>
             )}
-          </div>
         </div>
-      )}
+
+      </div>
     </div>
-      </div>   {/* original popup content wrapper */}
-</div>   {/* new modal card */}
-</div>   {/* fullscreen overlay */}
+  </div>
 )}
   );
 }
