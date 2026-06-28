@@ -114,60 +114,31 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 72,  scale: 0.22 },
-  eyes:       { cx: 200, cy: 88,  scale: 0.10 },
-  teeth:      { cx: 200, cy: 104, scale: 0.10 },
-  throat:     { cx: 200, cy: 128, scale: 0.11 },
-  lungs:      { cx: 200, cy: 215, scale: 0.32 },
-  heart:      { cx: 190, cy: 218, scale: 0.18 },
-  liver:      { cx: 178, cy: 290, scale: 0.28 },
-  stomach:    { cx: 218, cy: 290, scale: 0.20 },
-  pancreas:   { cx: 200, cy: 322, scale: 0.18 },
-  kidneys:    { cx: 200, cy: 352, scale: 0.26 },
-  intestines: { cx: 200, cy: 395, scale: 0.30 },
-  skin:       { cx: 200, cy: 360, scale: 1 },
-  bones:      { cx: 200, cy: 360, scale: 1 },
+  brain:      { cx: 200, cy: 45,  scale: 0.16 },
+  eyes:       { cx: 200, cy: 52,  scale: 0.07 },
+  teeth:      { cx: 200, cy: 62,  scale: 0.07 },
+  throat:     { cx: 200, cy: 78,  scale: 0.08 },
+  lungs:      { cx: 200, cy: 125, scale: 0.22 },
+  heart:      { cx: 193, cy: 122, scale: 0.13 },
+  liver:      { cx: 184, cy: 168, scale: 0.18 },
+  stomach:    { cx: 212, cy: 165, scale: 0.13 },
+  pancreas:   { cx: 200, cy: 184, scale: 0.12 },
+  kidneys:    { cx: 200, cy: 200, scale: 0.17 },
+  intestines: { cx: 200, cy: 225, scale: 0.20 },
+  skin:       { cx: 200, cy: 210, scale: 1 },
+  bones:      { cx: 200, cy: 210, scale: 1 },
 };
 
-/** Sleek athletic human silhouette — head, torso, separate arms, separate legs.
- *  Built as multiple closed subpaths in one `d` string so it renders as a
- *  single, clean figure with proper proportions inside viewBox 400x720. */
-const BODY_OUTLINE = [
-  // Head — clean circle (r=36) centered at (200, 72)
-  "M236 72 A36 36 0 1 1 164 72 A36 36 0 1 1 236 72 Z",
-  // Neck + torso tapering to hips
-  "M182 110 L218 110 L222 138 " +
-    "C252 144 282 164 286 206 " +
-    "L274 320 L264 414 " +
-    "C262 432 234 438 200 438 " +
-    "C166 438 138 432 136 414 " +
-    "L126 320 L114 206 " +
-    "C118 164 148 144 178 138 Z",
-  // Left arm
-  "M150 144 " +
-    "C128 162 110 204 100 264 " +
-    "L92 386 " +
-    "C91 402 104 408 114 402 " +
-    "L120 388 L132 268 " +
-    "C140 224 152 188 164 164 Z",
-  // Right arm (mirrored)
-  "M250 144 " +
-    "C272 162 290 204 300 264 " +
-    "L308 386 " +
-    "C309 402 296 408 286 402 " +
-    "L280 388 L268 268 " +
-    "C260 224 248 188 236 164 Z",
-  // Left leg
-  "M138 418 " +
-    "C134 484 142 588 152 700 " +
-    "L186 700 " +
-    "C192 588 198 484 198 442 Z",
-  // Right leg
-  "M262 418 " +
-    "C266 484 258 588 248 700 " +
-    "L214 700 " +
-    "C208 588 202 484 202 442 Z",
-].join(" ");
+/** Sleek athletic human silhouette — single path rendered inside viewBox 400x420. */
+const BODY_OUTLINE =
+  "M200,70 C212,70 220,62 220,50 C220,38 212,30 200,30 C188,30 180,38 180,50 C180,62 188,70 200,70 Z " +
+  "M190,75 C175,77 165,85 155,98 C148,108 140,125 135,150 C132,165 136,170 140,170 C144,170 146,162 148,150 " +
+  "C152,130 160,110 170,102 L170,160 C170,190 165,220 162,250 L145,340 C142,355 148,365 155,365 " +
+  "C162,365 168,355 172,335 L188,255 L192,255 L192,380 C192,388 198,390 200,390 C202,390 208,388 208,380 " +
+  "L208,255 L212,255 L228,335 C232,355 238,365 245,365 C252,365 258,355 255,340 L238,250 " +
+  "C235,220 230,190 230,160 L230,102 C240,110 248,130 252,150 C254,162 256,170 260,170 " +
+  "C264,170 268,165 265,150 C260,125 252,108 245,98 C235,85 225,77 210,75 Z";
+
 
 const CHEST_CAVITY = "";
 const ABDOMEN_CAVITY = "";
