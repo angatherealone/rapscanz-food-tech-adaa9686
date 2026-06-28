@@ -114,60 +114,31 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 72,  scale: 0.22 },
-  eyes:       { cx: 200, cy: 88,  scale: 0.10 },
-  teeth:      { cx: 200, cy: 104, scale: 0.10 },
-  throat:     { cx: 200, cy: 128, scale: 0.11 },
-  lungs:      { cx: 200, cy: 215, scale: 0.32 },
-  heart:      { cx: 190, cy: 218, scale: 0.18 },
-  liver:      { cx: 178, cy: 290, scale: 0.28 },
-  stomach:    { cx: 218, cy: 290, scale: 0.20 },
-  pancreas:   { cx: 200, cy: 322, scale: 0.18 },
-  kidneys:    { cx: 200, cy: 352, scale: 0.26 },
-  intestines: { cx: 200, cy: 395, scale: 0.30 },
-  skin:       { cx: 200, cy: 360, scale: 1 },
-  bones:      { cx: 200, cy: 360, scale: 1 },
+  brain:      { cx: 200, cy: 45,  scale: 0.16 },
+  eyes:       { cx: 200, cy: 52,  scale: 0.07 },
+  teeth:      { cx: 200, cy: 62,  scale: 0.07 },
+  throat:     { cx: 200, cy: 78,  scale: 0.08 },
+  lungs:      { cx: 200, cy: 125, scale: 0.22 },
+  heart:      { cx: 193, cy: 122, scale: 0.13 },
+  liver:      { cx: 184, cy: 168, scale: 0.18 },
+  stomach:    { cx: 212, cy: 165, scale: 0.13 },
+  pancreas:   { cx: 200, cy: 184, scale: 0.12 },
+  kidneys:    { cx: 200, cy: 200, scale: 0.17 },
+  intestines: { cx: 200, cy: 225, scale: 0.20 },
+  skin:       { cx: 200, cy: 210, scale: 1 },
+  bones:      { cx: 200, cy: 210, scale: 1 },
 };
 
-/** Sleek athletic human silhouette — head, torso, separate arms, separate legs.
- *  Built as multiple closed subpaths in one `d` string so it renders as a
- *  single, clean figure with proper proportions inside viewBox 400x720. */
-const BODY_OUTLINE = [
-  // Head — clean circle (r=36) centered at (200, 72)
-  "M236 72 A36 36 0 1 1 164 72 A36 36 0 1 1 236 72 Z",
-  // Neck + torso tapering to hips
-  "M182 110 L218 110 L222 138 " +
-    "C252 144 282 164 286 206 " +
-    "L274 320 L264 414 " +
-    "C262 432 234 438 200 438 " +
-    "C166 438 138 432 136 414 " +
-    "L126 320 L114 206 " +
-    "C118 164 148 144 178 138 Z",
-  // Left arm
-  "M150 144 " +
-    "C128 162 110 204 100 264 " +
-    "L92 386 " +
-    "C91 402 104 408 114 402 " +
-    "L120 388 L132 268 " +
-    "C140 224 152 188 164 164 Z",
-  // Right arm (mirrored)
-  "M250 144 " +
-    "C272 162 290 204 300 264 " +
-    "L308 386 " +
-    "C309 402 296 408 286 402 " +
-    "L280 388 L268 268 " +
-    "C260 224 248 188 236 164 Z",
-  // Left leg
-  "M138 418 " +
-    "C134 484 142 588 152 700 " +
-    "L186 700 " +
-    "C192 588 198 484 198 442 Z",
-  // Right leg
-  "M262 418 " +
-    "C266 484 258 588 248 700 " +
-    "L214 700 " +
-    "C208 588 202 484 202 442 Z",
-].join(" ");
+/** Sleek athletic human silhouette — single path rendered inside viewBox 400x420. */
+const BODY_OUTLINE =
+  "M200,70 C212,70 220,62 220,50 C220,38 212,30 200,30 C188,30 180,38 180,50 C180,62 188,70 200,70 Z " +
+  "M190,75 C175,77 165,85 155,98 C148,108 140,125 135,150 C132,165 136,170 140,170 C144,170 146,162 148,150 " +
+  "C152,130 160,110 170,102 L170,160 C170,190 165,220 162,250 L145,340 C142,355 148,365 155,365 " +
+  "C162,365 168,355 172,335 L188,255 L192,255 L192,380 C192,388 198,390 200,390 C202,390 208,388 208,380 " +
+  "L208,255 L212,255 L228,335 C232,355 238,365 245,365 C252,365 258,355 255,340 L238,250 " +
+  "C235,220 230,190 230,160 L230,102 C240,110 248,130 252,150 C254,162 256,170 260,170 " +
+  "C264,170 268,165 265,150 C260,125 252,108 245,98 C235,85 225,77 210,75 Z";
+
 
 const CHEST_CAVITY = "";
 const ABDOMEN_CAVITY = "";
@@ -179,29 +150,31 @@ function renderNeuralWireframe(color: string) {
     <g
       fill="none"
       stroke={color}
-      strokeWidth="1.2"
+      strokeWidth="1"
       strokeLinecap="round"
       strokeLinejoin="round"
-      opacity="0.65"
+      opacity="0.55"
       style={{ filter: `drop-shadow(0 0 3px ${color})` }}
     >
-      {/* Collarbone */}
-      <path d="M168 144 C 184 152 216 152 232 144" opacity="0.75" />
-      {/* Spine / centerline */}
-      <path d="M200 142 L200 432" strokeWidth="1.3" opacity="0.6" strokeDasharray="3 4" />
-      {/* Rib arches */}
-      {[176, 198, 220, 242].map((y) => (
-        <path
-          key={y}
-          d={`M200 ${y} C 178 ${y + 6} 160 ${y + 18} 156 ${y + 30} M200 ${y} C 222 ${y + 6} 240 ${y + 18} 244 ${y + 30}`}
-          opacity="0.55"
-        />
-      ))}
-      {/* Pelvic line */}
-      <path d="M150 414 C 180 426 220 426 250 414" opacity="0.7" />
+      <line x1="200" y1="75" x2="200" y2="255" strokeWidth="1.6" opacity="0.7" />
+      <path d="M200,90 Q175,100 160,115" />
+      <path d="M200,90 Q225,100 240,115" />
+      <path d="M200,110 Q170,122 152,142" />
+      <path d="M200,110 Q230,122 248,142" />
+      <path d="M200,130 Q168,145 150,175" />
+      <path d="M200,130 Q232,145 250,175" />
+      <path d="M200,150 Q168,170 152,210" />
+      <path d="M200,150 Q232,170 248,210" />
+      <path d="M200,170 Q170,195 157,245" />
+      <path d="M200,170 Q230,195 243,245" />
+      <path d="M200,195 Q175,225 161,270" />
+      <path d="M200,195 Q225,225 239,270" />
+      <path d="M196,255 L172,360" opacity="0.6" />
+      <path d="M204,255 L228,360" opacity="0.6" />
     </g>
   );
 }
+
 
 
 
@@ -249,22 +222,24 @@ function renderSystemOverlay({
       strokeLinejoin="round"
       style={{ filter: `drop-shadow(0 0 12px ${color}) drop-shadow(0 0 26px ${color}aa)` }}
     >
-      <path d={BODY_OUTLINE} strokeWidth="2.4" opacity="0.32" style={{ animation: "bdm-pulse 1.55s ease-in-out infinite" }} />
-      {/* Skull, spine, rib cage, pelvis, arms, and legs — full skeletal map, not a single bone. */}
-      <path d="M173 72 C173 48 186 38 200 38 C214 38 227 48 227 72 C227 99 216 116 200 116 C184 116 173 99 173 72 Z" strokeWidth="2.2" fill={`${color}0d`} />
-      <path d="M185 146 C193 152 207 152 215 146 M200 116 L200 486" strokeWidth="2.3" />
-      {[174, 192, 210, 228, 246, 264, 282].map((y, i) => (
-        <path
-          key={y}
-          d={`M200 ${y} C ${174 - i * 1.6} ${y - 6} ${154 + i} ${y + 13} ${146 + i} ${y + 35} M200 ${y} C ${226 + i * 1.6} ${y - 6} ${246 - i} ${y + 13} ${254 - i} ${y + 35}`}
-          strokeWidth="1.35"
-          opacity="0.76"
-        />
-      ))}
-      <path d="M152 156 L118 242 L99 352 L78 502 M248 156 L282 242 L301 352 L322 502" strokeWidth="2" opacity="0.88" />
-      <path d="M158 466 C177 490 223 490 242 466 M169 486 C184 501 216 501 231 486" strokeWidth="2" />
-      <path d="M184 494 L173 592 L168 694 M216 494 L227 592 L232 694" strokeWidth="2.2" />
-      <path d="M173 592 L153 694 M227 592 L247 694" strokeWidth="1.45" opacity="0.7" />
+      <path d={BODY_OUTLINE} strokeWidth="1.8" opacity="0.32" style={{ animation: "bdm-pulse 1.55s ease-in-out infinite" }} />
+      <g transform="scale(1 0.583)">
+        <path d="M173 72 C173 48 186 38 200 38 C214 38 227 48 227 72 C227 99 216 116 200 116 C184 116 173 99 173 72 Z" strokeWidth="2.2" fill={`${color}0d`} />
+        <path d="M185 146 C193 152 207 152 215 146 M200 116 L200 486" strokeWidth="2.3" />
+        {[174, 192, 210, 228, 246, 264, 282].map((y, i) => (
+          <path
+            key={y}
+            d={`M200 ${y} C ${174 - i * 1.6} ${y - 6} ${154 + i} ${y + 13} ${146 + i} ${y + 35} M200 ${y} C ${226 + i * 1.6} ${y - 6} ${246 - i} ${y + 13} ${254 - i} ${y + 35}`}
+            strokeWidth="1.35"
+            opacity="0.76"
+          />
+        ))}
+        <path d="M152 156 L118 242 L99 352 L78 502 M248 156 L282 242 L301 352 L322 502" strokeWidth="2" opacity="0.88" />
+        <path d="M158 466 C177 490 223 490 242 466 M169 486 C184 501 216 501 231 486" strokeWidth="2" />
+        <path d="M184 494 L173 592 L168 694 M216 494 L227 592 L232 694" strokeWidth="2.2" />
+        <path d="M173 592 L153 694 M227 592 L247 694" strokeWidth="1.45" opacity="0.7" />
+      </g>
+
     </g>
   );
 }
@@ -556,7 +531,7 @@ export function BodyDamageMap({
       {/* Central humanoid silhouette — strict aspect ratio to prevent stretching */}
       <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[400px]">
         <svg
-          viewBox="0 0 400 720"
+          viewBox="0 0 400 420"
           preserveAspectRatio="xMidYMid meet"
           className="h-auto w-full"
           aria-label="Bio-scanner body silhouette"
@@ -566,7 +541,7 @@ export function BodyDamageMap({
               <path d="M 18 0 L 0 0 0 18" fill="none" stroke={variant === "benefit" ? "#22c55e" : "#00f2fe"} strokeOpacity="0.14" strokeWidth="0.3" />
             </pattern>
             <filter id={`bdm-body-aura-${variant}`} x="-10%" y="-5%" width="120%" height="110%">
-              <feGaussianBlur stdDeviation="8" />
+              <feGaussianBlur stdDeviation="6" />
             </filter>
             <filter id={`bdm-body-inner-${variant}`} x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="2" />
@@ -575,25 +550,23 @@ export function BodyDamageMap({
 
           {/* Soft aura behind the figure */}
           <rect
-            x="60" y="20" width="280" height="690" rx="140"
+            x="80" y="20" width="240" height="390" rx="120"
             fill={variant === "benefit" ? "#22c55e" : "#60a5fa"}
-            opacity="0.10"
+            opacity="0.08"
             filter={`url(#bdm-body-aura-${variant})`}
           />
 
           {/* Athletic translucent silhouette */}
           <g>
-            {/* Inner soft glow pass */}
             <path
               d={BODY_OUTLINE}
               fill="none"
               stroke={variant === "benefit" ? "#22c55e" : "#60a5fa"}
-              strokeWidth="6"
+              strokeWidth="5"
               strokeLinejoin="round"
               opacity="0.22"
               filter={`url(#bdm-body-inner-${variant})`}
             />
-            {/* Crisp outer outline */}
             <path
               d={BODY_OUTLINE}
               fill={variant === "benefit" ? "rgba(34,197,94,0.06)" : "rgba(96,165,250,0.08)"}
@@ -607,14 +580,15 @@ export function BodyDamageMap({
           {variant === "benefit" && renderNeuralWireframe("#22c55e")}
 
           {/* Diagnostic grid wash */}
-          <rect x="0" y="0" width="400" height="720" fill={`url(#bdm-body-grid-${variant})`} opacity="0.25" />
+          <rect x="0" y="0" width="400" height="420" fill={`url(#bdm-body-grid-${variant})`} opacity="0.25" />
 
           {/* Centerline scan accent */}
           <line
-            x1="200" y1="20" x2="200" y2="700"
+            x1="200" y1="20" x2="200" y2="400"
             stroke={variant === "benefit" ? "#22c55e" : "#22d3ee"}
             strokeOpacity="0.15" strokeWidth="0.5" strokeDasharray="3 5"
           />
+
 
 
 
