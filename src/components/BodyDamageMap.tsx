@@ -510,20 +510,21 @@ export function BodyDamageMap({
             </linearGradient>
           </defs>
 
-          {/* Outer turquoise aura glow behind the figure */}
-          <rect x="40" y="20" width="320" height="680" rx="160" fill="#00f2fe" opacity="0.18" filter="url(#bdm-body-aura)" />
+          {/* Soft blue aura behind the figure */}
+          <rect x="60" y="20" width="280" height="690" rx="140" fill="#60a5fa" opacity="0.10" filter="url(#bdm-body-aura)" />
 
-          {/* Clean light-blue vector silhouette */}
-          <g style={{ filter: "drop-shadow(0 0 14px rgba(96,165,250,0.45))" }}>
+          {/* Slim translucent blue silhouette */}
+          <g style={{ filter: "drop-shadow(0 0 10px rgba(96,165,250,0.35))" }}>
             <path
               d={BODY_OUTLINE}
-              fill="#cfe4ff"
+              fill="rgba(96,165,250,0.10)"
               stroke="#60a5fa"
-              strokeWidth="2"
+              strokeWidth="1.6"
               strokeLinejoin="round"
               fillRule="evenodd"
             />
           </g>
+
 
           {/* Diagnostic grid wash */}
           <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.25" />
