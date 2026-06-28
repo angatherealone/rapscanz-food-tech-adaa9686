@@ -150,29 +150,31 @@ function renderNeuralWireframe(color: string) {
     <g
       fill="none"
       stroke={color}
-      strokeWidth="1.2"
+      strokeWidth="1"
       strokeLinecap="round"
       strokeLinejoin="round"
-      opacity="0.65"
+      opacity="0.55"
       style={{ filter: `drop-shadow(0 0 3px ${color})` }}
     >
-      {/* Collarbone */}
-      <path d="M168 144 C 184 152 216 152 232 144" opacity="0.75" />
-      {/* Spine / centerline */}
-      <path d="M200 142 L200 432" strokeWidth="1.3" opacity="0.6" strokeDasharray="3 4" />
-      {/* Rib arches */}
-      {[176, 198, 220, 242].map((y) => (
-        <path
-          key={y}
-          d={`M200 ${y} C 178 ${y + 6} 160 ${y + 18} 156 ${y + 30} M200 ${y} C 222 ${y + 6} 240 ${y + 18} 244 ${y + 30}`}
-          opacity="0.55"
-        />
-      ))}
-      {/* Pelvic line */}
-      <path d="M150 414 C 180 426 220 426 250 414" opacity="0.7" />
+      <line x1="200" y1="75" x2="200" y2="255" strokeWidth="1.6" opacity="0.7" />
+      <path d="M200,90 Q175,100 160,115" />
+      <path d="M200,90 Q225,100 240,115" />
+      <path d="M200,110 Q170,122 152,142" />
+      <path d="M200,110 Q230,122 248,142" />
+      <path d="M200,130 Q168,145 150,175" />
+      <path d="M200,130 Q232,145 250,175" />
+      <path d="M200,150 Q168,170 152,210" />
+      <path d="M200,150 Q232,170 248,210" />
+      <path d="M200,170 Q170,195 157,245" />
+      <path d="M200,170 Q230,195 243,245" />
+      <path d="M200,195 Q175,225 161,270" />
+      <path d="M200,195 Q225,225 239,270" />
+      <path d="M196,255 L172,360" opacity="0.6" />
+      <path d="M204,255 L228,360" opacity="0.6" />
     </g>
   );
 }
+
 
 
 
