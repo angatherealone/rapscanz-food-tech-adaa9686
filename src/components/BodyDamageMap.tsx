@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-export type BodyImpactItem = { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string };
-
+export function BodyDamageMap({ items, variant, totalSlots = 13 }: { items: BodyImpactItem[]; variant: "damage" | "benefit"; totalSlots?: number }) {
 const HumanoidShape = () => (
   <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
     <circle cx="200" cy="55" r="16" />
