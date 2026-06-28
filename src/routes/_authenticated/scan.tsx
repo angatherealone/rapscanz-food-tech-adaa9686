@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "sonner";
 import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2, Lock } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
+import { BodyImpactMap } from "@/components/BodyImpactMap";
 
 import { ScanFeedback } from "@/components/ScanFeedback";
 import { MiniScannerLoader } from "@/components/MiniScannerLoader";
@@ -811,48 +812,26 @@ function ScanPage() {
 
               <Card className="p-5">
                 <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                  <PersonStanding className="h-5 w-5 text-primary" /> Body impact summary
+                  <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
                   <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
                 </div>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Organ-level impact list for this product.
+                  Exact anatomical view of which organs this product affects. Tap any glowing organ for details.
                 </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6">
                   <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                     <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
                       <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
                       Harms — organs at risk
                     </div>
-                    {(result.bodyDamage ?? []).length ? (
-                      <ul className="space-y-2 text-sm">
-                        {(result.bodyDamage ?? []).map((it, i) => (
-                          <li key={i} className="rounded-lg border border-destructive/20 bg-background/40 p-2">
-                            <div className="font-semibold capitalize">{it.part}</div>
-                            {it.reason && <div className="text-xs text-muted-foreground">{it.reason}</div>}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No specific organ harm detected for this product.</p>
-                    )}
+                    <BodyImpactMap items={result.bodyDamage ?? []} variant="damage" />
                   </div>
                   <div className="rounded-xl border border-success/30 bg-success/5 p-4">
                     <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
                       <span className="inline-block h-2 w-2 rounded-full bg-success" />
                       Benefits — organs that gain
                     </div>
-                    {(result.bodyBenefit ?? []).length ? (
-                      <ul className="space-y-2 text-sm">
-                        {(result.bodyBenefit ?? []).map((it, i) => (
-                          <li key={i} className="rounded-lg border border-success/20 bg-background/40 p-2">
-                            <div className="font-semibold capitalize">{it.part}</div>
-                            {it.reason && <div className="text-xs text-muted-foreground">{it.reason}</div>}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No specific organ benefit detected for this product.</p>
-                    )}
+                    <BodyImpactMap items={result.bodyBenefit ?? []} variant="benefit" />
                   </div>
                 </div>
               </Card>
