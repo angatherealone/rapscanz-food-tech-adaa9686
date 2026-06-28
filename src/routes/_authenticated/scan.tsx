@@ -811,25 +811,29 @@ function ScanPage() {
 
               <Card className="p-5">
                 <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                  <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
+                  <PersonStanding className="h-5 w-5 text-primary" /> Body impact summary
                   <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
                 </div>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Exact anatomical view of which organs this product affects. Tap any glowing organ for details.
+                  Organ-level impact list for this product.
                 </p>
-                <div className="grid grid-cols-2 gap-3 sm:gap-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6">
                   <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                     <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
                       <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
                       Harms — organs at risk
                     </div>
                     {(result.bodyDamage ?? []).length ? (
-                      <BodyDamageMap items={result.bodyDamage ?? []} variant="damage" />
+                      <ul className="space-y-2 text-sm">
+                        {(result.bodyDamage ?? []).map((it, i) => (
+                          <li key={i} className="rounded-lg border border-destructive/20 bg-background/40 p-2">
+                            <div className="font-semibold capitalize">{it.organ}</div>
+                            {it.reason && <div className="text-xs text-muted-foreground">{it.reason}</div>}
+                          </li>
+                        ))}
+                      </ul>
                     ) : (
-                      <div>
-                        <BodyDamageMap items={[]} variant="damage" />
-                        <p className="mt-3 text-center text-sm text-muted-foreground">No specific organ harm detected for this product.</p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">No specific organ harm detected for this product.</p>
                     )}
                   </div>
                   <div className="rounded-xl border border-success/30 bg-success/5 p-4">
@@ -838,12 +842,16 @@ function ScanPage() {
                       Benefits — organs that gain
                     </div>
                     {(result.bodyBenefit ?? []).length ? (
-                      <BodyDamageMap items={result.bodyBenefit ?? []} variant="benefit" />
+                      <ul className="space-y-2 text-sm">
+                        {(result.bodyBenefit ?? []).map((it, i) => (
+                          <li key={i} className="rounded-lg border border-success/20 bg-background/40 p-2">
+                            <div className="font-semibold capitalize">{it.organ}</div>
+                            {it.reason && <div className="text-xs text-muted-foreground">{it.reason}</div>}
+                          </li>
+                        ))}
+                      </ul>
                     ) : (
-                      <div>
-                        <BodyDamageMap items={[]} variant="benefit" />
-                        <p className="mt-3 text-center text-sm text-muted-foreground">No specific organ benefit detected for this product.</p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">No specific organ benefit detected for this product.</p>
                     )}
                   </div>
                 </div>
