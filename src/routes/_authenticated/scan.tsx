@@ -224,8 +224,15 @@ function ScanPage() {
         if (!imageDataUrl) throw new Error("Upload a photo of the label first.");
         return analyzeFn({ data: { scanType: "ingredients", imageDataUrl, ...trialArg } });
       }
-      const code = barcode.trim();
+      let code = barcode.trim();
       if (!code) throw new Error("Enter a barcode number.");
+      // GS1 DataMatrix (medicine pack): extract & validate the GTIN before lookup.
+      if (looksLikeGs1(code)) {
+        const p = parseGs1(code);
+        if (!p.gtin) throw new Error(p.errors.join("; ") || "Couldn't read a GTIN from that GS1 string.");
+        if (!p.ok) throw new Error(p.errors.join("; "));
+        code = p.gtin.replace(/^0+(?=\d{13})/, ""); // drop a leading 0 so EAN-13 lookups work
+      }
       if (isLocalBarcode(code)) {
         // Bypass global API entirely — handled client-side.
         handleLocalBarcode(code);
