@@ -114,32 +114,94 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 76,  scale: 0.24 },
-  eyes:       { cx: 200, cy: 88,  scale: 0.11 },
-  teeth:      { cx: 200, cy: 104, scale: 0.11 },
-  throat:     { cx: 200, cy: 128, scale: 0.12 },
-  lungs:      { cx: 200, cy: 232, scale: 0.36 },
-  heart:      { cx: 194, cy: 244, scale: 0.20 },
-  liver:      { cx: 184, cy: 318, scale: 0.30 },
-  stomach:    { cx: 216, cy: 318, scale: 0.22 },
-  pancreas:   { cx: 200, cy: 346, scale: 0.20 },
-  kidneys:    { cx: 200, cy: 372, scale: 0.28 },
-  intestines: { cx: 200, cy: 410, scale: 0.36 },
+  brain:      { cx: 200, cy: 90,  scale: 0.24 },
+  eyes:       { cx: 200, cy: 108, scale: 0.11 },
+  teeth:      { cx: 200, cy: 130, scale: 0.11 },
+  throat:     { cx: 200, cy: 158, scale: 0.12 },
+  lungs:      { cx: 200, cy: 248, scale: 0.36 },
+  heart:      { cx: 192, cy: 260, scale: 0.20 },
+  liver:      { cx: 184, cy: 330, scale: 0.30 },
+  stomach:    { cx: 216, cy: 330, scale: 0.22 },
+  pancreas:   { cx: 200, cy: 360, scale: 0.20 },
+  kidneys:    { cx: 200, cy: 388, scale: 0.28 },
+  intestines: { cx: 200, cy: 426, scale: 0.34 },
   skin:       { cx: 200, cy: 360, scale: 1 },
   bones:      { cx: 200, cy: 360, scale: 1 },
 };
 
 
-
-
-/** Slim forward-facing male silhouette (head + body sub-paths). Translucent
- *  blue outline figure designed for viewBox 400x720, centered on x=200. */
+/** Athletic forward-facing human silhouette — broad shoulders, narrow waist,
+ *  anatomical leg taper, arms hanging at sides. Designed for viewBox 400x720,
+ *  centered on x=200. */
 const BODY_OUTLINE =
-  "M200 38 C220 38 236 55 236 76 C236 98 220 116 200 116 C180 116 164 98 164 76 C164 55 180 38 200 38 Z " +
-  "M188 118 L212 118 L218 138 C236 142 254 150 268 162 C282 174 290 188 294 206 L304 348 C305 360 298 370 288 370 C280 370 274 362 272 354 L264 232 L260 340 L256 398 C254 460 250 580 244 700 L222 700 L218 568 L214 432 L208 400 L200 392 L192 400 L186 432 L182 568 L178 700 L156 700 C150 580 146 460 144 398 L140 340 L136 232 L128 354 C126 362 120 370 112 370 C102 370 95 360 96 348 L106 206 C110 188 118 174 132 162 C146 150 164 142 182 138 L188 118 Z";
+  "M200 38 C228 38 246 62 246 92 C246 122 234 142 220 150 L218 176 " +
+  "C242 180 268 192 282 214 L294 248 C306 282 312 322 312 360 L308 416 " +
+  "C308 426 304 434 298 438 L298 452 C304 454 310 450 310 444 L314 432 " +
+  "C320 414 322 394 318 376 L308 332 C306 308 300 282 290 256 L284 230 " +
+  "C272 244 264 264 258 286 L250 360 C248 388 244 416 240 444 L228 488 " +
+  "L216 700 L194 700 L198 472 C200 466 202 466 204 472 L206 700 L184 700 " +
+  "L172 488 L160 444 C156 416 152 388 150 360 L142 286 C136 264 128 244 116 230 " +
+  "L110 256 C100 282 94 308 92 332 L82 376 C78 394 80 414 86 432 L90 444 " +
+  "C90 450 96 454 102 452 L102 438 C96 434 92 426 92 416 L88 360 " +
+  "C88 322 94 282 106 248 L118 214 C132 192 158 180 182 176 L182 150 " +
+  "C168 142 154 122 154 92 C154 62 172 38 200 38 Z";
 
-const CHEST_CAVITY = "M152 192 C166 174 184 168 200 170 C216 168 234 174 248 192 C258 216 256 266 244 296 C232 318 218 326 200 322 C182 326 168 318 156 296 C144 266 142 216 152 192 Z";
-const ABDOMEN_CAVITY = "M160 292 C172 314 186 326 200 324 C214 326 228 314 240 292 C250 330 248 388 238 430 C228 462 216 478 200 478 C184 478 172 462 162 430 C152 388 150 330 160 292 Z";
+const CHEST_CAVITY = "M158 208 C172 192 186 186 200 188 C214 186 228 192 242 208 C252 232 252 282 240 312 C228 334 214 342 200 338 C186 342 172 334 160 312 C148 282 148 232 158 208 Z";
+const ABDOMEN_CAVITY = "M164 308 C176 330 188 342 200 340 C212 342 224 330 236 308 C246 346 244 404 234 446 C224 472 214 484 200 484 C186 484 176 472 166 446 C156 404 154 346 164 308 Z";
+
+/** Neural / muscular wireframe network for the benefit map.
+ *  Renders inside the silhouette: spine, rib arches, arm + leg energy lines,
+ *  pelvic ring. All in vibrant neon green to read as a bio-energy scan. */
+function renderNeuralWireframe(color: string) {
+  return (
+    <g
+      fill="none"
+      stroke={color}
+      strokeWidth="1.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity="0.85"
+      style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+    >
+      {/* Spine */}
+      <path d="M200 178 C198 240 198 320 200 400 C201 440 200 460 200 472" strokeWidth="1.4" />
+      {/* Brain stem to skull crown */}
+      <path d="M200 60 C194 80 196 110 200 130 L200 178" strokeWidth="0.9" opacity="0.7" />
+      {/* Collar / clavicles */}
+      <path d="M158 188 C178 196 222 196 242 188" />
+      {/* Rib arches (3 pairs) */}
+      {[218, 246, 274].map((y) => (
+        <path key={y} d={`M200 ${y} C 170 ${y + 4} 152 ${y + 18} 152 ${y + 32} M200 ${y} C 230 ${y + 4} 248 ${y + 18} 248 ${y + 32}`} opacity="0.7" />
+      ))}
+      {/* Abdominal energy bands */}
+      {[316, 340, 364].map((y) => (
+        <path key={y} d={`M170 ${y} C 184 ${y + 4} 216 ${y + 4} 230 ${y}`} opacity="0.55" />
+      ))}
+      {/* Pelvic ring */}
+      <path d="M160 444 C180 462 220 462 240 444" />
+      {/* Left arm energy line */}
+      <path d="M154 196 C 134 220 116 264 102 320 L94 410" />
+      {/* Right arm energy line */}
+      <path d="M246 196 C 266 220 284 264 298 320 L306 410" />
+      {/* Left leg energy line */}
+      <path d="M186 472 C 182 530 178 610 178 690" />
+      {/* Right leg energy line */}
+      <path d="M214 472 C 218 530 222 610 222 690" />
+      {/* Cross-fascia diagonals (subtle) */}
+      <path d="M158 220 L242 304 M242 220 L158 304" opacity="0.25" strokeDasharray="2 4" />
+      {/* Synapse nodes */}
+      {[
+        [200, 178], [200, 248], [200, 332], [200, 400], [200, 444],
+        [154, 196], [246, 196], [102, 320], [298, 320],
+        [186, 472], [214, 472],
+      ].map(([cx, cy], i) => (
+        <circle key={i} cx={cx} cy={cy} r="2.2" fill={color} stroke="none" opacity="0.9">
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" begin={`${i * 0.18}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+    </g>
+  );
+}
 
 
 
@@ -490,48 +552,69 @@ export function BodyDamageMap({
         </span>
       </div>
 
-      {/* Central humanoid silhouette */}
+      {/* Central humanoid silhouette — strict aspect ratio to prevent stretching */}
       <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[400px]">
         <svg
           viewBox="0 0 400 720"
+          preserveAspectRatio="xMidYMid meet"
           className="h-auto w-full"
           aria-label="Bio-scanner body silhouette"
         >
           <defs>
-            <pattern id="bdm-body-grid" width="18" height="18" patternUnits="userSpaceOnUse">
-              <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#00f2fe" strokeOpacity="0.18" strokeWidth="0.3" />
+            <pattern id={`bdm-body-grid-${variant}`} width="18" height="18" patternUnits="userSpaceOnUse">
+              <path d="M 18 0 L 0 0 0 18" fill="none" stroke={variant === "benefit" ? "#22c55e" : "#00f2fe"} strokeOpacity="0.14" strokeWidth="0.3" />
             </pattern>
-            <filter id="bdm-body-aura" x="-10%" y="-5%" width="120%" height="110%">
-              <feGaussianBlur stdDeviation="6" />
+            <filter id={`bdm-body-aura-${variant}`} x="-10%" y="-5%" width="120%" height="110%">
+              <feGaussianBlur stdDeviation="8" />
             </filter>
-            <linearGradient id="bdm-body-tint" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.18" />
-              <stop offset="100%" stopColor={variant === "benefit" ? "#22c55e" : "#0ea5e9"} stopOpacity="0.12" />
-            </linearGradient>
+            <filter id={`bdm-body-inner-${variant}`} x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2" />
+            </filter>
           </defs>
 
-          {/* Soft blue aura behind the figure */}
-          <rect x="60" y="20" width="280" height="690" rx="140" fill="#60a5fa" opacity="0.10" filter="url(#bdm-body-aura)" />
+          {/* Soft aura behind the figure */}
+          <rect
+            x="60" y="20" width="280" height="690" rx="140"
+            fill={variant === "benefit" ? "#22c55e" : "#60a5fa"}
+            opacity="0.10"
+            filter={`url(#bdm-body-aura-${variant})`}
+          />
 
-          {/* Slim translucent blue silhouette */}
-          <g style={{ filter: "drop-shadow(0 0 10px rgba(96,165,250,0.35))" }}>
+          {/* Athletic translucent silhouette */}
+          <g>
+            {/* Inner soft glow pass */}
             <path
               d={BODY_OUTLINE}
-              fill="rgba(96,165,250,0.10)"
-              stroke="#60a5fa"
-              strokeWidth="1.6"
+              fill="none"
+              stroke={variant === "benefit" ? "#22c55e" : "#60a5fa"}
+              strokeWidth="6"
               strokeLinejoin="round"
-              fillRule="evenodd"
+              opacity="0.22"
+              filter={`url(#bdm-body-inner-${variant})`}
+            />
+            {/* Crisp outer outline */}
+            <path
+              d={BODY_OUTLINE}
+              fill={variant === "benefit" ? "rgba(34,197,94,0.06)" : "rgba(96,165,250,0.08)"}
+              stroke={variant === "benefit" ? "#22c55e" : "#60a5fa"}
+              strokeWidth="1.4"
+              strokeLinejoin="round"
             />
           </g>
 
+          {/* Neural / muscular wireframe — benefit map only */}
+          {variant === "benefit" && renderNeuralWireframe("#22c55e")}
 
           {/* Diagnostic grid wash */}
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.25" />
-
+          <rect x="0" y="0" width="400" height="720" fill={`url(#bdm-body-grid-${variant})`} opacity="0.25" />
 
           {/* Centerline scan accent */}
-          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 5" />
+          <line
+            x1="200" y1="20" x2="200" y2="700"
+            stroke={variant === "benefit" ? "#22c55e" : "#22d3ee"}
+            strokeOpacity="0.15" strokeWidth="0.5" strokeDasharray="3 5"
+          />
+
 
 
           {/* Full-body overlays for systemic targets. */}
