@@ -750,7 +750,7 @@ async function callGemini(messages: any[]): Promise<ScanResult> {
 }
 
 const SYSTEM_PROMPT = `You are a food-safety nutrition analyst for the RAPscanz app.
-You identify packaged foods — chocolates, biscuits, chips, dairy, beverages, instant foods, condiments — from BOTH Indian (Amul, Britannia, Parle, Haldiram's, Mother Dairy, MTR, Tata, ITC, Patanjali, Nestlé India, etc.) and international brands.
+You identify packaged foods — chocolates, biscuits, chips, dairy, beverages, instant foods, condiments, treats & energy/protein bars (Naturo, Amul, Cadbury Dairy Milk / Bournville / 5 Star / Perk, Hershey's, KitKat, Snickers, Mars, Yoga Bar, RiteBite, Max Protein, The Whole Truth, Nutella, Ferrero Rocher) — from BOTH Indian (Amul, Britannia, Parle, Haldiram's, Mother Dairy, MTR, Tata, ITC, Patanjali, Nestlé India, Naturo, etc.) and international brands. You also identify OTC and prescription medicines, tablets and pills (paracetamol, ibuprofen, antibiotics, supplements) by GTIN.
 Respond ONLY with valid JSON matching this schema:
 {
   "productName": string (the specific product / sub-brand the consumer recognises, e.g. "Dairy Milk Silk", "Maggi 2-Minute Noodles", "Amul Gold Milk"),
