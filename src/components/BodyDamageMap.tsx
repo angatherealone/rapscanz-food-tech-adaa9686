@@ -527,7 +527,7 @@ export function BodyDamageMap({
       {/* Central humanoid silhouette — strict aspect ratio to prevent stretching */}
       <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[400px]">
         <svg
-          viewBox="0 0 400 720"
+          viewBox="0 0 400 420"
           preserveAspectRatio="xMidYMid meet"
           className="h-auto w-full"
           aria-label="Bio-scanner body silhouette"
@@ -537,7 +537,7 @@ export function BodyDamageMap({
               <path d="M 18 0 L 0 0 0 18" fill="none" stroke={variant === "benefit" ? "#22c55e" : "#00f2fe"} strokeOpacity="0.14" strokeWidth="0.3" />
             </pattern>
             <filter id={`bdm-body-aura-${variant}`} x="-10%" y="-5%" width="120%" height="110%">
-              <feGaussianBlur stdDeviation="8" />
+              <feGaussianBlur stdDeviation="6" />
             </filter>
             <filter id={`bdm-body-inner-${variant}`} x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="2" />
@@ -546,25 +546,23 @@ export function BodyDamageMap({
 
           {/* Soft aura behind the figure */}
           <rect
-            x="60" y="20" width="280" height="690" rx="140"
+            x="80" y="20" width="240" height="390" rx="120"
             fill={variant === "benefit" ? "#22c55e" : "#60a5fa"}
-            opacity="0.10"
+            opacity="0.08"
             filter={`url(#bdm-body-aura-${variant})`}
           />
 
           {/* Athletic translucent silhouette */}
           <g>
-            {/* Inner soft glow pass */}
             <path
               d={BODY_OUTLINE}
               fill="none"
               stroke={variant === "benefit" ? "#22c55e" : "#60a5fa"}
-              strokeWidth="6"
+              strokeWidth="5"
               strokeLinejoin="round"
               opacity="0.22"
               filter={`url(#bdm-body-inner-${variant})`}
             />
-            {/* Crisp outer outline */}
             <path
               d={BODY_OUTLINE}
               fill={variant === "benefit" ? "rgba(34,197,94,0.06)" : "rgba(96,165,250,0.08)"}
@@ -578,14 +576,15 @@ export function BodyDamageMap({
           {variant === "benefit" && renderNeuralWireframe("#22c55e")}
 
           {/* Diagnostic grid wash */}
-          <rect x="0" y="0" width="400" height="720" fill={`url(#bdm-body-grid-${variant})`} opacity="0.25" />
+          <rect x="0" y="0" width="400" height="420" fill={`url(#bdm-body-grid-${variant})`} opacity="0.25" />
 
           {/* Centerline scan accent */}
           <line
-            x1="200" y1="20" x2="200" y2="700"
+            x1="200" y1="20" x2="200" y2="400"
             stroke={variant === "benefit" ? "#22c55e" : "#22d3ee"}
             strokeOpacity="0.15" strokeWidth="0.5" strokeDasharray="3 5"
           />
+
 
 
 
