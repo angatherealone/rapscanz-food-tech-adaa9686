@@ -1,32 +1,24 @@
 import { useState, useMemo } from "react";
 export type BodyImpactItem = { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string };
-export type BodyDamage = BodyImpactItem;
-export type BodyMapVariant = "damage" | "benefit";
 
 const HumanoidShape = () => (
-  <g strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
-    <circle cx="200" cy="40" r="26" fill="currentColor" fillOpacity="0.12" strokeWidth="3" />
-    <path d="M188,64 L188,80 L212,80 L212,64 Z" fill="currentColor" fillOpacity="0.12" strokeWidth="2.5" />
+  <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
+    <circle cx="200" cy="55" r="16" />
+    <line x1="200" y1="71" x2="200" y2="82" strokeWidth="4" />
     <path
-      d="M150,86 C150,86 175,78 200,78 C225,78 250,86 250,86 L242,180 C242,180 235,210 230,235 L228,260 C228,260 215,268 200,268 C185,268 172,260 172,260 L170,235 C165,210 158,180 158,180 Z"
+      d="M165,92 C165,92 180,82 200,82 C220,82 235,92 235,92 L225,160 C225,160 212,170 200,170 C188,170 175,160 175,160 Z"
       fill="currentColor"
       fillOpacity="0.15"
-      strokeWidth="3"
     />
     <path
-      d="M172,260 L168,300 C168,300 184,310 200,310 C216,310 232,300 232,300 L228,260 Z"
+      d="M175,160 L180,210 C180,210 190,216 200,216 C210,216 220,210 220,210 L225,160"
       fill="currentColor"
       fillOpacity="0.15"
-      strokeWidth="3"
     />
-    <path d="M150,90 C140,120 132,160 128,210" fill="none" strokeWidth="10" strokeOpacity="0.85" />
-    <path d="M250,90 C260,120 268,160 272,210" fill="none" strokeWidth="10" strokeOpacity="0.85" />
-    <path d="M128,210 C126,240 128,265 132,290" fill="none" strokeWidth="8" strokeOpacity="0.8" />
-    <path d="M272,210 C274,240 272,265 268,290" fill="none" strokeWidth="8" strokeOpacity="0.8" />
-    <path d="M180,308 C176,340 174,370 176,410" fill="none" strokeWidth="14" strokeOpacity="0.85" />
-    <path d="M220,308 C224,340 226,370 224,410" fill="none" strokeWidth="14" strokeOpacity="0.85" />
-    <path d="M176,410 C174,440 176,470 180,500" fill="none" strokeWidth="12" strokeOpacity="0.8" />
-    <path d="M224,410 C226,440 224,470 220,500" fill="none" strokeWidth="12" strokeOpacity="0.8" />
+    <path
+      d="M165,92 L145,150 L140,200 M235,92 L255,150 L260,200 M182,214 L180,300 L182,410 M218,214 L220,300 L222,410"
+      strokeWidth="5"
+    />
   </g>
 );
 
@@ -53,6 +45,7 @@ const ORGAN_POS: Record<string, { x: number; y: number; r: number; label: string
   joints: { x: 200, y: 340, r: 12, label: "JOINTS" },
   nerves: { x: 200, y: 200, r: 24, label: "NERVES" },
 };
+
 const normalize = (p: string) => {
   const k = (p || "").toLowerCase().trim();
   if (k.includes("brain")) return "brain";
@@ -78,6 +71,7 @@ const normalize = (p: string) => {
   if (k.includes("nerve") || k.includes("neuro")) return "nerves";
   return k;
 };
+
 export function BodyImpactMap({
   items,
   variant,
@@ -101,6 +95,7 @@ export function BodyImpactMap({
   const titleColor = isHarm ? "text-red-400" : "text-emerald-400";
   const title = isHarm ? "Harms — organs at risk" : "Benefits — organs that gain";
   const footer = isHarm ? "TAP ANY GLOWING ORGAN FOR ANALYSIS REPORT" : "BIO-LOGGING STABLE // SYSTEM ONLINE";
+
   const mapped = useMemo(() => {
     const seen = new Set<string>();
     return items
@@ -111,9 +106,10 @@ export function BodyImpactMap({
         return !!ORGAN_POS[it.key];
       });
   }, [items]);
+
   return (
     <div
-      className={`border ${containerBorder} rounded-xl p-4 shadow-2xl flex flex-col justify-between overflow-hidden`}
+      className={`border ${containerBorder} rounded-xl p-4 shadow-2xl flex flex-col justify-between overflow-hidden relative`}
     >
       <div>
         <div className="flex items-center gap-2 mb-4">
@@ -188,6 +184,39 @@ export function BodyImpactMap({
         </div>
       </div>
       <div className="text-[9px] font-mono text-slate-500 mt-3 text-center uppercase tracking-widest">{footer}</div>
+
+      {/* POPUP CONTAINER MODULE MODULE */}
+      {active && (
+        <div className="absolute inset-x-2 bottom-2 bg-[#090f1c]/95 border border-slate-800 backdrop-blur-md rounded-xl p-3 shadow-2xl z-20 animate-in fade-in slide-in-from-bottom-3">
+          <div className="flex justify-between items-start border-b border-slate-800 pb-1.5 mb-2">
+            <div>
+              <span className="text-[9px] font-mono font-bold tracking-widest text-slate-400 uppercase">
+                Anatomical System Diagnosis Report
+              </span>
+              <h3 className="text-sm font-bold text-white mt-0.5 capitalize">{active.part} Matrix</h3>
+            </div>
+            <button
+              onClick={() => setActive(null)}
+              className="text-slate-400 hover:text-white bg-slate-800/50 px-2 py-0.5 rounded text-[9px] font-mono transition-all"
+            >
+              [CLOSE]
+            </button>
+          </div>
+          <div className="space-y-2">
+            <p className="text-[11px] text-slate-300 leading-relaxed bg-[#050810] p-2 rounded border border-slate-900">
+              {active.reason}
+            </p>
+            {active.trigger && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-mono text-slate-400">VECTOR SOURCE:</span>
+                <span className="bg-slate-950 text-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-800">
+                  ◢ {active.trigger}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
