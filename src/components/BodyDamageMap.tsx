@@ -221,6 +221,59 @@ export function BodyImpactMap({
             <p className="text-[11px] text-slate-300 leading-relaxed bg-[#050810] p-2 rounded border border-slate-900">
               {active.reason}
             </p>
+ {active.damageScore && (
+  <div className="bg-red-950/20 border border-red-900 rounded-lg p-2">
+    <div className="text-red-400 text-[10px] font-bold uppercase">
+      Damage Rating
+    </div>
+
+    <div className="text-3xl font-black text-white">
+      {active.damageScore}/10
+    </div>
+  </div>
+)}
+
+{active.causes && active.causes.length > 0 && (
+  <div className="bg-[#050810] p-2 rounded border border-slate-900">
+    <div className="text-red-400 text-[10px] font-bold uppercase mb-1">
+      What Is Harming This Organ?
+    </div>
+
+    <ul className="text-[11px] text-slate-300 space-y-1">
+      {active.causes.map((cause, index) => (
+        <li key={index}>• {cause}</li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{active.effects && active.effects.length > 0 && (
+  <div className="bg-[#050810] p-2 rounded border border-slate-900">
+    <div className="text-orange-400 text-[10px] font-bold uppercase mb-1">
+      Effects On The Body
+    </div>
+
+    <ul className="text-[11px] text-slate-300 space-y-1">
+      {active.effects.map((effect, index) => (
+        <li key={index}>• {effect}</li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{active.recommendations && active.recommendations.length > 0 && (
+  <div className="bg-[#050810] p-2 rounded border border-slate-900">
+    <div className="text-emerald-400 text-[10px] font-bold uppercase mb-1">
+      Healthy Recovery Tips
+    </div>
+
+    <ul className="text-[11px] text-slate-300 space-y-1">
+      {active.recommendations.map((tip, index) => (
+        <li key={index}>✓ {tip}</li>
+      ))}
+    </ul>
+  </div>
+)}         
             {active.trigger && (
               <div className="flex items-center gap-1.5">
                 <span className="text-[9px] font-mono text-slate-400">VECTOR SOURCE:</span>
