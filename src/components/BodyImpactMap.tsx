@@ -3,25 +3,40 @@ export type BodyImpactItem = { part: string; severity: "low" | "medium" | "high"
 type Variant = "damage" | "benefit";
 
 const HumanoidShape = () => (
-  <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
-    <circle cx="200" cy="55" r="16" />
-    <line x1="200" y1="71" x2="200" y2="82" strokeWidth="4" />
+  <g strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
+    {/* Head */}
+    <circle cx="200" cy="40" r="26" fill="currentColor" fillOpacity="0.12" strokeWidth="3" />
+    {/* Neck */}
+    <path d="M188,64 L188,80 L212,80 L212,64 Z" fill="currentColor" fillOpacity="0.12" strokeWidth="2.5" />
+    {/* Torso - broad shoulders, tapered waist */}
     <path
-      d="M165,92 C165,92 180,82 200,82 C220,82 235,92 235,92 L225,160 C225,160 212,170 200,170 C188,170 175,160 175,160 Z"
+      d="M150,86 C150,86 175,78 200,78 C225,78 250,86 250,86 L242,180 C242,180 235,210 230,235 L228,260 C228,260 215,268 200,268 C185,268 172,260 172,260 L170,235 C165,210 158,180 158,180 Z"
       fill="currentColor"
       fillOpacity="0.15"
+      strokeWidth="3"
     />
+    {/* Hips / pelvis */}
     <path
-      d="M175,160 L180,210 C180,210 190,216 200,216 C210,216 220,210 220,210 L225,160"
+      d="M172,260 L168,300 C168,300 184,310 200,310 C216,310 232,300 232,300 L228,260 Z"
       fill="currentColor"
       fillOpacity="0.15"
+      strokeWidth="3"
     />
-    <path
-      d="M165,92 L145,150 L140,200 M235,92 L255,150 L260,200 M182,214 L180,300 L182,410 M218,214 L220,300 L222,410"
-      strokeWidth="5"
-    />
+    {/* Arms - thicker */}
+    <path d="M150,90 C140,120 132,160 128,210" fill="none" strokeWidth="10" strokeOpacity="0.85" />
+    <path d="M250,90 C260,120 268,160 272,210" fill="none" strokeWidth="10" strokeOpacity="0.85" />
+    {/* Forearms */}
+    <path d="M128,210 C126,240 128,265 132,290" fill="none" strokeWidth="8" strokeOpacity="0.8" />
+    <path d="M272,210 C274,240 272,265 268,290" fill="none" strokeWidth="8" strokeOpacity="0.8" />
+    {/* Legs - thighs */}
+    <path d="M180,308 C176,340 174,370 176,410" fill="none" strokeWidth="14" strokeOpacity="0.85" />
+    <path d="M220,308 C224,340 226,370 224,410" fill="none" strokeWidth="14" strokeOpacity="0.85" />
+    {/* Calves */}
+    <path d="M176,410 C174,440 176,470 180,500" fill="none" strokeWidth="12" strokeOpacity="0.8" />
+    <path d="M224,410 C226,440 224,470 220,500" fill="none" strokeWidth="12" strokeOpacity="0.8" />
   </g>
 );
+
 
 const ORGAN_POS: Record<string, { x: number; y: number; r: number; label: string }> = {
   brain: { x: 200, y: 26, r: 14, label: "BRAIN" },
