@@ -114,94 +114,95 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 90,  scale: 0.24 },
-  eyes:       { cx: 200, cy: 108, scale: 0.11 },
-  teeth:      { cx: 200, cy: 130, scale: 0.11 },
-  throat:     { cx: 200, cy: 158, scale: 0.12 },
-  lungs:      { cx: 200, cy: 248, scale: 0.36 },
-  heart:      { cx: 192, cy: 260, scale: 0.20 },
-  liver:      { cx: 184, cy: 330, scale: 0.30 },
-  stomach:    { cx: 216, cy: 330, scale: 0.22 },
-  pancreas:   { cx: 200, cy: 360, scale: 0.20 },
-  kidneys:    { cx: 200, cy: 388, scale: 0.28 },
-  intestines: { cx: 200, cy: 426, scale: 0.34 },
+  brain:      { cx: 200, cy: 72,  scale: 0.22 },
+  eyes:       { cx: 200, cy: 88,  scale: 0.10 },
+  teeth:      { cx: 200, cy: 104, scale: 0.10 },
+  throat:     { cx: 200, cy: 128, scale: 0.11 },
+  lungs:      { cx: 200, cy: 215, scale: 0.32 },
+  heart:      { cx: 190, cy: 218, scale: 0.18 },
+  liver:      { cx: 178, cy: 290, scale: 0.28 },
+  stomach:    { cx: 218, cy: 290, scale: 0.20 },
+  pancreas:   { cx: 200, cy: 322, scale: 0.18 },
+  kidneys:    { cx: 200, cy: 352, scale: 0.26 },
+  intestines: { cx: 200, cy: 395, scale: 0.30 },
   skin:       { cx: 200, cy: 360, scale: 1 },
   bones:      { cx: 200, cy: 360, scale: 1 },
 };
 
+/** Sleek athletic human silhouette — head, torso, separate arms, separate legs.
+ *  Built as multiple closed subpaths in one `d` string so it renders as a
+ *  single, clean figure with proper proportions inside viewBox 400x720. */
+const BODY_OUTLINE = [
+  // Head — clean circle (r=36) centered at (200, 72)
+  "M236 72 A36 36 0 1 1 164 72 A36 36 0 1 1 236 72 Z",
+  // Neck + torso tapering to hips
+  "M182 110 L218 110 L222 138 " +
+    "C252 144 282 164 286 206 " +
+    "L274 320 L264 414 " +
+    "C262 432 234 438 200 438 " +
+    "C166 438 138 432 136 414 " +
+    "L126 320 L114 206 " +
+    "C118 164 148 144 178 138 Z",
+  // Left arm
+  "M150 144 " +
+    "C128 162 110 204 100 264 " +
+    "L92 386 " +
+    "C91 402 104 408 114 402 " +
+    "L120 388 L132 268 " +
+    "C140 224 152 188 164 164 Z",
+  // Right arm (mirrored)
+  "M250 144 " +
+    "C272 162 290 204 300 264 " +
+    "L308 386 " +
+    "C309 402 296 408 286 402 " +
+    "L280 388 L268 268 " +
+    "C260 224 248 188 236 164 Z",
+  // Left leg
+  "M138 418 " +
+    "C134 484 142 588 152 700 " +
+    "L186 700 " +
+    "C192 588 198 484 198 442 Z",
+  // Right leg
+  "M262 418 " +
+    "C266 484 258 588 248 700 " +
+    "L214 700 " +
+    "C208 588 202 484 202 442 Z",
+].join(" ");
 
-/** Athletic forward-facing human silhouette — broad shoulders, narrow waist,
- *  anatomical leg taper, arms hanging at sides. Designed for viewBox 400x720,
- *  centered on x=200. */
-const BODY_OUTLINE =
-  "M200 38 C228 38 246 62 246 92 C246 122 234 142 220 150 L218 176 " +
-  "C242 180 268 192 282 214 L294 248 C306 282 312 322 312 360 L308 416 " +
-  "C308 426 304 434 298 438 L298 452 C304 454 310 450 310 444 L314 432 " +
-  "C320 414 322 394 318 376 L308 332 C306 308 300 282 290 256 L284 230 " +
-  "C272 244 264 264 258 286 L250 360 C248 388 244 416 240 444 L228 488 " +
-  "L216 700 L194 700 L198 472 C200 466 202 466 204 472 L206 700 L184 700 " +
-  "L172 488 L160 444 C156 416 152 388 150 360 L142 286 C136 264 128 244 116 230 " +
-  "L110 256 C100 282 94 308 92 332 L82 376 C78 394 80 414 86 432 L90 444 " +
-  "C90 450 96 454 102 452 L102 438 C96 434 92 426 92 416 L88 360 " +
-  "C88 322 94 282 106 248 L118 214 C132 192 158 180 182 176 L182 150 " +
-  "C168 142 154 122 154 92 C154 62 172 38 200 38 Z";
+const CHEST_CAVITY = "";
+const ABDOMEN_CAVITY = "";
 
-const CHEST_CAVITY = "M158 208 C172 192 186 186 200 188 C214 186 228 192 242 208 C252 232 252 282 240 312 C228 334 214 342 200 338 C186 342 172 334 160 312 C148 282 148 232 158 208 Z";
-const ABDOMEN_CAVITY = "M164 308 C176 330 188 342 200 340 C212 342 224 330 236 308 C246 346 244 404 234 446 C224 472 214 484 200 484 C186 484 176 472 166 446 C156 404 154 346 164 308 Z";
-
-/** Neural / muscular wireframe network for the benefit map.
- *  Renders inside the silhouette: spine, rib arches, arm + leg energy lines,
- *  pelvic ring. All in vibrant neon green to read as a bio-energy scan. */
+/** Minimal anatomical overlay for the benefit map — clean spine + collarbone +
+ *  simple rib arches + pelvic line. No alien wireframe, no synapse dots. */
 function renderNeuralWireframe(color: string) {
   return (
     <g
       fill="none"
       stroke={color}
-      strokeWidth="1.1"
+      strokeWidth="1.2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      opacity="0.85"
-      style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+      opacity="0.65"
+      style={{ filter: `drop-shadow(0 0 3px ${color})` }}
     >
-      {/* Spine */}
-      <path d="M200 178 C198 240 198 320 200 400 C201 440 200 460 200 472" strokeWidth="1.4" />
-      {/* Brain stem to skull crown */}
-      <path d="M200 60 C194 80 196 110 200 130 L200 178" strokeWidth="0.9" opacity="0.7" />
-      {/* Collar / clavicles */}
-      <path d="M158 188 C178 196 222 196 242 188" />
-      {/* Rib arches (3 pairs) */}
-      {[218, 246, 274].map((y) => (
-        <path key={y} d={`M200 ${y} C 170 ${y + 4} 152 ${y + 18} 152 ${y + 32} M200 ${y} C 230 ${y + 4} 248 ${y + 18} 248 ${y + 32}`} opacity="0.7" />
+      {/* Collarbone */}
+      <path d="M168 144 C 184 152 216 152 232 144" opacity="0.75" />
+      {/* Spine / centerline */}
+      <path d="M200 142 L200 432" strokeWidth="1.3" opacity="0.6" strokeDasharray="3 4" />
+      {/* Rib arches */}
+      {[176, 198, 220, 242].map((y) => (
+        <path
+          key={y}
+          d={`M200 ${y} C 178 ${y + 6} 160 ${y + 18} 156 ${y + 30} M200 ${y} C 222 ${y + 6} 240 ${y + 18} 244 ${y + 30}`}
+          opacity="0.55"
+        />
       ))}
-      {/* Abdominal energy bands */}
-      {[316, 340, 364].map((y) => (
-        <path key={y} d={`M170 ${y} C 184 ${y + 4} 216 ${y + 4} 230 ${y}`} opacity="0.55" />
-      ))}
-      {/* Pelvic ring */}
-      <path d="M160 444 C180 462 220 462 240 444" />
-      {/* Left arm energy line */}
-      <path d="M154 196 C 134 220 116 264 102 320 L94 410" />
-      {/* Right arm energy line */}
-      <path d="M246 196 C 266 220 284 264 298 320 L306 410" />
-      {/* Left leg energy line */}
-      <path d="M186 472 C 182 530 178 610 178 690" />
-      {/* Right leg energy line */}
-      <path d="M214 472 C 218 530 222 610 222 690" />
-      {/* Cross-fascia diagonals (subtle) */}
-      <path d="M158 220 L242 304 M242 220 L158 304" opacity="0.25" strokeDasharray="2 4" />
-      {/* Synapse nodes */}
-      {[
-        [200, 178], [200, 248], [200, 332], [200, 400], [200, 444],
-        [154, 196], [246, 196], [102, 320], [298, 320],
-        [186, 472], [214, 472],
-      ].map(([cx, cy], i) => (
-        <circle key={i} cx={cx} cy={cy} r="2.2" fill={color} stroke="none" opacity="0.9">
-          <animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" begin={`${i * 0.18}s`} repeatCount="indefinite" />
-        </circle>
-      ))}
+      {/* Pelvic line */}
+      <path d="M150 414 C 180 426 220 426 250 414" opacity="0.7" />
     </g>
   );
 }
+
 
 
 
