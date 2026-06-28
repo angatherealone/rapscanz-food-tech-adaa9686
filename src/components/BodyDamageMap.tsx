@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ORGAN_ART, ORGAN_FALLBACK } from "@/components/OrganDetail";
-import anatomySilhouette from "@/assets/anatomy-silhouette.png.asset.json";
+
 
 
 export type BodyDamage = {
