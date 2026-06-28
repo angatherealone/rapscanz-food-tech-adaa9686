@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
 export type BodyImpactItem = { part: string; severity: "low" | "medium" | "high"; reason: string; trigger?: string };
+export type BodyDamage = BodyImpactItem;
+export type BodyMapVariant = "damage" | "benefit";
+
 const HumanoidShape = () => (
   <g strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
     <circle cx="200" cy="40" r="26" fill="currentColor" fillOpacity="0.12" strokeWidth="3" />
