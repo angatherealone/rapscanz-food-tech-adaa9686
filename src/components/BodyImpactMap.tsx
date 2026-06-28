@@ -134,7 +134,7 @@ export function BodyImpactMap({
 
           {mapped.map((it) => {
             const pos = ORGAN_POS[it.key];
-            const active = selected?.key === it.key;
+            const active = selected?.part && normalize(selected.part) === it.key;
             return (
               <g
                 key={it.key}
@@ -179,7 +179,7 @@ export function BodyImpactMap({
           {selected && (
             <>
               <DialogTitle className="font-display text-lg" style={{ color: accent }}>
-                {ORGAN_POS[selected.key]?.label ?? selected.part}
+                {ORGAN_POS[normalize(selected.part)]?.label ?? selected.part}
               </DialogTitle>
               <div className="space-y-3 text-sm">
                 <div>
