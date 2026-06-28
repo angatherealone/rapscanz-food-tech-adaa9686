@@ -6,7 +6,6 @@ const HumanoidShape = () => (
   <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
     <circle cx="200" cy="55" r="16" />
     <line x1="200" y1="71" x2="200" y2="82" strokeWidth="4" />
-    {/* Broad filled chest & torso block */}
     <path
       d="M165,92 C165,92 180,82 200,82 C220,82 235,92 235,92 L225,160 C225,160 212,170 200,170 C188,170 175,160 175,160 Z"
       fill="currentColor"
@@ -17,7 +16,6 @@ const HumanoidShape = () => (
       fill="currentColor"
       fillOpacity="0.15"
     />
-    {/* Solid proportional limbs */}
     <path
       d="M165,92 L145,150 L140,200 M235,92 L255,150 L260,200 M182,214 L180,300 L182,410 M218,214 L220,300 L222,410"
       strokeWidth="5"
