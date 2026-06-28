@@ -3,20 +3,25 @@ export type BodyImpactItem = { part: string; severity: "low" | "medium" | "high"
 type Variant = "damage" | "benefit";
 
 const HumanoidShape = () => (
-  <g fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="200" cy="55" r="18" />
-    <line x1="200" y1="73" x2="200" y2="85" strokeWidth="3" />
+  <g fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
+    <circle cx="200" cy="55" r="16" />
+    <line x1="200" y1="71" x2="200" y2="82" strokeWidth="4" />
+    {/* Broad filled chest & torso block */}
     <path
-      d="M160,95 C160,95 180,85 200,85 C220,85 240,95 240,95 L230,165 C230,165 215,175 200,175 C185,175 170,165 170,165 Z"
+      d="M165,92 C165,92 180,82 200,82 C220,82 235,92 235,92 L225,160 C225,160 212,170 200,170 C188,170 175,160 175,160 Z"
       fill="currentColor"
-      fillOpacity="0.05"
+      fillOpacity="0.15"
     />
     <path
-      d="M172,164 L178,215 C178,215 190,222 200,222 C210,222 222,215 222,215 L228,164"
+      d="M175,160 L180,210 C180,210 190,216 200,216 C210,216 220,210 220,210 L225,160"
       fill="currentColor"
-      fillOpacity="0.05"
+      fillOpacity="0.15"
     />
-    <path d="M160,95 L142,155 L135,210 M240,95 L258,155 L265,210 M182,218 L180,305 L182,410 M218,218 L220,305 L222,410" />
+    {/* Solid proportional limbs */}
+    <path
+      d="M165,92 L145,150 L140,200 M235,92 L255,150 L260,200 M182,214 L180,300 L182,410 M218,214 L220,300 L222,410"
+      strokeWidth="5"
+    />
   </g>
 );
 
@@ -135,14 +140,7 @@ export function BodyImpactMap({
                   <line x1={212} y1={270} x2={226} y2={370} />
                 </g>
               )}
-              <g
-                fill="none"
-                stroke={outlineStroke}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity="0.45"
-              >
+              <g fill="none" stroke={outlineStroke} opacity={0.85}>
                 <HumanoidShape />
               </g>
               {!isHarm && (
