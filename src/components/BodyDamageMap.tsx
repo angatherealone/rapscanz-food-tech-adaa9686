@@ -512,20 +512,21 @@ export function BodyDamageMap({
           {/* Outer turquoise aura glow behind the figure */}
           <rect x="40" y="20" width="320" height="680" rx="160" fill="#00f2fe" opacity="0.18" filter="url(#bdm-body-aura)" />
 
-          {/* Realistic anatomical figure */}
-          <image
-            href={anatomySilhouette.url}
-            x="0" y="0" width="400" height="720"
-            preserveAspectRatio="none"
-            style={{ filter: "drop-shadow(0 0 18px rgba(0,242,254,0.55)) drop-shadow(0 0 36px rgba(0,242,254,0.35))", mixBlendMode: "multiply" }}
-          />
-
-
-          {/* Subtle scanner tint over figure */}
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-tint)" style={{ mixBlendMode: "screen" }} />
+          {/* Clean light-blue vector silhouette */}
+          <g style={{ filter: "drop-shadow(0 0 14px rgba(96,165,250,0.45))" }}>
+            <path
+              d={BODY_OUTLINE}
+              fill="#cfe4ff"
+              stroke="#60a5fa"
+              strokeWidth="2"
+              strokeLinejoin="round"
+              fillRule="evenodd"
+            />
+          </g>
 
           {/* Diagnostic grid wash */}
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.35" />
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.25" />
+
 
           {/* Centerline scan accent */}
           <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 5" />
