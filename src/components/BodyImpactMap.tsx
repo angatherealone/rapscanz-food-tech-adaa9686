@@ -115,43 +115,43 @@ export function BodyImpactMap({
             </span>
           </div>
 
-          <div className="w-full max-w-[320px] aspect-[4/5] flex justify-center items-center">
+          <div className="w-full max-w-[380px] aspect-[4/5] flex justify-center items-center">
             <svg
-              viewBox="0 0 400 400"
+              viewBox="0 0 400 460"
               preserveAspectRatio="xMidYMid meet"
-              className={`w-full h-full ${isHarm ? "drop-shadow-[0_0_10px_rgba(59,130,246,0.1)]" : "drop-shadow-[0_0_12px_rgba(16,185,129,0.2)]"}`}
+              className={`w-full h-full ${isHarm ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "drop-shadow-[0_0_15px_rgba(16,185,129,0.25)]"}`}
             >
               {!isHarm && (
-                <g fill="none" stroke="#10b981" strokeWidth={1} opacity={0.35}>
-                  <line x1={200} y1={70} x2={200} y2={235} strokeWidth={1.5} />
-                  <path d="M200,95 Q182,102 172,115" />
-                  <path d="M200,95 Q218,102 228,115" />
-                  <path d="M200,115 Q178,125 166,142" />
-                  <path d="M200,115 Q222,125 234,142" />
-                  <path d="M200,135 Q178,148 165,175" />
-                  <path d="M200,135 Q222,148 235,175" />
-                  <path d="M200,155 Q178,170 166,205" />
-                  <path d="M200,155 Q222,170 234,205" />
-                  <line x1={192} y1={210} x2={184} y2={335} />
-                  <line x1={208} y1={210} x2={216} y2={335} />
+                <g fill="none" stroke="#10b981" strokeWidth={1} opacity={0.4}>
+                  <line x1={200} y1={45} x2={200} y2={280} strokeWidth={1.5} />
+                  <path d="M200,75 Q176,84 162,100" />
+                  <path d="M200,75 Q224,84 238,100" />
+                  <path d="M200,105 Q170,116 154,136" />
+                  <path d="M200,105 Q230,116 246,136" />
+                  <path d="M200,135 Q168,150 152,185" />
+                  <path d="M200,135 Q232,150 248,185" />
+                  <path d="M200,170 Q168,190 154,235" />
+                  <path d="M200,170 Q232,190 246,235" />
+                  <line x1={188} y1={270} x2={174} y2={370} />
+                  <line x1={212} y1={270} x2={226} y2={370} />
                 </g>
               )}
 
-              <g fill="none" stroke={outlineStroke} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.6}>
+              <g fill="none" stroke={outlineStroke} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" opacity={0.45}>
                 <HumanoidShape />
               </g>
 
               {!isHarm && (
                 <circle
                   cx={200}
-                  cy={52}
+                  cy={26}
                   r={22}
                   fill="none"
                   stroke="#10b981"
                   strokeWidth={0.75}
-                  strokeDasharray="3,3"
+                  strokeDasharray="4,3"
                   className="animate-spin"
-                  style={{ animationDuration: "20s" }}
+                  style={{ animationDuration: "18s" }}
                 />
               )}
 
