@@ -10,40 +10,31 @@ export type BodyImpactItem = {
 type Variant = "damage" | "benefit";
 
 const HumanoidShape = () => (
-  <g>
-    <circle cx="200" cy="52" r="16" />
-    <line x1="200" y1="68" x2="200" y2="78" strokeWidth={3} />
-    <path d="M168,92 C185,84 215,84 232,92 L224,145 L176,145 Z" />
-    <path d="M176,145 L180,205 C190,208 210,208 220,205 L224,145 Z" />
-    <path d="M168,92 L150,145 L144,195" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M232,92 L250,145 L256,195" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M183,206 L181,290 L183,375" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M217,206 L219,290 L221,375" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" />
-  </g>
+  <path d="M200,42 C209,42 216,35 216,26 C216,17 209,10 200,10 C191,10 184,17 184,26 C184,35 191,42 200,42 Z M188,48 C166,51 154,62 142,80 C134,92 122,118 116,155 C112,175 116,180 122,180 C128,180 131,170 134,155 C140,128 152,100 164,88 L164,175 C164,215 158,255 154,295 L132,380 C128,396 136,405 145,405 C154,405 162,392 168,365 L186,280 L190,280 L190,440 C190,448 196,450 200,450 C204,450 210,448 210,440 L210,280 L214,280 L232,365 C238,392 246,405 255,405 C264,405 272,396 268,380 L246,295 C242,255 236,215 236,175 L236,88 C248,100 260,128 266,155 C269,170 272,180 278,180 C284,180 288,175 284,155 C278,118 266,92 258,80 C246,62 234,51 212,48 Z" />
 );
 
 const ORGAN_POS: Record<string, { x: number; y: number; r: number; label: string }> = {
-  brain:      { x: 200, y: 52,  r: 14, label: "BRAIN" },
-  eyes:       { x: 200, y: 50,  r: 10, label: "EYES" },
-  mouth:      { x: 200, y: 64,  r: 9,  label: "MOUTH" },
-  teeth:      { x: 200, y: 64,  r: 9,  label: "TEETH" },
-  throat:     { x: 200, y: 80,  r: 9,  label: "THROAT" },
-  thyroid:    { x: 200, y: 86,  r: 9,  label: "THYROID" },
-  lungs:      { x: 200, y: 108, r: 18, label: "LUNGS" },
-  heart:      { x: 200, y: 115, r: 14, label: "HEART" },
-  liver:      { x: 188, y: 148, r: 14, label: "LIVER" },
-  stomach:    { x: 210, y: 155, r: 16, label: "STOMACH" },
-  pancreas:   { x: 200, y: 170, r: 11, label: "PANCREAS" },
-  spleen:     { x: 220, y: 160, r: 10, label: "SPLEEN" },
-  kidneys:    { x: 200, y: 188, r: 14, label: "KIDNEYS" },
-  intestines: { x: 200, y: 200, r: 18, label: "INTESTINES" },
-  colon:      { x: 200, y: 205, r: 16, label: "COLON" },
-  bladder:    { x: 200, y: 220, r: 10, label: "BLADDER" },
-  skin:       { x: 200, y: 180, r: 22, label: "SKIN" },
-  bones:      { x: 200, y: 180, r: 22, label: "BONES" },
-  muscles:    { x: 200, y: 180, r: 22, label: "MUSCLES" },
-  joints:     { x: 200, y: 280, r: 11, label: "JOINTS" },
-  nerves:     { x: 200, y: 180, r: 20, label: "NERVES" },
+  brain:      { x: 200, y: 26,  r: 14, label: "BRAIN" },
+  eyes:       { x: 200, y: 24,  r: 10, label: "EYES" },
+  mouth:      { x: 200, y: 38,  r: 9,  label: "MOUTH" },
+  teeth:      { x: 200, y: 38,  r: 9,  label: "TEETH" },
+  throat:     { x: 200, y: 58,  r: 9,  label: "THROAT" },
+  thyroid:    { x: 200, y: 68,  r: 9,  label: "THYROID" },
+  lungs:      { x: 200, y: 105, r: 22, label: "LUNGS" },
+  heart:      { x: 200, y: 115, r: 16, label: "HEART" },
+  liver:      { x: 184, y: 158, r: 16, label: "LIVER" },
+  stomach:    { x: 212, y: 165, r: 18, label: "STOMACH" },
+  pancreas:   { x: 200, y: 185, r: 12, label: "PANCREAS" },
+  spleen:     { x: 224, y: 172, r: 11, label: "SPLEEN" },
+  kidneys:    { x: 200, y: 205, r: 16, label: "KIDNEYS" },
+  intestines: { x: 200, y: 230, r: 22, label: "INTESTINES" },
+  colon:      { x: 200, y: 240, r: 20, label: "COLON" },
+  bladder:    { x: 200, y: 265, r: 11, label: "BLADDER" },
+  skin:       { x: 200, y: 200, r: 26, label: "SKIN" },
+  bones:      { x: 200, y: 200, r: 26, label: "BONES" },
+  muscles:    { x: 200, y: 200, r: 26, label: "MUSCLES" },
+  joints:     { x: 200, y: 340, r: 12, label: "JOINTS" },
+  nerves:     { x: 200, y: 200, r: 24, label: "NERVES" },
 };
 
 const normalize = (p: string) => {
@@ -124,43 +115,43 @@ export function BodyImpactMap({
             </span>
           </div>
 
-          <div className="w-full max-w-[320px] aspect-[4/5] flex justify-center items-center">
+          <div className="w-full max-w-[380px] aspect-[4/5] flex justify-center items-center">
             <svg
-              viewBox="0 0 400 400"
+              viewBox="0 0 400 460"
               preserveAspectRatio="xMidYMid meet"
-              className={`w-full h-full ${isHarm ? "drop-shadow-[0_0_10px_rgba(59,130,246,0.1)]" : "drop-shadow-[0_0_12px_rgba(16,185,129,0.2)]"}`}
+              className={`w-full h-full ${isHarm ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "drop-shadow-[0_0_15px_rgba(16,185,129,0.25)]"}`}
             >
               {!isHarm && (
-                <g fill="none" stroke="#10b981" strokeWidth={1} opacity={0.35}>
-                  <line x1={200} y1={70} x2={200} y2={235} strokeWidth={1.5} />
-                  <path d="M200,95 Q182,102 172,115" />
-                  <path d="M200,95 Q218,102 228,115" />
-                  <path d="M200,115 Q178,125 166,142" />
-                  <path d="M200,115 Q222,125 234,142" />
-                  <path d="M200,135 Q178,148 165,175" />
-                  <path d="M200,135 Q222,148 235,175" />
-                  <path d="M200,155 Q178,170 166,205" />
-                  <path d="M200,155 Q222,170 234,205" />
-                  <line x1={192} y1={210} x2={184} y2={335} />
-                  <line x1={208} y1={210} x2={216} y2={335} />
+                <g fill="none" stroke="#10b981" strokeWidth={1} opacity={0.4}>
+                  <line x1={200} y1={45} x2={200} y2={280} strokeWidth={1.5} />
+                  <path d="M200,75 Q176,84 162,100" />
+                  <path d="M200,75 Q224,84 238,100" />
+                  <path d="M200,105 Q170,116 154,136" />
+                  <path d="M200,105 Q230,116 246,136" />
+                  <path d="M200,135 Q168,150 152,185" />
+                  <path d="M200,135 Q232,150 248,185" />
+                  <path d="M200,170 Q168,190 154,235" />
+                  <path d="M200,170 Q232,190 246,235" />
+                  <line x1={188} y1={270} x2={174} y2={370} />
+                  <line x1={212} y1={270} x2={226} y2={370} />
                 </g>
               )}
 
-              <g fill="none" stroke={outlineStroke} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.6}>
+              <g fill="none" stroke={outlineStroke} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" opacity={0.45}>
                 <HumanoidShape />
               </g>
 
               {!isHarm && (
                 <circle
                   cx={200}
-                  cy={52}
+                  cy={26}
                   r={22}
                   fill="none"
                   stroke="#10b981"
                   strokeWidth={0.75}
-                  strokeDasharray="3,3"
+                  strokeDasharray="4,3"
                   className="animate-spin"
-                  style={{ animationDuration: "20s" }}
+                  style={{ animationDuration: "18s" }}
                 />
               )}
 
