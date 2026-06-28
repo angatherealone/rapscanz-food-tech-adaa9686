@@ -18,6 +18,7 @@ import { ScanFeedback } from "@/components/ScanFeedback";
 import { MiniScannerLoader } from "@/components/MiniScannerLoader";
 import bodyTeaserImg from "@/assets/body-map-teaser.jpg";
 import { Link } from "@tanstack/react-router";
+import { looksLikeGs1, parseGs1 } from "@/lib/gs1";
 
 
 // ---- Local / in-store barcode (GS1 Restricted Distribution Numbers) ----
@@ -223,8 +224,15 @@ function ScanPage() {
         if (!imageDataUrl) throw new Error("Upload a photo of the label first.");
         return analyzeFn({ data: { scanType: "ingredients", imageDataUrl, ...trialArg } });
       }
-      const code = barcode.trim();
+      let code = barcode.trim();
       if (!code) throw new Error("Enter a barcode number.");
+      // GS1 DataMatrix (medicine pack): extract & validate the GTIN before lookup.
+      if (looksLikeGs1(code)) {
+        const p = parseGs1(code);
+        if (!p.gtin) throw new Error(p.errors.join("; ") || "Couldn't read a GTIN from that GS1 string.");
+        if (!p.ok) throw new Error(p.errors.join("; "));
+        code = p.gtin.replace(/^0+(?=\d{13})/, ""); // drop a leading 0 so EAN-13 lookups work
+      }
       if (isLocalBarcode(code)) {
         // Bypass global API entirely — handled client-side.
         handleLocalBarcode(code);
@@ -382,11 +390,38 @@ function ScanPage() {
 
           <TabsContent value="barcode" className="mt-4">
             <Input
-              placeholder="e.g. 8901058851234  (Enter to scan)"
+              placeholder="e.g. 8901058851234 — or paste a GS1 DataMatrix like (01)08901117001234(17)281231(10)BCH9876(21)SN123"
               value={barcode}
-              onChange={(e) => setBarcode(e.target.value.replace(/\s+/g, "").replace(/\D/g, ""))}
-              inputMode="numeric"
+              onChange={(e) => {
+                const v = e.target.value.trim();
+                // Allow GS1 DataMatrix strings verbatim (parentheses / FNC1).
+                // For plain barcodes, strip spaces & non-digits as before.
+                if (/[()\u001d]/.test(v) || /^01\d{14}/.test(v.replace(/\s+/g, ""))) {
+                  setBarcode(v);
+                } else {
+                  setBarcode(v.replace(/\s+/g, "").replace(/\D/g, ""));
+                }
+              }}
+              inputMode="text"
             />
+            {looksLikeGs1(barcode) && (() => {
+              const p = parseGs1(barcode);
+              return (
+                <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-xs">
+                  <div className="font-semibold text-foreground">GS1 DataMatrix detected</div>
+                  <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                    {p.gtin && <div><span className="text-foreground">GTIN:</span> {p.gtin}</div>}
+                    {p.expiry && <div><span className="text-foreground">Expiry:</span> {p.expiry}</div>}
+                    {p.batch && <div><span className="text-foreground">Batch:</span> {p.batch}</div>}
+                    {p.serial && <div><span className="text-foreground">Serial:</span> {p.serial}</div>}
+                  </div>
+                  {!p.ok && p.errors.length > 0 && (
+                    <div className="mt-1 text-destructive">{p.errors.join("; ")}</div>
+                  )}
+                  <div className="mt-1 text-[11px] text-muted-foreground">We'll look up the GTIN ({p.gtin ?? "—"}) in the GS1/OFF/openFDA registries.</div>
+                </div>
+              );
+            })()}
             {isLocalBarcode(barcode) && (
               <div className="mt-3 flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
                 <Store className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
@@ -399,7 +434,7 @@ function ScanPage() {
               </div>
             )}
             <p className="mt-2 text-xs text-muted-foreground">
-              EAN-8, UPC-A, EAN-13 or ITF-14. We strip spaces, auto-retry 12-digit UPCs as 13-digit EANs, then look it up across Open Food Facts and UPCitemdb — including Indian, Egyptian & international brands. If the databases come up empty, our AI Registry Lookup uses the full GS1 country + manufacturer prefix to pin the exact parent company and sister brand.
+              EAN-8, UPC-A, EAN-13, ITF-14, or a full GS1 DataMatrix string from medicine packaging (AIs 01/17/10/21). We extract the GTIN, validate the check digit & expiry, then look it up across Open Food Facts, openFDA and UPCitemdb — covering Indian and international treats &amp; bars (Naturo, Amul, Cadbury, Hershey's, Nestlé, Mondelez, etc.) and prescription/OTC medicines.
             </p>
 
           </TabsContent>
