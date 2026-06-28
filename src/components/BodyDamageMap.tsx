@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ORGAN_ART, ORGAN_FALLBACK } from "@/components/OrganDetail";
+import anatomyFigure from "@/assets/anatomy-figure.jpg";
+
 
 export type BodyDamage = {
   part: string;
@@ -112,20 +114,21 @@ function normalizePart(p: string): string {
  *  shoulders/rib cage, abdominal organs stay above the pelvis, and systemic
  *  targets (skin/bones) render as full-body overlays instead of single icons. */
 const ORGAN_POS: Record<string, { cx: number; cy: number; scale: number }> = {
-  brain:      { cx: 200, cy: 76,  scale: 0.34 }, // centered inside cranium
-  eyes:       { cx: 200, cy: 91,  scale: 0.16 }, // face/orbital band
-  teeth:      { cx: 200, cy: 112, scale: 0.16 }, // mouth/jaw
-  throat:     { cx: 200, cy: 142, scale: 0.18 }, // neck/trachea
-  lungs:      { cx: 200, cy: 230, scale: 0.60 }, // large paired lungs inside rib cage
-  heart:      { cx: 194, cy: 254, scale: 0.31 }, // slightly patient-left, between lungs
-  liver:      { cx: 170, cy: 329, scale: 0.43 }, // patient-right upper abdomen (viewer-left)
-  stomach:    { cx: 226, cy: 333, scale: 0.32 }, // patient-left upper abdomen
-  pancreas:   { cx: 203, cy: 360, scale: 0.29 }, // central transverse abdomen
-  kidneys:    { cx: 200, cy: 372, scale: 0.38 }, // paired mid-back below rib cage
-  intestines: { cx: 200, cy: 438, scale: 0.54 }, // lower abdomen / pelvic basin
-  skin:       { cx: 200, cy: 320, scale: 1 },
-  bones:      { cx: 200, cy: 320, scale: 1 },
+  brain:      { cx: 200, cy: 108, scale: 0.30 },
+  eyes:       { cx: 200, cy: 130, scale: 0.14 },
+  teeth:      { cx: 200, cy: 152, scale: 0.14 },
+  throat:     { cx: 200, cy: 178, scale: 0.16 },
+  lungs:      { cx: 200, cy: 258, scale: 0.52 },
+  heart:      { cx: 192, cy: 272, scale: 0.28 },
+  liver:      { cx: 174, cy: 332, scale: 0.40 },
+  stomach:    { cx: 224, cy: 332, scale: 0.30 },
+  pancreas:   { cx: 200, cy: 368, scale: 0.28 },
+  kidneys:    { cx: 200, cy: 388, scale: 0.36 },
+  intestines: { cx: 200, cy: 432, scale: 0.48 },
+  skin:       { cx: 200, cy: 360, scale: 1 },
+  bones:      { cx: 200, cy: 360, scale: 1 },
 };
+
 
 /** Clean medical anatomical silhouette based on the user's reference: upright
  *  body, long arms, narrower waist, organs contained inside the chest/abdomen. */
@@ -490,41 +493,38 @@ export function BodyDamageMap({
           aria-label="Bio-scanner body silhouette"
         >
           <defs>
-            <radialGradient id="bdm-body-glass" cx="50%" cy="40%" r="70%">
-              <stop offset="0%" stopColor="#1e3a8a" stopOpacity="0.55" />
-              <stop offset="55%" stopColor="#0c1e54" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#020617" stopOpacity="0.92" />
-            </radialGradient>
-            <linearGradient id="bdm-body-rim" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#00f2fe" stopOpacity="1" />
-              <stop offset="100%" stopColor="#00b4d8" stopOpacity="0.6" />
-            </linearGradient>
-            <filter id="bdm-body-aura" x="-20%" y="-10%" width="140%" height="120%">
-              <feGaussianBlur stdDeviation="3.5" />
-            </filter>
             <pattern id="bdm-body-grid" width="18" height="18" patternUnits="userSpaceOnUse">
               <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#00f2fe" strokeOpacity="0.18" strokeWidth="0.3" />
             </pattern>
+            <filter id="bdm-body-aura" x="-10%" y="-5%" width="120%" height="110%">
+              <feGaussianBlur stdDeviation="6" />
+            </filter>
+            <linearGradient id="bdm-body-tint" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.18" />
+              <stop offset="100%" stopColor={variant === "benefit" ? "#22c55e" : "#0ea5e9"} stopOpacity="0.12" />
+            </linearGradient>
           </defs>
 
-          {/* Outer neon turquoise aura (blurred outline) */}
-          <path d={BODY_OUTLINE} fill="none" stroke="#00f2fe" strokeWidth="3" opacity="0.55" filter="url(#bdm-body-aura)" />
-          {/* Deep blue glass body fill */}
-          <path d={BODY_OUTLINE} fill="url(#bdm-body-glass)" />
-          {/* Grid wash inside body (clipped) */}
-          <clipPath id="bdm-body-clip"><path d={BODY_OUTLINE} /></clipPath>
-          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" clipPath="url(#bdm-body-clip)" opacity="0.55" />
-          {/* Crisp neon turquoise outer rim */}
-          <path d={BODY_OUTLINE} fill="none" stroke="#00f2fe" strokeWidth="1.6" opacity="0.95" />
-          {/* Soft inner rim highlight */}
-          <path d={BODY_OUTLINE} fill="none" stroke="url(#bdm-body-rim)" strokeWidth="0.6" opacity="0.7" />
+          {/* Outer turquoise aura glow behind the figure */}
+          <rect x="40" y="20" width="320" height="680" rx="160" fill="#00f2fe" opacity="0.18" filter="url(#bdm-body-aura)" />
 
-          {/* Subtle anatomical zones so organs visually sit in the correct cavities. */}
-          <path d={CHEST_CAVITY} fill="none" stroke="#67e8f9" strokeWidth="0.8" strokeOpacity="0.18" strokeDasharray="4 7" />
-          <path d={ABDOMEN_CAVITY} fill="none" stroke="#67e8f9" strokeWidth="0.8" strokeOpacity="0.14" strokeDasharray="4 7" />
+          {/* Realistic anatomical figure */}
+          <image
+            href={anatomyFigure}
+            x="0" y="0" width="400" height="720"
+            preserveAspectRatio="xMidYMid meet"
+            style={{ filter: "drop-shadow(0 0 18px rgba(0,242,254,0.45))" }}
+          />
+
+          {/* Subtle scanner tint over figure */}
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-tint)" style={{ mixBlendMode: "screen" }} />
+
+          {/* Diagnostic grid wash */}
+          <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-grid)" opacity="0.35" />
 
           {/* Centerline scan accent */}
-          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.12" strokeWidth="0.5" strokeDasharray="3 5" />
+          <line x1="200" y1="20" x2="200" y2="700" stroke="#22d3ee" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 5" />
+
 
           {/* Full-body overlays for systemic targets. */}
           {(["skin", "bones"] as const).map((key) => {
