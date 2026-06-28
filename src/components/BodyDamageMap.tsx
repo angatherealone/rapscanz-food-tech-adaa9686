@@ -510,11 +510,12 @@ export function BodyDamageMap({
 
           {/* Realistic anatomical figure */}
           <image
-            href={anatomyFigure}
+            href={anatomySilhouette.url}
             x="0" y="0" width="400" height="720"
-            preserveAspectRatio="xMidYMid meet"
-            style={{ filter: "drop-shadow(0 0 18px rgba(0,242,254,0.45))" }}
+            preserveAspectRatio="none"
+            style={{ filter: "drop-shadow(0 0 18px rgba(0,242,254,0.55)) drop-shadow(0 0 36px rgba(0,242,254,0.35))", mixBlendMode: "multiply" }}
           />
+
 
           {/* Subtle scanner tint over figure */}
           <rect x="0" y="0" width="400" height="720" fill="url(#bdm-body-tint)" style={{ mixBlendMode: "screen" }} />
