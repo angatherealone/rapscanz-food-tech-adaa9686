@@ -247,58 +247,9 @@ export function BodyImpactMap({
             </div>
           )}
 
-          {active.damageScore && (
-            <div className="bg-red-950/30 border border-red-800 rounded-lg p-4">
-              <div className="text-red-400 text-xs uppercase mb-1">
-                Damage Rating
-              </div>
-              <div className="text-4xl font-bold text-white">
-                {active.damageScore}/10
-              </div>
-            </div>
-          )}
-        </div>
-
+        
         <div className="space-y-4">
 
-          {active.causes && active.causes.length > 0 && (
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
-              <h3 className="text-sm font-semibold text-white mb-2">
-                Causes
-              </h3>
-              <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
-                {active.causes.map((cause, index) => (
-                  <li key={index}>{cause}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {active.effects && active.effects.length > 0 && (
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-800">
-              <h3 className="text-sm font-semibold text-white mb-2">
-                Effects
-              </h3>
-              <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
-                {active.effects.map((effect, index) => (
-                  <li key={index}>{effect}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {active.recommendations &&
-            active.recommendations.length > 0 && (
-              <div className="bg-emerald-950/30 border border-emerald-800 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-emerald-400 mb-2">
-                  Recommendations
-                </h3>
-                <ul className="list-disc list-inside text-slate-300 text-sm space-y-1">
-                  {active.recommendations.map((rec, index) => (
-                    <li key={index}>{rec}</li>
-                  ))}
-                </ul>
-              </div>
             )}
         </div>
 
