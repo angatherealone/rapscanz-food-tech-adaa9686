@@ -397,29 +397,23 @@ function ScanPage() {
               }}
               inputMode="text"
             />
-            {(() => {
-              try {
-                // Lazy-detect GS1 payloads and surface the parsed pharmacy fields.
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const { looksLikeGs1, parseGs1 } = require("@/lib/gs1") as typeof import("@/lib/gs1");
-                if (!looksLikeGs1(barcode)) return null;
-                const p = parseGs1(barcode);
-                return (
-                  <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-xs">
-                    <div className="font-semibold text-foreground">GS1 DataMatrix detected</div>
-                    <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
-                      {p.gtin && <div><span className="text-foreground">GTIN:</span> {p.gtin}</div>}
-                      {p.expiry && <div><span className="text-foreground">Expiry:</span> {p.expiry}</div>}
-                      {p.batch && <div><span className="text-foreground">Batch:</span> {p.batch}</div>}
-                      {p.serial && <div><span className="text-foreground">Serial:</span> {p.serial}</div>}
-                    </div>
-                    {!p.ok && p.errors.length > 0 && (
-                      <div className="mt-1 text-destructive">{p.errors.join("; ")}</div>
-                    )}
-                    <div className="mt-1 text-[11px] text-muted-foreground">We'll look up the GTIN ({p.gtin ?? "—"}) in the GS1/OFF/openFDA registries.</div>
+            {looksLikeGs1(barcode) && (() => {
+              const p = parseGs1(barcode);
+              return (
+                <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-xs">
+                  <div className="font-semibold text-foreground">GS1 DataMatrix detected</div>
+                  <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                    {p.gtin && <div><span className="text-foreground">GTIN:</span> {p.gtin}</div>}
+                    {p.expiry && <div><span className="text-foreground">Expiry:</span> {p.expiry}</div>}
+                    {p.batch && <div><span className="text-foreground">Batch:</span> {p.batch}</div>}
+                    {p.serial && <div><span className="text-foreground">Serial:</span> {p.serial}</div>}
                   </div>
-                );
-              } catch { return null; }
+                  {!p.ok && p.errors.length > 0 && (
+                    <div className="mt-1 text-destructive">{p.errors.join("; ")}</div>
+                  )}
+                  <div className="mt-1 text-[11px] text-muted-foreground">We'll look up the GTIN ({p.gtin ?? "—"}) in the GS1/OFF/openFDA registries.</div>
+                </div>
+              );
             })()}
             {isLocalBarcode(barcode) && (
               <div className="mt-3 flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
