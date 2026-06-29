@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "sonner";
 import { Camera, FileText, Barcode, AlertTriangle, ThumbsUp, ThumbsDown, Sparkles, Upload, X, Flame, Utensils, Heart, PersonStanding, Store, Trash2, Lock } from "lucide-react";
 import { HealthScore } from "@/components/HealthScore";
-import { BodyImpactMap } from "@/components/BodyImpactMap";
+
 
 import { ScanFeedback } from "@/components/ScanFeedback";
 import { MiniScannerLoader } from "@/components/MiniScannerLoader";
@@ -810,31 +810,6 @@ function ScanPage() {
                 </Card>
               )}
 
-              <Card className="p-5">
-                <div className="mb-1 flex items-center gap-2 font-display text-lg font-semibold">
-                  <PersonStanding className="h-5 w-5 text-primary" /> Body-impact map
-                  <span className="chip ml-auto bg-primary/15 text-primary">Pro Max</span>
-                </div>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Exact anatomical view of which organs this product affects. Tap any glowing organ for details.
-                </p>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6">
-                  <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-destructive">
-                      <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
-                      Harms — organs at risk
-                    </div>
-                    <BodyImpactMap items={result.bodyDamage ?? []} variant="damage" />
-                  </div>
-                  <div className="rounded-xl border border-success/30 bg-success/5 p-4">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
-                      <span className="inline-block h-2 w-2 rounded-full bg-success" />
-                      Benefits — organs that gain
-                    </div>
-                    <BodyImpactMap items={result.bodyBenefit ?? []} variant="benefit" />
-                  </div>
-                </div>
-              </Card>
             </>
           ) : (
             <TierLockCard tier="pro_max" blurb="Unlock dietary classification (Veg / Non-Veg / Vegan), over-consumption risk profile, body-impact map, and chemical formulas." />
