@@ -446,7 +446,7 @@ function ScanPage() {
           const TIER_META: Record<"pro" | "pro_plus" | "pro_max", { label: string; unlocks: string[] }> = {
             pro: { label: "Pro", unlocks: ["Estimated % per additive", "Body-impact map"] },
             pro_plus: { label: "Pro+", unlocks: ["Safe consumption guide (WHO/FDA limits)", "% per additive", "Body-impact map"] },
-            pro_max: { label: "Pro Max", unlocks: ["Body-impact map (organ-by-organ)", "Over-consumption risk profile", "Veg / Non-veg / Vegan tag", "Safe consumption guide", "% + chemical formula + scientific name per additive"] },
+            pro_max: { label: "Pro Max", unlocks: ["Over-consumption risk profile", "Veg / Non-veg / Vegan tag", "Safe consumption guide", "% + chemical formula + scientific name per additive"] },
           };
           const tiers = (["pro", "pro_plus", "pro_max"] as const).filter((t) => (trialRemaining[t] ?? 0) > 0);
           if (!tiers.length) return null;
