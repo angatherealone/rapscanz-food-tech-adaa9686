@@ -915,9 +915,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
       if (cached && (cached as any).result) {
         const cachedResult = (cached as any).result as ScanResult;
         const lookup = await lookupBarcode(data.barcode);
-        if (lookup) {
-          await applyRuleBasedBodyImpact(cachedResult, lookup);
-        }
+        void lookup;
         const { data: inserted } = await supabase.from("scans").insert({
           user_id: userId,
           product_name: cachedResult.productName,
@@ -1016,9 +1014,7 @@ export const analyzeScan = createServerFn({ method: "POST" })
         if (lookup.brand) result.brand = lookup.brand;
         if (lookup.parentCompany) result.parentCompany = lookup.parentCompany;
         if (lookup.category) result.category = lookup.category;
-
-        // Rule-based organ impact from registry ingredients + OFF nutriments.
-        await applyRuleBasedBodyImpact(result, lookup);
+      
       }
     }
 
