@@ -14,10 +14,9 @@ const TIER_LABEL: Record<Tier, string> = {
 };
 
 const TIER_UNLOCKS: Record<Tier, string[]> = {
-  pro: ["Estimated % per additive", "Body-impact map"],
-  pro_plus: ["Safe consumption guide (WHO/FDA limits)", "% per additive", "Body-impact map"],
+  pro: ["Estimated % per additive"],
+  pro_plus: ["Safe consumption guide (WHO/FDA limits)", "% per additive"],
   pro_max: [
-    "Body-impact map (organ-by-organ)",
     "Over-consumption risk profile",
     "Veg / Non-veg / Vegan classification",
     "Safe consumption guide",

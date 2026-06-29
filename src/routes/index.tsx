@@ -198,8 +198,7 @@ function Landing() {
               <ul className="mt-6 space-y-3 text-sm">
                 {[
                   "40 scans per month",
-                  "3D body-damage visualisation",
-                  "See which organs the product harms",
+                  "Over-consumption risk profile",
                   "Everything in Pro+",
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> {f}</li>
